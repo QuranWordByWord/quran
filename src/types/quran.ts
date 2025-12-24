@@ -24,6 +24,8 @@ export interface Word {
   text_uthmani: string;
   text_indopak: string;
   text: string;
+  line_number?: number;
+  page_number?: number;
   translation: {
     text: string;
     language_name: string;

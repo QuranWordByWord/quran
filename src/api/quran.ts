@@ -8,9 +8,13 @@ import type {
 } from '../types/quran';
 
 const BASE_URL = 'https://api.quran.com/api/v4';
+const QDC_BASE_URL = 'https://api.qurancdn.com/api/qdc';
 
 // Default translation ID (Sahih International)
 const DEFAULT_TRANSLATION = 131;
+
+// Mushaf IDs
+const MUSHAF_QPC_NASTALEEQ_15 = 14; // QPC Hafs Nastaleeq 15 lines (604 pages)
 
 async function fetchApi<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`);
@@ -75,7 +79,7 @@ export async function searchQuran(
   query: string,
   page: number = 1,
   perPage: number = 20,
-  translationId: number = DEFAULT_TRANSLATION
+  _translationId: number = DEFAULT_TRANSLATION
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({
     q: query,
@@ -94,7 +98,7 @@ export async function getReciters(): Promise<RecitersResponse> {
 
 // Get audio URL for a verse
 export function getVerseAudioUrl(
-  reciterId: number,
+  _reciterId: number,
   verseKey: string
 ): string {
   // Format: https://verses.quran.com/{reciterId}/{verseKey}.mp3
@@ -111,3 +115,23 @@ export function buildAudioUrl(relativePath: string | null): string | null {
   if (relativePath.startsWith('http')) return relativePath;
   return `https://audio.qurancdn.com/${relativePath}`;
 }
+
+// Get verses by Mushaf page number (for QPC Hafs Nastaleeq 15-line layout)
+export async function getVersesByPage(
+  pageNumber: number
+): Promise<VersesResponse> {
+  const params = new URLSearchParams({
+    mushaf: MUSHAF_QPC_NASTALEEQ_15.toString(),
+    words: 'true',
+    per_page: '50',
+  });
+
+  const response = await fetch(`${QDC_BASE_URL}/verses/by_page/${pageNumber}?${params}`);
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+  return response.json();
+}
+
+// Total pages in QPC Hafs Nastaleeq 15 lines Mushaf
+export const TOTAL_MUSHAF_PAGES = 604;

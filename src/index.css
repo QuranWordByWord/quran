@@ -2,7 +2,7 @@
 
 /* Custom CSS variables */
 @theme {
-  --font-arabic: 'Noto Nastaliq Urdu', serif;
+  --font-arabic: 'KFGQPC Nastaleeq', 'KFGQPC', 'Noto Nastaliq Urdu', serif;
   --color-primary: #1e3a5f;
   --color-primary-light: #2d5a8b;
   --color-accent: #c9a227;
@@ -18,12 +18,19 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--color-bg-light);
   color: var(--color-text-primary);
   min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+#root {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Arabic text styling */

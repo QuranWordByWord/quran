@@ -79,17 +79,17 @@ export function ChapterView({
   }
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto h-[calc(100vh-64px)]">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex-1 px-2 py-3 sm:p-4 md:p-6 overflow-y-auto overflow-x-hidden h-[calc(100vh-64px)]">
+      <div className="max-w-4xl mx-auto w-full">
         {/* Chapter Header */}
-        <div className="text-center mb-8">
-          <h1 className="arabic-text text-4xl text-[var(--color-primary)] mb-2">
+        <div className="text-center mb-4 sm:mb-6 md:mb-8 bg-[var(--color-primary)] text-white py-4 sm:py-6 rounded-lg sm:rounded-xl -mx-2 sm:mx-0">
+          <h1 className="arabic-text text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
             {chapter.name_arabic}
           </h1>
-          <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">
             {chapter.name_simple}
           </h2>
-          <p className="text-[var(--color-text-secondary)] mt-1">
+          <p className="text-white/80 mt-1 text-xs sm:text-sm">
             {chapter.translated_name.name} • {chapter.verses_count} verses •{' '}
             {chapter.revelation_place === 'makkah' ? 'Meccan' : 'Medinan'}
           </p>
@@ -97,15 +97,15 @@ export function ChapterView({
 
         {/* Bismillah (if not Al-Fatiha or At-Tawbah) */}
         {chapter.bismillah_pre && (
-          <div className="text-center mb-8">
-            <span className="arabic-text text-3xl text-[var(--color-primary)]">
+          <div className="text-center mb-4 sm:mb-6 md:mb-8 py-3 sm:py-4 bg-gray-50 rounded-lg -mx-2 sm:mx-0">
+            <span className="arabic-text text-xl sm:text-2xl md:text-3xl text-[var(--color-primary)]">
               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
             </span>
           </div>
         )}
 
         {/* Verses */}
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-4 md:space-y-6 pb-20 md:pb-4">
           {verses.map((verse) => (
             <VerseCard
               key={verse.id}
