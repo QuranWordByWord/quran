@@ -1,0 +1,119 @@
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { buildAudioUrl, getVerseAudioUrl } from '../api/quran';
+
+interface UseAudioResult {
+  isPlaying: boolean;
+  currentUrl: string | null;
+  duration: number;
+  currentTime: number;
+  playWord: (audioUrl: string | null) => void;
+  playVerse: (verseKey: string) => void;
+  pause: () => void;
+  stop: () => void;
+  seek: (time: number) => void;
+}
+
+export function useAudio(): UseAudioResult {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio();
+
+    const audio = audioRef.current;
+
+    audio.addEventListener('ended', () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      setCurrentTime(audio.currentTime);
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      setDuration(audio.duration);
+    });
+
+    audio.addEventListener('play', () => {
+      setIsPlaying(true);
+    });
+
+    audio.addEventListener('pause', () => {
+      setIsPlaying(false);
+    });
+
+    return () => {
+      audio.pause();
+      audio.src = '';
+    };
+  }, []);
+
+  const playUrl = useCallback((url: string) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // If playing the same URL, just resume
+    if (currentUrl === url && audio.paused) {
+      audio.play();
+      return;
+    }
+
+    // Play new URL
+    audio.src = url;
+    audio.load();
+    audio.play();
+    setCurrentUrl(url);
+  }, [currentUrl]);
+
+  const playWord = useCallback((audioUrl: string | null) => {
+    const fullUrl = buildAudioUrl(audioUrl);
+    if (fullUrl) {
+      playUrl(fullUrl);
+    }
+  }, [playUrl]);
+
+  const playVerse = useCallback((verseKey: string) => {
+    // Using Mishary Alafasy recitation (default)
+    const url = getVerseAudioUrl(7, verseKey);
+    playUrl(url);
+  }, [playUrl]);
+
+  const pause = useCallback(() => {
+    audioRef.current?.pause();
+  }, []);
+
+  const stop = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      setCurrentUrl(null);
+      setCurrentTime(0);
+    }
+  }, []);
+
+  const seek = useCallback((time: number) => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.currentTime = time;
+    }
+  }, []);
+
+  return {
+    isPlaying,
+    currentUrl,
+    duration,
+    currentTime,
+    playWord,
+    playVerse,
+    pause,
+    stop,
+    seek,
+  };
+}
