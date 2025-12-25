@@ -130,10 +130,11 @@ export const chapters = chapterApiPages.map(ch => ({
 
 interface ChapterQuickLinksProps {
   side: 'left' | 'right';
+  linkType?: 'page' | 'chapter'; // 'page' navigates to /page/:pageNumber, 'chapter' navigates to /chapter/:chapterId
 }
 
 // Desktop sidebar component - hidden on mobile
-export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
+export function ChapterQuickLinks({ side, linkType = 'page' }: ChapterQuickLinksProps) {
   const navigate = useNavigate();
 
   // Split chapters: 1-57 on left, 58-114 on right
@@ -141,8 +142,12 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
     ? chapters.slice(0, 57)
     : chapters.slice(57);
 
-  const handleChapterClick = (pageNumber: number) => {
-    navigate(`/page/${pageNumber}`);
+  const handleChapterClick = (chapter: typeof chapters[0]) => {
+    if (linkType === 'chapter') {
+      navigate(`/chapter/${chapter.id}`);
+    } else {
+      navigate(`/page/${chapter.page}`);
+    }
   };
 
   return (
@@ -154,7 +159,7 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
         {displayChapters.map((chapter) => (
           <button
             key={chapter.id}
-            onClick={() => handleChapterClick(chapter.page)}
+            onClick={() => handleChapterClick(chapter)}
             className="w-full text-left px-2 py-1 hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-text-header)] text-[var(--color-text-secondary)] transition-colors border-b border-[var(--color-border)] text-xs xl:text-sm"
           >
             {chapter.id}. {chapter.name} ({chapter.verses})

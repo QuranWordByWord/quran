@@ -1,7 +1,7 @@
 import type { Chapter, Verse } from '../types/quran';
 import { VerseCard } from './VerseCard';
 
-interface ChapterViewProps {
+interface MushafViewProps {
   chapter: Chapter | null;
   verses: Verse[];
   loading: boolean;
@@ -10,14 +10,14 @@ interface ChapterViewProps {
   onPlayVerse?: (verseKey: string) => void;
 }
 
-export function ChapterView({
+export function MushafView({
   chapter,
   verses,
   loading,
   error,
   onPlayWord,
   onPlayVerse,
-}: ChapterViewProps) {
+}: MushafViewProps) {
   if (loading) {
     return (
       <div className="flex-1 p-6">

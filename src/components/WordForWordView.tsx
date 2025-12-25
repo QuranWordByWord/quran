@@ -15,7 +15,7 @@ function getWordWeight(word: Word): number {
   return Math.max(len, 2); // Minimum weight of 2
 }
 
-interface MushafPageProps {
+interface WordForWordViewProps {
   verses: Verse[];
   loading: boolean;
   error: Error | null;
@@ -73,7 +73,7 @@ function getJuzName(juzNumber: number): string {
   return juzNames[juzNumber] || `الجزء ${juzNumber}`;
 }
 
-export function MushafPage({
+export function WordForWordView({
   verses,
   loading,
   error,
@@ -84,7 +84,7 @@ export function MushafPage({
   onPlayVerse,
   isAudioActive = false,
   onOpenMenu,
-}: MushafPageProps) {
+}: WordForWordViewProps) {
   const fontClass = useFontClass();
   const { registerScrollContainer } = useMobileNav();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
