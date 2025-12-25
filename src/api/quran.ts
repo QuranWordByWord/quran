@@ -14,7 +14,10 @@ const QDC_BASE_URL = 'https://api.qurancdn.com/api/qdc';
 const DEFAULT_TRANSLATION = 131;
 
 // Mushaf IDs
-const MUSHAF_QPC_NASTALEEQ_15 = 14; // QPC Hafs Nastaleeq 15 lines (604 pages)
+const MUSHAF_QPC_NASTALEEQ_15 = 14; // QPC Hafs Nastaleeq 15 lines (610 pages)
+
+// Total pages in QPC Hafs Nastaleeq 15 lines Mushaf
+export const TOTAL_MUSHAF_PAGES = 610;
 
 async function fetchApi<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`);
@@ -133,5 +136,4 @@ export async function getVersesByPage(
   return response.json();
 }
 
-// Total pages in QPC Hafs Nastaleeq 15 lines Mushaf
-export const TOTAL_MUSHAF_PAGES = 604;
+

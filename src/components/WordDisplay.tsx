@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Word } from '../types/quran';
 
 interface WordDisplayProps {
@@ -11,6 +12,8 @@ export function WordDisplay({
   onPlayAudio,
   showTransliteration = false,
 }: WordDisplayProps) {
+  const [showTranslation, setShowTranslation] = useState(false);
+
   // Skip end markers and pause marks for display
   if (word.char_type_name === 'end') {
     return (
@@ -22,7 +25,15 @@ export function WordDisplay({
     );
   }
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    // Single click toggles translation display
+    if (e.detail === 1) {
+      setShowTranslation(!showTranslation);
+    }
+  };
+
+  const handleDoubleClick = () => {
+    // Double click plays audio
     if (onPlayAudio && word.audio_url) {
       onPlayAudio(word.audio_url);
     }
@@ -31,6 +42,7 @@ export function WordDisplay({
   return (
     <div
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       className={`flex flex-col items-center justify-start p-1 sm:p-2 rounded-lg transition-all shrink-0 ${
         word.audio_url
           ? 'cursor-pointer hover:bg-[var(--color-primary)]/5 active:bg-[var(--color-primary)]/10'
@@ -49,10 +61,12 @@ export function WordDisplay({
         </span>
       )}
 
-      {/* Translation */}
-      <span className="text-[9px] sm:text-xs md:text-sm text-[var(--color-text-secondary)] mt-0.5 sm:mt-1 text-center leading-tight max-w-[60px] sm:max-w-[90px] break-words">
-        {word.translation?.text || ''}
-      </span>
+      {/* Translation - shown on single click */}
+      {showTranslation && (
+        <span className="text-[9px] sm:text-xs md:text-sm text-[var(--color-text-secondary)] mt-0.5 sm:mt-1 text-center leading-tight max-w-[60px] sm:max-w-[90px] break-words">
+          {word.translation?.text || ''}
+        </span>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { Verse, Word } from '../types/quran';
 
 interface MushafPageProps {
@@ -65,6 +65,7 @@ export function MushafPage({
   totalPages,
   onPageChange,
   onPlayWord,
+  onPlayVerse,
 }: MushafPageProps) {
   if (loading) {
     return (
@@ -227,6 +228,7 @@ export function MushafPage({
                             words={line.words}
                             lineNumber={line.lineNumber}
                             onPlayWord={onPlayWord}
+                            onPlayVerse={onPlayVerse}
                           />
                         );
                       }
@@ -327,16 +329,44 @@ function SurahHeader({ surahNumber }: { surahNumber: number }) {
 // Mushaf Line Component - displays one line of text with expand/collapse
 function MushafLine({
   words,
-  onPlayWord
+  onPlayWord,
+  onPlayVerse
 }: {
   words: { word: Word; verseNumber: number; surahNumber: number }[];
   lineNumber: number;
   onPlayWord?: (audioUrl: string | null) => void;
+  onPlayVerse?: (verseKey: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleDoubleClick = () => {
-    setIsExpanded(!isExpanded);
+  const handleClick = () => {
+    // Use timeout to distinguish single click from double click
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      return; // This was a double click, ignore the single click
+    }
+
+    clickTimeoutRef.current = setTimeout(() => {
+      // Single click toggles translation for entire line
+      setIsExpanded(prev => !prev);
+      clickTimeoutRef.current = null;
+    }, 200);
+  };
+
+  const handleWordDoubleClick = (audioUrl: string | null) => {
+    // Cancel any pending single click
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+
+    // Double click: show translations if hidden, then play audio
+    setIsExpanded(true);
+    if (audioUrl) {
+      onPlayWord?.(audioUrl);
+    }
   };
 
   return (
@@ -344,7 +374,7 @@ function MushafLine({
       className={`border-b border-[#e8e0d0] last:border-b-0 cursor-pointer select-none transition-colors duration-200 ${
         isExpanded ? 'bg-[#faf8f2]' : 'hover:bg-[#fdfcf9]'
       }`}
-      onDoubleClick={handleDoubleClick}
+      onClick={handleClick}
     >
       {/* Line of Arabic words - justified across the full width */}
       <div
@@ -356,8 +386,9 @@ function MushafLine({
             key={`${item.word.id}-${idx}`}
             word={item.word}
             verseNumber={item.verseNumber}
-            onPlayWord={onPlayWord}
-            showTranslation={isExpanded}
+            surahNumber={item.surahNumber}
+            onWordDoubleClick={handleWordDoubleClick}
+            onPlayVerse={onPlayVerse}
           />
         ))}
       </div>
@@ -397,29 +428,42 @@ function MushafLine({
 // Word Cell Component
 function WordCell({
   word,
-  onPlayWord,
-  showTranslation = false
+  verseNumber,
+  surahNumber,
+  onWordDoubleClick,
+  onPlayVerse,
 }: {
   word: Word;
   verseNumber: number;
-  onPlayWord?: (audioUrl: string | null) => void;
-  showTranslation?: boolean;
+  surahNumber: number;
+  onWordDoubleClick?: (audioUrl: string | null) => void;
+  onPlayVerse?: (verseKey: string) => void;
 }) {
   const isEndMarker = word.char_type_name === 'end';
 
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    // Stop propagation so line click handler doesn't fire
+    e.stopPropagation();
+    // Double click: show translations and play audio
+    onWordDoubleClick?.(word.audio_url || null);
+  };
+
   const handleClick = (e: React.MouseEvent) => {
-    // Prevent double-click from triggering single click
-    if (e.detail === 1 && word.audio_url) {
-      onPlayWord?.(word.audio_url);
+    // Single click on end marker plays the whole verse
+    if (isEndMarker) {
+      e.stopPropagation();
+      const verseKey = `${surahNumber}:${verseNumber}`;
+      onPlayVerse?.(verseKey);
     }
   };
 
   return (
     <div
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       className={`flex flex-col items-center flex-1 min-w-0 px-0.5 rounded transition-colors ${
-        word.audio_url ? 'cursor-pointer hover:bg-[#f0e8d8] active:bg-[#e8dcc8]' : ''
-      }`}
+        word.audio_url || isEndMarker ? 'hover:bg-[#f0e8d8] active:bg-[#e8dcc8]' : ''
+      } ${isEndMarker ? 'cursor-pointer' : ''}`}
     >
       {/* Arabic Word - using Nastaleeq text from QPC mushaf */}
       <span
