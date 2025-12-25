@@ -1,5 +1,19 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import type { Verse, Word } from '../types/quran';
+import { useFontClass, useVerseNumberFormat } from '../App';
+import { useMobileNav } from '../contexts/MobileNavContext';
+
+
+// Calculate proportional width weight based on word character count
+function getWordWeight(word: Word): number {
+  if (word.char_type_name === 'end') return 10; // Verse markers need more space to avoid overlap
+  const text = word.text || word.text_uthmani || '';
+  // Give extra weight to longer words so they have more space
+  const len = text.length;
+  if (len > 8) return len * 1.3; // Long words get 30% more space
+  if (len > 5) return len * 1.15; // Medium words get 15% more space
+  return Math.max(len, 2); // Minimum weight of 2
+}
 
 interface MushafPageProps {
   verses: Verse[];
@@ -10,6 +24,8 @@ interface MushafPageProps {
   onPageChange: (page: number) => void;
   onPlayWord?: (audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
+  isAudioActive?: boolean;
+  onOpenMenu?: () => void;
 }
 
 // Line content type - can be words, surah header, or bismillah
@@ -66,7 +82,19 @@ export function MushafPage({
   onPageChange,
   onPlayWord,
   onPlayVerse,
+  isAudioActive = false,
+  onOpenMenu,
 }: MushafPageProps) {
+  const fontClass = useFontClass();
+  const { registerScrollContainer } = useMobileNav();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Register scroll container with mobile nav context
+  useEffect(() => {
+    registerScrollContainer(scrollContainerRef.current);
+    return () => registerScrollContainer(null);
+  }, [registerScrollContainer]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 bg-[#f5f0e6]">
@@ -156,57 +184,82 @@ export function MushafPage({
   });
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-64px)] bg-[#f5f0e6]">
-      {/* Mushaf Page Container */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-2 sm:p-4 md:p-6 pb-20 lg:pb-6">
+    <div className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]">
+      {/* Mushaf Page Container with side navigation */}
+      <div className="flex-1 flex items-stretch relative min-h-0 overflow-hidden">
+        {/* Left arrow - Previous page (desktop only) */}
+        <button
+          onClick={() => onPageChange(pageNumber - 1)}
+          disabled={pageNumber <= 1}
+          className="hidden lg:flex items-center justify-center w-16 xl:w-20 bg-[var(--mushaf-arrow-bg)] hover:bg-[var(--mushaf-arrow-hover)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors group"
+          aria-label="Previous page"
+        >
+          <span className="text-3xl xl:text-4xl text-[var(--mushaf-arrow-color)] group-hover:opacity-80 transition-colors">←</span>
+        </button>
+
+        {/* Scrollable content area */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 min-h-0 overflow-y-auto scrollbar-none lg:scrollbar-auto"
+        >
+          <div className={`max-w-4xl mx-auto px-1 py-1 sm:p-4 md:p-6 lg:pb-6 ${isAudioActive ? 'pb-20' : 'pb-4'}`}>
           {/* Outer decorative frame */}
-          <div className="relative bg-[#fffef8] p-1 sm:p-1.5 rounded-sm shadow-xl">
+          <div className="relative bg-[var(--mushaf-frame-bg)] p-1 sm:p-1.5 rounded-sm shadow-xl">
             {/* Olive/Green ornate border - outer */}
-            <div className="relative border-[3px] sm:border-4 border-[#6b8e23] rounded-sm">
+            <div className="relative border-[3px] sm:border-4 border-[var(--mushaf-border)] rounded-sm">
               {/* Corner ornaments - outer */}
-              <div className="absolute -top-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-l-[3px] sm:border-t-4 sm:border-l-4 border-[#6b8e23] rounded-tl-sm" />
-              <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-r-[3px] sm:border-t-4 sm:border-r-4 border-[#6b8e23] rounded-tr-sm" />
-              <div className="absolute -bottom-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-l-[3px] sm:border-b-4 sm:border-l-4 border-[#6b8e23] rounded-bl-sm" />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-r-[3px] sm:border-b-4 sm:border-r-4 border-[#6b8e23] rounded-br-sm" />
+              <div className="absolute -top-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-l-[3px] sm:border-t-4 sm:border-l-4 border-[var(--mushaf-border)] rounded-tl-sm" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-r-[3px] sm:border-t-4 sm:border-r-4 border-[var(--mushaf-border)] rounded-tr-sm" />
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-l-[3px] sm:border-b-4 sm:border-l-4 border-[var(--mushaf-border)] rounded-bl-sm" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-r-[3px] sm:border-b-4 sm:border-r-4 border-[var(--mushaf-border)] rounded-br-sm" />
 
               {/* Inner gold/yellow accent border */}
-              <div className="border-2 border-[#c9a227] m-0.5">
+              <div className="border-2 border-[var(--mushaf-accent)] m-0.5">
                 {/* Innermost content border */}
-                <div className="border border-[#6b8e23] bg-[#fffef8]">
+                <div className="border border-[var(--mushaf-border)] bg-[var(--mushaf-page-bg)]">
 
-                  {/* Page Header */}
-                  <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3 border-b-2 border-[#6b8e23] bg-[#f8f6f0]">
-                    {/* Surah Name - Right side (RTL) */}
-                    <div className="text-right flex-1" style={{ direction: 'rtl' }}>
-                      <span className="arabic-text text-xs sm:text-sm text-[#5d4e37]">
-                        سورة {getSurahNameArabic(lastChapter)}
+                  {/* Page Header - Compact */}
+                  <div className="flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 border-b-2 border-[var(--mushaf-border)] bg-[var(--mushaf-header-bg)]">
+                    {/* Juz Info - Left side of page */}
+                    <div className="text-left flex-1">
+                      <span className="arabic-text text-xs sm:text-sm font-bold text-[var(--mushaf-text-header)]">
+                        {getJuzName(juzNumber)}
+                      </span>
+                      <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)] block">
+                        Juz {juzNumber}
                       </span>
                     </div>
 
                     {/* Page Number - Center */}
-                    <div className="text-center px-4">
-                      <span className="text-base sm:text-xl font-bold text-[#2c4a1e]">
+                    <div className="text-center px-3">
+                      <span className="text-base sm:text-lg font-bold text-[var(--mushaf-text-header)]">
                         {pageNumber}
+                      </span>
+                      <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)]">
+                        {' '}/ {totalPages}
                       </span>
                     </div>
 
-                    {/* Juz Info - Left side (RTL) */}
-                    <div className="text-left flex-1" style={{ direction: 'rtl' }}>
-                      <span className="arabic-text text-xs sm:text-sm text-[#5d4e37]">
-                        {getJuzName(juzNumber)}
+                    {/* Surah Name - Right side of page */}
+                    <div className="text-right flex-1">
+                      <span className="arabic-text text-xs sm:text-sm font-bold text-[var(--mushaf-text-header)]">
+                        سورة {getSurahNameArabic(lastChapter)}
+                      </span>
+                      <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)] block">
+                        {getSurahNameEnglish(lastChapter)}
                       </span>
                     </div>
                   </div>
 
                   {/* Page Content - 15 Lines */}
-                  <div className="p-2 sm:p-4 md:p-5 min-h-[60vh] bg-[#fffef8]">
+                  <div className="p-2 sm:p-4 md:p-5 min-h-[60vh] bg-[var(--mushaf-page-bg)]">
                     {lines.map((line, index) => {
                       if (line.type === 'surah-header') {
                         return (
                           <SurahHeader
                             key={`surah-header-${line.surahNumber}-${index}`}
                             surahNumber={line.surahNumber!}
+                            fontClass={fontClass}
                           />
                         );
                       }
@@ -214,7 +267,7 @@ export function MushafPage({
                       if (line.type === 'bismillah') {
                         return (
                           <div key={`bismillah-${index}`} className="text-center py-2 sm:py-3">
-                            <span className="arabic-text text-lg sm:text-xl md:text-2xl text-[#2c4a1e]">
+                            <span className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl text-[var(--mushaf-text-header)]`}>
                               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                             </span>
                           </div>
@@ -229,6 +282,8 @@ export function MushafPage({
                             lineNumber={line.lineNumber}
                             onPlayWord={onPlayWord}
                             onPlayVerse={onPlayVerse}
+                            fontClass={fontClass}
+                            justified={pageNumber <= 3}
                           />
                         );
                       }
@@ -237,32 +292,6 @@ export function MushafPage({
                     })}
                   </div>
 
-                  {/* Page Footer with navigation */}
-                  <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3 border-t-2 border-[#6b8e23] bg-[#f8f6f0]">
-                    <button
-                      onClick={() => onPageChange(pageNumber - 1)}
-                      disabled={pageNumber <= 1}
-                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base text-[#2c4a1e] hover:bg-[#e8e4d8] rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <span>←</span>
-                      <span className="hidden sm:inline">Previous</span>
-                    </button>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm text-[#5d4e37]">
-                        {pageNumber} / {totalPages}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => onPageChange(pageNumber + 1)}
-                      disabled={pageNumber >= totalPages}
-                      className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base text-[#2c4a1e] hover:bg-[#e8e4d8] rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <span className="hidden sm:inline">Next</span>
-                      <span>→</span>
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -270,24 +299,43 @@ export function MushafPage({
         </div>
       </div>
 
-      {/* Bottom Navigation for Mobile */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex justify-between items-center z-40">
-        <button
-          onClick={() => onPageChange(pageNumber - 1)}
-          disabled={pageNumber <= 1}
-          className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          ← Prev
-        </button>
-        <span className="text-[#5d4e37] font-medium">
-          Page {pageNumber}
-        </span>
+        {/* Right arrow - Next page (desktop only) */}
         <button
           onClick={() => onPageChange(pageNumber + 1)}
           disabled={pageNumber >= totalPages}
-          className="px-4 py-2 bg-[#1e3a5f] text-white rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
+          className="hidden lg:flex items-center justify-center w-16 xl:w-20 bg-[var(--mushaf-arrow-bg)] hover:bg-[var(--mushaf-arrow-hover)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors group"
+          aria-label="Next page"
         >
-          Next →
+          <span className="text-3xl xl:text-4xl text-[var(--mushaf-arrow-color)] group-hover:opacity-80 transition-colors">→</span>
+        </button>
+      </div>
+
+      {/* Mobile navigation buttons - always visible */}
+      <div
+        className={`lg:hidden fixed left-0 right-0 flex justify-between items-center px-2 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
+      >
+        <button
+          onClick={() => onPageChange(pageNumber - 1)}
+          disabled={pageNumber <= 1}
+          className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+          aria-label="Previous page"
+        >
+          <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
+        </button>
+        <button
+          onClick={onOpenMenu}
+          className="pointer-events-auto text-xs text-[var(--mushaf-text-secondary)] bg-[var(--mushaf-page-bg)]/90 px-3 py-1.5 rounded-full border border-[var(--mushaf-border)] shadow-md active:scale-95 transition-transform"
+          aria-label="Open menu"
+        >
+          {pageNumber} / {totalPages}
+        </button>
+        <button
+          onClick={() => onPageChange(pageNumber + 1)}
+          disabled={pageNumber >= totalPages}
+          className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+          aria-label="Next page"
+        >
+          <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
         </button>
       </div>
     </div>
@@ -295,7 +343,7 @@ export function MushafPage({
 }
 
 // Surah Header Component
-function SurahHeader({ surahNumber }: { surahNumber: number }) {
+function SurahHeader({ surahNumber, fontClass }: { surahNumber: number; fontClass: string }) {
   const arabicName = getSurahNameArabic(surahNumber);
   const englishName = getSurahNameEnglish(surahNumber);
   const versesCount = getSurahVersesCount(surahNumber);
@@ -303,21 +351,21 @@ function SurahHeader({ surahNumber }: { surahNumber: number }) {
   return (
     <div className="my-3 sm:my-4">
       {/* Decorative border matching the green theme */}
-      <div className="relative border-2 border-[#6b8e23] rounded bg-gradient-to-r from-[#f0f4e8] via-[#f8faf4] to-[#f0f4e8] py-3 sm:py-4 px-4">
+      <div className="relative border-2 border-[var(--mushaf-border)] rounded bg-[var(--mushaf-header-bg)] py-3 sm:py-4 px-4">
         {/* Inner gold accent */}
-        <div className="absolute inset-0.5 border border-[#c9a227] rounded pointer-events-none" />
+        <div className="absolute inset-0.5 border border-[var(--mushaf-accent)] rounded pointer-events-none" />
 
         {/* Corner decorations */}
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#6b8e23] rounded-tl -translate-x-0.5 -translate-y-0.5" />
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#6b8e23] rounded-tr translate-x-0.5 -translate-y-0.5" />
-        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#6b8e23] rounded-bl -translate-x-0.5 translate-y-0.5" />
-        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#6b8e23] rounded-br translate-x-0.5 translate-y-0.5" />
+        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[var(--mushaf-border)] rounded-tl -translate-x-0.5 -translate-y-0.5" />
+        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[var(--mushaf-border)] rounded-tr translate-x-0.5 -translate-y-0.5" />
+        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[var(--mushaf-border)] rounded-bl -translate-x-0.5 translate-y-0.5" />
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[var(--mushaf-border)] rounded-br translate-x-0.5 translate-y-0.5" />
 
         <div className="text-center relative">
-          <h2 className="arabic-text text-xl sm:text-2xl md:text-3xl text-[#2c4a1e] mb-0.5">
+          <h2 className={`arabic-text ${fontClass} text-xl sm:text-2xl md:text-3xl text-[var(--mushaf-text-header)] mb-0.5`}>
             سورة {arabicName}
           </h2>
-          <p className="text-xs sm:text-sm text-[#5d4e37]">
+          <p className="text-xs sm:text-sm text-[var(--mushaf-text-secondary)]">
             {surahNumber}. {englishName} • {versesCount} Verses
           </p>
         </div>
@@ -330,15 +378,25 @@ function SurahHeader({ surahNumber }: { surahNumber: number }) {
 function MushafLine({
   words,
   onPlayWord,
-  onPlayVerse
+  onPlayVerse,
+  fontClass,
+  justified = false,
 }: {
   words: { word: Word; verseNumber: number; surahNumber: number }[];
   lineNumber: number;
   onPlayWord?: (audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
+  fontClass: string;
+  justified?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Calculate weights once for proportional sizing
+  const wordWeights = useMemo(() =>
+    words.map(item => getWordWeight(item.word)),
+    [words]
+  );
 
   const handleClick = () => {
     // Use timeout to distinguish single click from double click
@@ -369,57 +427,64 @@ function MushafLine({
     }
   };
 
+  // Calculate total weight for percentage-based widths
+  const totalWeight = useMemo(() =>
+    wordWeights.reduce((sum, w) => sum + w, 0),
+    [wordWeights]
+  );
+
   return (
     <div
-      className={`border-b border-[#e8e0d0] last:border-b-0 cursor-pointer select-none transition-colors duration-200 ${
-        isExpanded ? 'bg-[#faf8f2]' : 'hover:bg-[#fdfcf9]'
+      className={`border-b border-[var(--mushaf-border)]/20 last:border-b-0 cursor-pointer select-none transition-colors duration-200 ${
+        isExpanded ? 'bg-[var(--mushaf-header-bg)]' : 'hover:bg-[var(--mushaf-header-bg)]/50'
       }`}
       onClick={handleClick}
     >
-      {/* Line of Arabic words - justified across the full width */}
+      {/* Line of Arabic words and translations */}
       <div
-        className="flex justify-between items-start py-1 sm:py-1.5 gap-0.5"
+        className={`flex items-baseline py-1.5 sm:py-2 ${justified ? 'justify-center gap-x-1 sm:gap-x-2 px-1' : 'px-1'}`}
         style={{ direction: 'rtl' }}
       >
-        {words.map((item, idx) => (
-          <WordCell
-            key={`${item.word.id}-${idx}`}
-            word={item.word}
-            verseNumber={item.verseNumber}
-            surahNumber={item.surahNumber}
-            onWordDoubleClick={handleWordDoubleClick}
-            onPlayVerse={onPlayVerse}
-          />
-        ))}
-      </div>
-
-      {/* Expanded translation row */}
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isExpanded ? 'max-h-20 opacity-100 pb-2' : 'max-h-0 opacity-0'
-        }`}
-      >
-        <div
-          className="flex justify-between items-start gap-0.5 px-1"
-          style={{ direction: 'rtl' }}
-        >
-          {words.map((item, idx) => (
+        {words.map((item, idx) => {
+          const widthPercent = (wordWeights[idx] / totalWeight) * 100;
+          return (
             <div
-              key={`trans-${item.word.id}-${idx}`}
-              className="flex-1 min-w-0 text-center"
+              key={`${item.word.id}-${idx}`}
+              className="flex flex-col items-center shrink min-w-0"
+              style={justified ? undefined : { width: `${widthPercent}%` }}
             >
-              <span className={`text-[9px] sm:text-[10px] md:text-xs leading-tight ${
-                item.word.char_type_name === 'end'
-                  ? 'text-[#c9a227] font-medium'
-                  : 'text-[#5d4e37]'
-              }`}>
-                {item.word.char_type_name === 'end'
-                  ? item.verseNumber
-                  : (item.word.translation?.text || '')}
-              </span>
+              {/* Arabic word */}
+              <WordCell
+                word={item.word}
+                verseNumber={item.verseNumber}
+                surahNumber={item.surahNumber}
+                onWordDoubleClick={handleWordDoubleClick}
+                onPlayVerse={onPlayVerse}
+                fontClass={fontClass}
+              />
+
+              {/* Translation directly below */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out text-center px-0.5 ${
+                  isExpanded ? 'opacity-100 mt-0.5' : 'max-h-0 opacity-0'
+                }`}
+                style={{ maxWidth: justified ? '80px' : undefined }}
+              >
+                <span
+                  className={`text-[8px] sm:text-[9px] md:text-[10px] leading-tight block ${
+                    item.word.char_type_name === 'end'
+                      ? 'text-[var(--mushaf-accent)] font-medium'
+                      : 'text-[var(--mushaf-text-secondary)]'
+                  }`}
+                >
+                  {item.word.char_type_name === 'end'
+                    ? item.verseNumber
+                    : (item.word.translation?.text || '')}
+                </span>
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -432,14 +497,23 @@ function WordCell({
   surahNumber,
   onWordDoubleClick,
   onPlayVerse,
+  fontClass,
 }: {
   word: Word;
   verseNumber: number;
   surahNumber: number;
   onWordDoubleClick?: (audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
+  fontClass: string;
 }) {
   const isEndMarker = word.char_type_name === 'end';
+  const { format: verseNumberFormat } = useVerseNumberFormat();
+
+  // Calculate scale class for very long words on mobile
+  const text = word.text || word.text_uthmani || '';
+  const textLength = text.length;
+  // Only scale down words longer than 10 characters on small screens
+  const scaleClass = textLength > 12 ? 'word-scale-75' : textLength > 10 ? 'word-scale-85' : '';
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     // Stop propagation so line click handler doesn't fire
@@ -461,20 +535,51 @@ function WordCell({
     <div
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
-      className={`flex flex-col items-center flex-1 min-w-0 px-0.5 rounded transition-colors ${
-        word.audio_url || isEndMarker ? 'hover:bg-[#f0e8d8] active:bg-[#e8dcc8]' : ''
-      } ${isEndMarker ? 'cursor-pointer' : ''}`}
+      className={`group flex flex-col items-center min-w-0 rounded transition-colors ${
+        word.audio_url || isEndMarker
+          ? "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
+          : ""
+      } ${isEndMarker ? "cursor-pointer" : ""}`}
     >
-      {/* Arabic Word - using Nastaleeq text from QPC mushaf */}
-      <span
-        className={`arabic-text text-base sm:text-lg md:text-xl lg:text-2xl leading-loose whitespace-nowrap ${
-          isEndMarker
-            ? 'text-[#c9a227] font-bold'
-            : 'text-[#2c1810]'
-        }`}
-      >
-        {word.text || word.text_uthmani}
-      </span>
+      {/* Arabic Word - using selected font style */}
+      {isEndMarker ? (
+        // Verse marker - with optional English number overlay
+        <span className="relative inline-flex items-center justify-center">
+          <span
+            className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-xl sm:text-2xl md:text-3xl lg:text-4xl text-[var(--mushaf-accent)]`}
+          >
+            {word.text || word.text_uthmani}
+          </span>
+          {verseNumberFormat === "english" && (
+            <span
+              className={`absolute font-bold flex items-center justify-center transition-colors group-hover:bg-[var(--mushaf-header-bg)] bg-[var(--mushaf-page-bg)] text-[var(--mushaf-accent)] ${
+                verseNumber < 10
+                  ? "text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px]"
+                  : verseNumber < 100
+                  ? "text-[5px] sm:text-[7px] md:text-[9px] lg:text-[11px]"
+                  : "text-[4px] sm:text-[6px] md:text-[8px] lg:text-[10px]"
+              }`}
+              style={{
+                fontVariantNumeric: "tabular-nums",
+                width: "73%",
+                height: "23%",
+                top: "58%",
+                left: "50%",
+                transform: "translate(-52%, -50%)",
+                borderRadius: "36%",
+              }}
+            >
+              {verseNumber}
+            </span>
+          )}
+        </span>
+      ) : (
+        <span
+          className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-text)] ${scaleClass}`}
+        >
+          {word.text || word.text_uthmani}
+        </span>
+      )}
     </div>
   );
 }

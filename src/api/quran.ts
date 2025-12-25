@@ -16,8 +16,21 @@ const DEFAULT_TRANSLATION = 131;
 // Mushaf IDs
 const MUSHAF_QPC_NASTALEEQ_15 = 14; // QPC Hafs Nastaleeq 15 lines (610 pages)
 
-// Total pages in QPC Hafs Nastaleeq 15 lines Mushaf
+// Total pages in QPC Hafs Nastaleeq 15 lines Mushaf (API pages)
 export const TOTAL_MUSHAF_PAGES = 610;
+
+// Total UI pages (includes intro page)
+export const TOTAL_UI_PAGES = TOTAL_MUSHAF_PAGES + 1; // 611 pages (1 intro + 610 Quran pages)
+
+// Convert UI page number to API page number
+export function uiPageToApiPage(uiPage: number): number {
+  return uiPage - 1; // UI page 2 = API page 1, etc.
+}
+
+// Convert API page number to UI page number
+export function apiPageToUiPage(apiPage: number): number {
+  return apiPage + 1; // API page 1 = UI page 2, etc.
+}
 
 async function fetchApi<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`);

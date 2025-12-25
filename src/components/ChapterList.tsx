@@ -88,7 +88,7 @@ export function MobileChapterList({ chapters }: { chapters: Chapter[] }) {
   const navigate = useNavigate();
   const { chapterId } = useParams();
   const currentChapterId = chapterId ? parseInt(chapterId) : 1;
-  const currentChapter = chapters.find(c => c.id === currentChapterId);
+  void chapters.find(c => c.id === currentChapterId); // Keep reference for future use
 
   const handleChapterClick = (id: number) => {
     navigate(`/chapter/${id}`);

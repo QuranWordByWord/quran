@@ -9,6 +9,7 @@ interface UseAudioResult {
   playWord: (audioUrl: string | null) => void;
   playVerse: (verseKey: string) => void;
   pause: () => void;
+  resume: () => void;
   stop: () => void;
   seek: (time: number) => void;
 }
@@ -20,6 +21,7 @@ export function useAudio(): UseAudioResult {
   const [currentTime, setCurrentTime] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isStoppedRef = useRef(false);
 
   // Initialize audio element
   useEffect(() => {
@@ -33,14 +35,19 @@ export function useAudio(): UseAudioResult {
     });
 
     audio.addEventListener('timeupdate', () => {
-      setCurrentTime(audio.currentTime);
+      if (!isStoppedRef.current) {
+        setCurrentTime(audio.currentTime);
+      }
     });
 
     audio.addEventListener('loadedmetadata', () => {
-      setDuration(audio.duration);
+      if (!isStoppedRef.current && audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
     });
 
     audio.addEventListener('play', () => {
+      isStoppedRef.current = false;
       setIsPlaying(true);
     });
 
@@ -58,9 +65,17 @@ export function useAudio(): UseAudioResult {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // If playing the same URL, just resume
-    if (currentUrl === url && audio.paused) {
-      audio.play();
+    // If playing the same URL
+    if (currentUrl === url) {
+      if (audio.paused) {
+        // If audio ended, restart from beginning
+        if (audio.currentTime >= audio.duration || audio.ended) {
+          audio.currentTime = 0;
+        }
+        audio.play();
+        return;
+      }
+      // Already playing the same URL, do nothing
       return;
     }
 
@@ -88,13 +103,28 @@ export function useAudio(): UseAudioResult {
     audioRef.current?.pause();
   }, []);
 
+  const resume = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      // If audio ended, restart from beginning
+      if (audio.currentTime >= audio.duration || audio.ended) {
+        audio.currentTime = 0;
+      }
+      audio.play();
+    }
+  }, []);
+
   const stop = useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
+      isStoppedRef.current = true;
       audio.pause();
       audio.currentTime = 0;
+      audio.src = '';
       setCurrentUrl(null);
       setCurrentTime(0);
+      setDuration(0);
+      setIsPlaying(false);
     }
   }, []);
 
@@ -113,6 +143,7 @@ export function useAudio(): UseAudioResult {
     playWord,
     playVerse,
     pause,
+    resume,
     stop,
     seek,
   };

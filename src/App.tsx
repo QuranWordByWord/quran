@@ -1,17 +1,47 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { Header } from './components/Header';
 import { ChapterList, MobileChapterList } from './components/ChapterList';
 import { ChapterView } from './components/ChapterView';
 import { MushafPage } from './components/MushafPage';
+import { IntroPage } from './components/IntroPage';
 import { SearchResults } from './components/SearchResults';
 import { AudioPlayer } from './components/AudioPlayer';
 import { ChapterQuickLinks, MobileChapterSelector } from './components/ChapterQuickLinks';
+import { OfflineIndicator } from './components/OfflineIndicator';
+// FontSelector not currently used but may be needed later
+// import { FontSelector } from './components/FontSelector';
 import { useChapters } from './hooks/useChapters';
 import { useChapter } from './hooks/useChapter';
 import { usePage } from './hooks/usePage';
 import { useSearch } from './hooks/useSearch';
 import { useAudio } from './hooks/useAudio';
+import { useFont } from './hooks/useFont';
+import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+
+// Font context to share font class across components
+const FontContext = createContext<string>('font-nastaleeq');
+export const useFontClass = () => useContext(FontContext);
+
+// Menu context to allow opening the mobile menu from MushafPage
+const MenuContext = createContext<{
+  openMenu: () => void;
+}>({
+  openMenu: () => {},
+});
+export const useMenu = () => useContext(MenuContext);
+
+// Verse number format context (arabic or english numerals)
+type VerseNumberFormat = 'arabic' | 'english';
+const VerseNumberContext = createContext<{
+  format: VerseNumberFormat;
+  setFormat: (format: VerseNumberFormat) => void;
+}>({
+  format: 'arabic',
+  setFormat: () => {},
+});
+export const useVerseNumberFormat = () => useContext(VerseNumberContext);
 
 type ViewMode = 'chapter' | 'mushaf';
 
@@ -36,6 +66,7 @@ function ChapterPage() {
         currentTime={audio.currentTime}
         duration={audio.duration}
         onPause={audio.pause}
+        onResume={audio.resume}
         onStop={audio.stop}
         onSeek={audio.seek}
       />
@@ -47,14 +78,26 @@ function MushafPageView() {
   const { pageNumber } = useParams();
   const navigate = useNavigate();
   const page = pageNumber ? parseInt(pageNumber) : 1;
-  const { verses, loading, error, totalPages } = usePage(page);
+  const { verses, loading, error, totalPages, isIntroPage } = usePage(page);
   const audio = useAudio();
+  const { openMenu } = useMenu();
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       navigate(`/page/${newPage}`);
     }
   };
+
+  const handleStartReading = () => {
+    navigate('/page/2'); // Go to first Quran page (Al-Fatiha)
+  };
+
+  const isAudioActive = audio.isPlaying || audio.duration > 0;
+
+  // Show intro page for page 1
+  if (isIntroPage) {
+    return <IntroPage onStartReading={handleStartReading} />;
+  }
 
   return (
     <>
@@ -67,12 +110,15 @@ function MushafPageView() {
         onPageChange={handlePageChange}
         onPlayWord={audio.playWord}
         onPlayVerse={audio.playVerse}
+        isAudioActive={isAudioActive}
+        onOpenMenu={openMenu}
       />
       <AudioPlayer
         isPlaying={audio.isPlaying}
         currentTime={audio.currentTime}
         duration={audio.duration}
         onPause={audio.pause}
+        onResume={audio.resume}
         onStop={audio.stop}
         onSeek={audio.seek}
       />
@@ -109,6 +155,41 @@ function SearchPage({
   );
 }
 
+function VerseNumberToggle({
+  format,
+  onFormatChange,
+}: {
+  format: VerseNumberFormat;
+  onFormatChange: (format: VerseNumberFormat) => void;
+}) {
+  return (
+    <div className="flex bg-gray-100 rounded-lg p-1">
+      <button
+        onClick={() => onFormatChange('arabic')}
+        className={`px-2 py-1 text-sm rounded-md transition-colors ${
+          format === 'arabic'
+            ? 'bg-white text-[var(--color-primary)] shadow-sm'
+            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+        }`}
+        title="Arabic numerals"
+      >
+        ١٢٣
+      </button>
+      <button
+        onClick={() => onFormatChange('english')}
+        className={`px-2 py-1 text-sm rounded-md transition-colors ${
+          format === 'english'
+            ? 'bg-white text-[var(--color-primary)] shadow-sm'
+            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+        }`}
+        title="English numerals"
+      >
+        123
+      </button>
+    </div>
+  );
+}
+
 function ViewModeToggle({
   mode,
   onModeChange,
@@ -137,7 +218,7 @@ function ViewModeToggle({
             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
         }`}
       >
-        Chapter View
+        Mushaf View
       </button>
       <button
         onClick={() => handleChange('mushaf')}
@@ -147,24 +228,70 @@ function ViewModeToggle({
             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
         }`}
       >
-        15-Line Mushaf
+        Word By Word
       </button>
     </div>
   );
 }
 
-function AppContent() {
-  const [viewMode, setViewMode] = useState<ViewMode>('mushaf');
-  const { chapters, loading: chaptersLoading } = useChapters();
-  const search = useSearch();
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-light)]">
-      <Header onSearch={search.search}>
-        <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
-      </Header>
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+      title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+    >
+      {theme === 'light' ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
-      <div className="flex min-h-0">
+function AppContentInner() {
+  const [viewMode, setViewMode] = useState<ViewMode>('mushaf');
+  const [verseNumberFormat, setVerseNumberFormat] = useState<VerseNumberFormat>(() => {
+    const saved = localStorage.getItem('verseNumberFormat');
+    return (saved === 'arabic' || saved === 'english') ? saved : 'arabic';
+  });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { chapters, loading: chaptersLoading } = useChapters();
+  const search = useSearch();
+  const font = useFont();
+  const { isNavVisible } = useMobileNav();
+
+  // Persist verse number format to localStorage
+  useEffect(() => {
+    localStorage.setItem('verseNumberFormat', verseNumberFormat);
+  }, [verseNumberFormat]);
+
+  const openMenu = () => setIsMenuOpen(true);
+
+  return (
+    <FontContext.Provider value={font.fontClassName}>
+    <VerseNumberContext.Provider value={{ format: verseNumberFormat, setFormat: setVerseNumberFormat }}>
+    <MenuContext.Provider value={{ openMenu }}>
+    <div className="min-h-screen lg:h-screen lg:flex lg:flex-col lg:overflow-hidden bg-[var(--color-bg-light)]">
+      {/* Header - hidden on mobile for mushaf view */}
+      <div className={viewMode === 'mushaf' ? 'hidden lg:block' : ''}>
+        <Header onSearch={search.search} isVisible={isNavVisible}>
+          <div className="flex items-center gap-2">
+            <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
+            <VerseNumberToggle format={verseNumberFormat} onFormatChange={setVerseNumberFormat} />
+            <ThemeToggle />
+          </div>
+        </Header>
+      </div>
+
+      <div className="flex min-h-0 lg:flex-1 lg:overflow-hidden">
         {viewMode === 'chapter' && (
           <ChapterList chapters={chapters} loading={chaptersLoading} />
         )}
@@ -199,18 +326,39 @@ function AppContent() {
         )}
       </div>
 
-      {/* Mobile chapter selector - floating button */}
-      {viewMode === 'mushaf' && <MobileChapterSelector />}
+      {/* Mobile chapter selector menu */}
+      {viewMode === 'mushaf' && (
+        <MobileChapterSelector
+          verseNumberFormat={verseNumberFormat}
+          onVerseNumberFormatChange={setVerseNumberFormat}
+          isMenuOpen={isMenuOpen}
+          onMenuOpenChange={setIsMenuOpen}
+        />
+      )}
       {viewMode === 'chapter' && <MobileChapterList chapters={chapters} />}
     </div>
+    </MenuContext.Provider>
+    </VerseNumberContext.Provider>
+    </FontContext.Provider>
+  );
+}
+
+function AppContent() {
+  return (
+    <MobileNavProvider hideDelay={3000} scrollThreshold={30}>
+      <AppContentInner />
+    </MobileNavProvider>
   );
 }
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <OfflineIndicator />
+        <AppContent />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
