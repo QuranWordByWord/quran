@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import type { Verse, Word } from '../types/quran';
-import { useFontClass, useVerseNumberFormat } from '../App';
+import { useFontClass, useVerseNumberFormat, useMenu } from '../App';
 import { useMobileNav } from '../contexts/MobileNavContext';
 
 
@@ -97,6 +97,7 @@ export function WordForWordView({
 }: WordForWordViewProps) {
   const fontClass = useFontClass();
   const { registerScrollContainer } = useMobileNav();
+  const { isMenuOpen } = useMenu();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Register scroll container with mobile nav context
@@ -287,7 +288,7 @@ export function WordForWordView({
                       if (line.type === 'words' && line.words) {
                         return showTranslations ? (
                           <MushafLine
-                            key={`line-${line.lineNumber}-${index}`}
+                            key={`page-${pageNumber}-line-${line.lineNumber}-${index}`}
                             words={line.words}
                             lineNumber={line.lineNumber}
                             onPlayWord={onPlayWord}
@@ -301,7 +302,7 @@ export function WordForWordView({
                           />
                         ) : (
                           <TraditionalMushafLine
-                            key={`line-${line.lineNumber}-${index}`}
+                            key={`page-${pageNumber}-line-${line.lineNumber}-${index}`}
                             words={line.words}
                             onPlayWord={onPlayWord}
                             onPlayVerse={onPlayVerse}
@@ -336,7 +337,8 @@ export function WordForWordView({
         </button>
       </div>
 
-      {/* Mobile navigation buttons - always visible */}
+      {/* Mobile navigation buttons - hidden when menu is open */}
+      {!isMenuOpen && (
       <div
         className={`lg:hidden fixed left-0 right-0 flex justify-between items-center px-2 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
       >
@@ -364,6 +366,7 @@ export function WordForWordView({
           <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
         </button>
       </div>
+      )}
     </div>
   );
 }
@@ -424,7 +427,6 @@ function MushafLine({
   onHighlightWord?: (wordId: number | null) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Calculate weights once for proportional sizing
   const wordWeights = useMemo(() =>
@@ -432,29 +434,13 @@ function MushafLine({
     [words]
   );
 
-  const handleClick = () => {
-    // Use timeout to distinguish single click from double click
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-      return; // This was a double click, ignore the single click
-    }
-
-    clickTimeoutRef.current = setTimeout(() => {
-      // Single click toggles translation for entire line
-      setIsExpanded(prev => !prev);
-      clickTimeoutRef.current = null;
-    }, 200);
+  const handleLineClick = () => {
+    // Clicking empty space in line toggles translation
+    setIsExpanded(prev => !prev);
   };
 
-  const handleWordDoubleClick = (wordId: number, audioUrl: string | null) => {
-    // Cancel any pending single click
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-
-    // Double click: show translations if hidden, highlight the word, and play audio
+  const handleWordClick = (wordId: number, audioUrl: string | null) => {
+    // Single click on word: show translations, highlight the word, and play audio
     setIsExpanded(true);
     onHighlightVerse?.(null); // Clear verse highlight
     onHighlightWord?.(wordId); // Highlight this word
@@ -471,10 +457,10 @@ function MushafLine({
 
   return (
     <div
-      className={`border-b border-[var(--mushaf-border)]/20 last:border-b-0 cursor-pointer select-none transition-colors duration-200 ${
+      className={`border-b border-[var(--mushaf-border)]/20 last:border-b-0 select-none transition-colors duration-200 ${
         isExpanded ? 'bg-[var(--mushaf-header-bg)]' : 'hover:bg-[var(--mushaf-header-bg)]/50'
       }`}
-      onClick={handleClick}
+      onClick={handleLineClick}
     >
       {/* Line of Arabic words and translations */}
       <div
@@ -497,7 +483,7 @@ function MushafLine({
                 word={item.word}
                 verseNumber={item.verseNumber}
                 surahNumber={item.surahNumber}
-                onWordDoubleClick={handleWordDoubleClick}
+                onWordClick={handleWordClick}
                 onPlayVerse={onPlayVerse}
                 onHighlightVerse={onHighlightVerse}
                 onHighlightWord={onHighlightWord}
@@ -650,7 +636,7 @@ function WordCell({
   word,
   verseNumber,
   surahNumber,
-  onWordDoubleClick,
+  onWordClick,
   onPlayVerse,
   onHighlightVerse,
   onHighlightWord,
@@ -661,7 +647,7 @@ function WordCell({
   word: Word;
   verseNumber: number;
   surahNumber: number;
-  onWordDoubleClick?: (wordId: number, audioUrl: string | null) => void;
+  onWordClick?: (wordId: number, audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
   onHighlightVerse?: (verseKey: string | null) => void;
   onHighlightWord?: (wordId: number | null) => void;
@@ -678,21 +664,19 @@ function WordCell({
   // Only scale down words longer than 10 characters on small screens
   const scaleClass = textLength > 12 ? 'word-scale-75' : textLength > 10 ? 'word-scale-85' : '';
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
     // Stop propagation so line click handler doesn't fire
     e.stopPropagation();
-    // Double click: show translations and play audio, highlight the word
-    onWordDoubleClick?.(word.id, word.audio_url || null);
-  };
 
-  const handleClick = (e: React.MouseEvent) => {
-    // Single click on end marker plays the whole verse and highlights it
     if (isEndMarker) {
-      e.stopPropagation();
+      // Click on end marker plays the whole verse and highlights it
       const verseKey = `${surahNumber}:${verseNumber}`;
       onHighlightWord?.(null); // Clear word highlight
       onHighlightVerse?.(verseKey);
       onPlayVerse?.(verseKey);
+    } else {
+      // Click on word: show translations and play audio, highlight the word
+      onWordClick?.(word.id, word.audio_url || null);
     }
   };
 
@@ -702,14 +686,13 @@ function WordCell({
   return (
     <div
       onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      className={`group flex flex-col items-center min-w-0 rounded transition-colors ${
+      className={`group flex flex-col items-center min-w-0 rounded transition-colors cursor-pointer ${
         isHighlighted
           ? "bg-[var(--mushaf-accent)]/20"
           : word.audio_url || isEndMarker
           ? "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
-          : ""
-      } ${isEndMarker ? "cursor-pointer" : ""}`}
+          : "hover:bg-[var(--mushaf-header-bg)]/50"
+      }`}
     >
       {/* Arabic Word - using selected font style */}
       {isEndMarker ? (

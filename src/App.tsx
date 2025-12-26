@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { Header } from './components/Header';
 import { WordForWordView } from './components/WordForWordView';
@@ -22,8 +22,10 @@ export const useFontClass = () => useContext(FontContext);
 // Menu context to allow opening the mobile menu from MushafPage
 const MenuContext = createContext<{
   openMenu: () => void;
+  isMenuOpen: boolean;
 }>({
   openMenu: () => {},
+  isMenuOpen: false,
 });
 export const useMenu = () => useContext(MenuContext);
 
@@ -192,13 +194,24 @@ function ViewModeToggle({
   onModeChange: (mode: ViewMode) => void;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract current page number from URL
+  const getCurrentPage = (): number => {
+    const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
+    const pageMatch = location.pathname.match(/^\/page\/(\d+)/);
+    if (mushafMatch) return parseInt(mushafMatch[1]);
+    if (pageMatch) return parseInt(pageMatch[1]);
+    return 2; // Default to first Quran page
+  };
 
   const handleChange = (newMode: ViewMode) => {
     onModeChange(newMode);
+    const currentPage = getCurrentPage();
     if (newMode === 'mushaf') {
-      navigate('/mushaf/2'); // Go to first Quran page
+      navigate(`/mushaf/${currentPage}`);
     } else {
-      navigate('/page/2'); // Go to first Word-by-Word page
+      navigate(`/page/${currentPage}`);
     }
   };
 
@@ -272,7 +285,7 @@ function AppContentInner() {
     <FontContext.Provider value={font.fontClassName}>
     <VerseNumberContext.Provider value={{ format: verseNumberFormat, setFormat: setVerseNumberFormat }}>
     <ViewModeContext.Provider value={{ viewMode, setViewMode }}>
-    <MenuContext.Provider value={{ openMenu }}>
+    <MenuContext.Provider value={{ openMenu, isMenuOpen }}>
     <div className="min-h-screen lg:h-screen lg:flex lg:flex-col lg:overflow-hidden bg-[var(--color-bg-light)]">
       {/* Header - hidden on mobile for word-for-word view */}
       <div className={viewMode === 'wordforword' ? 'hidden lg:block' : ''}>

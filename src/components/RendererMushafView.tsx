@@ -5,6 +5,7 @@ import 'misraj-mushaf-renderer/dist/styles';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAudio } from '../hooks/useAudio';
 import { useMobileNav } from '../contexts/MobileNavContext';
+import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
 
@@ -22,7 +23,50 @@ function useIsMobile() {
   return isMobile;
 }
 
-// Total pages in the 15-line Hafs Mushaf
+// Hook to calculate optimal scale for mobile to fill available space
+function useMobileScale(isAudioActive: boolean) {
+  const [scale, setScale] = useState(1.35);
+
+  useEffect(() => {
+    const calculateScale = () => {
+      if (window.innerWidth >= 1024) return; // Desktop, no scaling needed
+
+      // Get viewport dimensions
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Account for navigation buttons at bottom (approx 60px) and audio player if active (64px)
+      const bottomPadding = isAudioActive ? 124 : 60;
+      const availableHeight = viewportHeight - bottomPadding;
+
+      // The mushaf page has an aspect ratio of approximately 0.7 (width/height)
+      // Base mushaf dimensions from the renderer (approximate)
+      const baseMushafWidth = 280;
+      const baseMushafHeight = 400;
+
+      // Calculate scale needed to fit width (with some padding)
+      const widthScale = (viewportWidth - 16) / baseMushafWidth;
+
+      // Calculate scale needed to fit height
+      const heightScale = availableHeight / baseMushafHeight;
+
+      // Use the smaller scale to ensure it fits both dimensions
+      const optimalScale = Math.min(widthScale, heightScale);
+
+      // Clamp scale to reasonable bounds
+      setScale(Math.max(1.0, Math.min(optimalScale, 2.0)));
+    };
+
+    calculateScale();
+    window.addEventListener('resize', calculateScale);
+    return () => window.removeEventListener('resize', calculateScale);
+  }, [isAudioActive]);
+
+  return scale;
+}
+
+// Total pages in the standard Hafs Mushaf (misraj-mushaf-renderer uses this)
+// Note: This is different from the QPC Nastaleeq 15-line mushaf which has 610 pages
 const TOTAL_PAGES = 604;
 
 interface RendererMushafViewProps {
@@ -33,14 +77,24 @@ interface RendererMushafViewProps {
 function MushafContent({
   onOpenMenu,
   audio,
+  isMobile,
 }: {
   onOpenMenu?: () => void;
   audio: ReturnType<typeof useAudio>;
+  isMobile: boolean;
 }) {
   const navigate = useNavigate();
-  const { pageNumber, setSelectedVerse } = useMushafContext();
+  const { pageNumber, setSelectedVerse, ayat, error } = useMushafContext();
   const { registerScrollContainer } = useMobileNav();
+  const { isMenuOpen } = useMenu();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Loading state - ayat is null while data is being fetched
+  const isLoading = ayat === null && error === null;
+  const isAudioActive = audio.isPlaying || audio.duration > 0;
+
+  // Calculate optimal scale for mobile
+  const mobileScale = useMobileScale(isAudioActive);
 
   // Register scroll container with mobile nav context
   useEffect(() => {
@@ -111,10 +165,18 @@ function MushafContent({
     }
   };
 
-  const isAudioActive = audio.isPlaying || audio.duration > 0;
-
   return (
     <div className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]">
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[var(--mushaf-bg)]/80 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-[var(--mushaf-accent)] border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-[var(--mushaf-text-secondary)]">Loading page {pageNumber}...</p>
+          </div>
+        </div>
+      )}
+
       {/* Main Mushaf area with navigation arrows */}
       <div className="flex-1 flex items-stretch relative min-h-0 overflow-hidden">
         {/* Left arrow - Previous page (desktop only) */}
@@ -127,34 +189,55 @@ function MushafContent({
           <span className="text-3xl xl:text-4xl text-[var(--mushaf-arrow-color)] group-hover:opacity-80 transition-colors">←</span>
         </button>
 
-        {/* Scrollable Mushaf content */}
+        {/* Mushaf content - centered and scaled to fit on mobile */}
         <div
           ref={scrollContainerRef}
-          className={`flex-1 min-h-0 overflow-auto scrollbar-none lg:scrollbar-auto flex justify-center items-start mobile-mushaf ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
+          className={`flex-1 min-h-0 overflow-hidden lg:overflow-auto scrollbar-none lg:scrollbar-auto flex justify-center items-center lg:items-start mobile-mushaf ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
         >
           <div className="lg:py-4">
-            <Mushaf
-              onWordClick={handleWordClick}
-            />
+            {isMobile ? (
+              /* Custom decorative border for mobile - matches WordForWordView */
+              <div className="relative bg-[var(--mushaf-frame-bg)] p-1 rounded-sm shadow-xl mx-1 my-2">
+                {/* Olive/Green ornate border - outer */}
+                <div className="relative border-[3px] border-[var(--mushaf-border)] rounded-sm">
+                  {/* Corner ornaments - outer */}
+                  <div className="absolute -top-1 -left-1 w-4 h-4 border-t-[3px] border-l-[3px] border-[var(--mushaf-border)] rounded-tl-sm" />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 border-t-[3px] border-r-[3px] border-[var(--mushaf-border)] rounded-tr-sm" />
+                  <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-[3px] border-l-[3px] border-[var(--mushaf-border)] rounded-bl-sm" />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-[3px] border-r-[3px] border-[var(--mushaf-border)] rounded-br-sm" />
+
+                  {/* Inner gold/yellow accent border */}
+                  <div className="border-2 border-[var(--mushaf-accent)] m-0.5">
+                    {/* Innermost content border */}
+                    <div className="border border-[var(--mushaf-border)] bg-[var(--mushaf-page-bg)]">
+                      <Mushaf onWordClick={handleWordClick} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Mushaf onWordClick={handleWordClick} />
+            )}
           </div>
         </div>
 
-        {/* Scale Mushaf to fill screen width on mobile */}
-        <style>{`
-          @media (max-width: 1023px) {
+        {/* Scale Mushaf to fill available space on mobile */}
+        {isMobile && (
+          <style>{`
             .mobile-mushaf {
               display: flex;
               justify-content: center;
-              align-items: flex-start;
+              align-items: center;
               width: 100vw;
-              overflow-x: hidden;
+              height: 100%;
+              overflow: hidden;
             }
             .mobile-mushaf > div {
-              transform-origin: top center;
-              transform: scale(1.35);
+              transform-origin: center center;
+              transform: scale(${mobileScale});
             }
-          }
-        `}</style>
+          `}</style>
+        )}
 
         {/* Right arrow - Next page (desktop only) */}
         <button
@@ -167,7 +250,8 @@ function MushafContent({
         </button>
       </div>
 
-      {/* Mobile navigation buttons - always visible */}
+      {/* Mobile navigation buttons - hidden when menu is open */}
+      {!isMenuOpen && (
       <div
         className={`lg:hidden fixed left-0 right-0 flex justify-between items-center px-2 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
       >
@@ -195,6 +279,7 @@ function MushafContent({
           <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
         </button>
       </div>
+      )}
 
       {/* Audio Player */}
       <AudioPlayer
@@ -219,17 +304,10 @@ export function RendererMushafView({ onOpenMenu }: RendererMushafViewProps) {
 
   const page = pageParam ? parseInt(pageParam) : 1;
 
-  // Handle intro page (page 1)
-  if (page === 1) {
-    return (
-      <IntroPage
-        onStartReading={() => navigate('/mushaf/2')}
-      />
-    );
-  }
-
   // Convert app page to renderer page (app page 2 = renderer page 1)
-  const rendererPage = page - 1;
+  // Also clamp to valid range since QPC Nastaleeq mushaf has 610 pages but
+  // misraj-mushaf-renderer only supports 604 pages (standard Hafs mushaf)
+  const rendererPage = Math.min(Math.max(page - 1, 1), TOTAL_PAGES);
 
   // Build theme props from current theme
   // borderColor must be 'blue' | 'green' | 'sepia'
@@ -252,6 +330,15 @@ export function RendererMushafView({ onOpenMenu }: RendererMushafViewProps) {
     },
   } : undefined) as unknown as Record<string, React.CSSProperties> | undefined, [isMobile]);
 
+  // Handle intro page (page 1)
+  if (page === 1) {
+    return (
+      <IntroPage
+        onStartReading={() => navigate('/mushaf/2')}
+      />
+    );
+  }
+
   return (
     <MushafReaderProvider
       dataId="quran-hafs"
@@ -262,7 +349,7 @@ export function RendererMushafView({ onOpenMenu }: RendererMushafViewProps) {
       themeProps={themeProps}
       styleOverride={styleOverride}
     >
-      <MushafContent onOpenMenu={onOpenMenu} audio={audio} />
+      <MushafContent onOpenMenu={onOpenMenu} audio={audio} isMobile={isMobile} />
     </MushafReaderProvider>
   );
 }

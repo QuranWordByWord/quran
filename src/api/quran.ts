@@ -68,7 +68,9 @@ export async function getVerses(
     per_page: perPage.toString(),
   });
 
-  return fetchApi<VersesResponse>(`/verses/by_chapter/${chapterId}?${params}`);
+  const data = await fetchApi<VersesResponse>(`/verses/by_chapter/${chapterId}?${params}`);
+  fixVerseAudioUrls(data.verses);
+  return data;
 }
 
 // Get all verses for a chapter (handles pagination)
@@ -132,6 +134,34 @@ export function buildAudioUrl(relativePath: string | null): string | null {
   return `https://audio.qurancdn.com/${relativePath}`;
 }
 
+// Generate correct word audio URL based on verse key and word position
+// The API's audio_url field is incorrect for words that come after waqf marks
+// because it skips waqf mark positions, but the actual audio files don't have gaps
+export function getWordAudioUrl(verseKey: string, wordPosition: number): string {
+  const [chapter, verse] = verseKey.split(':');
+  const paddedChapter = chapter.padStart(3, '0');
+  const paddedVerse = verse.padStart(3, '0');
+  const paddedPosition = wordPosition.toString().padStart(3, '0');
+  return `wbw/${paddedChapter}_${paddedVerse}_${paddedPosition}.mp3`;
+}
+
+// Fix audio URLs for words in verses - the API's audio_url field is incorrect for words
+// that come after waqf marks because it skips waqf mark positions in the numbering,
+// but the actual audio files use sequential numbering without gaps
+function fixVerseAudioUrls(verses: Verse[]): void {
+  verses.forEach(verse => {
+    let wordPosition = 0;
+    verse.words.forEach(word => {
+      if (word.char_type_name === 'word') {
+        wordPosition++;
+        // Generate correct audio URL based on sequential word position
+        word.audio_url = getWordAudioUrl(verse.verse_key, wordPosition);
+      }
+      // 'end' markers don't have audio, leave as null
+    });
+  });
+}
+
 // Get verses by Mushaf page number (for QPC Hafs Nastaleeq 15-line layout)
 export async function getVersesByPage(
   pageNumber: number
@@ -139,6 +169,7 @@ export async function getVersesByPage(
   const params = new URLSearchParams({
     mushaf: MUSHAF_QPC_NASTALEEQ_15.toString(),
     words: 'true',
+    word_fields: 'text_uthmani,text_indopak,audio_url',
     per_page: '50',
   });
 
@@ -146,7 +177,9 @@ export async function getVersesByPage(
   if (!response.ok) {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
-  return response.json();
+  const data: VersesResponse = await response.json();
+  fixVerseAudioUrls(data.verses);
+  return data;
 }
 
 

@@ -4,129 +4,131 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../App';
 import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
 
-// Chapter data with verse counts and starting page numbers (API pages from QPC Nastaleeq 15-line Mushaf)
-// Note: These are API page numbers. Use apiPageToUiPage() to convert to UI page numbers.
-const chapterApiPages = [
-  { id: 1, name: 'Al-Fathiha', verses: 7, apiPage: 1 },
-  { id: 2, name: 'Al-Baqara', verses: 286, apiPage: 2 },
-  { id: 3, name: "Al-i'Imran", verses: 200, apiPage: 50 },
-  { id: 4, name: 'An-Nisaa', verses: 176, apiPage: 77 },
-  { id: 5, name: 'Al-Maida', verses: 120, apiPage: 106 },
-  { id: 6, name: "Al-An'am", verses: 165, apiPage: 128 },
-  { id: 7, name: "Al-A'raf", verses: 206, apiPage: 151 },
-  { id: 8, name: 'Al-Anfal', verses: 75, apiPage: 177 },
-  { id: 9, name: 'At-Tauba', verses: 129, apiPage: 187 },
-  { id: 10, name: 'Yunus', verses: 109, apiPage: 208 },
-  { id: 11, name: 'Hud', verses: 123, apiPage: 221 },
-  { id: 12, name: 'Yusuf', verses: 111, apiPage: 235 },
-  { id: 13, name: "Ar-Ra'd", verses: 43, apiPage: 249 },
-  { id: 14, name: 'Ibrahim', verses: 52, apiPage: 255 },
-  { id: 15, name: 'Al-Hijr', verses: 99, apiPage: 261 },
-  { id: 16, name: 'An-Nahl', verses: 128, apiPage: 267 },
-  { id: 17, name: 'Al-Israa', verses: 111, apiPage: 282 },
-  { id: 18, name: 'Al-Kahf', verses: 110, apiPage: 293 },
-  { id: 19, name: 'Maryam', verses: 98, apiPage: 305 },
-  { id: 20, name: 'Ta-ha', verses: 135, apiPage: 312 },
-  { id: 21, name: 'Al-Anbiyaa', verses: 112, apiPage: 322 },
-  { id: 22, name: 'Al-Hajj', verses: 78, apiPage: 331 },
-  { id: 23, name: "Al-Mu'minun", verses: 118, apiPage: 342 },
-  { id: 24, name: 'An-Nur', verses: 64, apiPage: 350 },
-  { id: 25, name: 'Al-Furqan', verses: 77, apiPage: 359 },
-  { id: 26, name: "Ash-Shu'ara", verses: 227, apiPage: 366 },
-  { id: 27, name: 'An-Naml', verses: 93, apiPage: 376 },
-  { id: 28, name: 'Al-Qasas', verses: 88, apiPage: 385 },
-  { id: 29, name: 'Al-Ankabut', verses: 69, apiPage: 396 },
-  { id: 30, name: 'Ar-Rum', verses: 60, apiPage: 404 },
-  { id: 31, name: 'Luqman', verses: 34, apiPage: 411 },
-  { id: 32, name: 'As-Sajda', verses: 30, apiPage: 415 },
-  { id: 33, name: 'Al-Ahzab', verses: 73, apiPage: 418 },
-  { id: 34, name: 'Saba', verses: 54, apiPage: 428 },
-  { id: 35, name: 'Fatir', verses: 45, apiPage: 434 },
-  { id: 36, name: 'Ya-Sin', verses: 83, apiPage: 440 },
-  { id: 37, name: 'As-Saffat', verses: 182, apiPage: 445 },
-  { id: 38, name: 'Sad', verses: 88, apiPage: 452 },
-  { id: 39, name: 'Az-Zumar', verses: 75, apiPage: 458 },
-  { id: 40, name: 'Ghafir', verses: 85, apiPage: 467 },
-  { id: 41, name: 'Fussilat', verses: 54, apiPage: 477 },
-  { id: 42, name: 'Ash-Shura', verses: 53, apiPage: 483 },
-  { id: 43, name: 'Az-Zukhruf', verses: 89, apiPage: 489 },
-  { id: 44, name: 'Ad-Dukhan', verses: 59, apiPage: 495 },
-  { id: 45, name: 'Al-Jathiya', verses: 37, apiPage: 498 },
-  { id: 46, name: 'Al-Ahqaf', verses: 35, apiPage: 502 },
-  { id: 47, name: 'Muhammad', verses: 38, apiPage: 506 },
-  { id: 48, name: 'Al-Fath', verses: 29, apiPage: 511 },
-  { id: 49, name: 'Al-Hujurat', verses: 18, apiPage: 515 },
-  { id: 50, name: 'Qaf', verses: 45, apiPage: 518 },
-  { id: 51, name: 'Adh-Dhariyat', verses: 60, apiPage: 520 },
-  { id: 52, name: 'At-Tur', verses: 49, apiPage: 523 },
-  { id: 53, name: 'An-Najm', verses: 62, apiPage: 526 },
-  { id: 54, name: 'Al-Qamar', verses: 55, apiPage: 528 },
-  { id: 55, name: 'Ar-Rahman', verses: 78, apiPage: 531 },
-  { id: 56, name: "Al-Waqi'a", verses: 96, apiPage: 534 },
-  { id: 57, name: 'Al-Hadid', verses: 29, apiPage: 537 },
-  { id: 58, name: 'Al-Mujadila', verses: 22, apiPage: 542 },
-  { id: 59, name: 'Al-Hashr', verses: 24, apiPage: 545 },
-  { id: 60, name: 'Al-Mumtahana', verses: 13, apiPage: 549 },
-  { id: 61, name: 'As-Saff', verses: 14, apiPage: 551 },
-  { id: 62, name: "Al-Jumu'a", verses: 11, apiPage: 553 },
-  { id: 63, name: 'Al-Munafiqun', verses: 11, apiPage: 554 },
-  { id: 64, name: 'At-Taghabun', verses: 18, apiPage: 556 },
-  { id: 65, name: 'At-Talaq', verses: 12, apiPage: 558 },
-  { id: 66, name: 'At-Tahrim', verses: 12, apiPage: 560 },
-  { id: 67, name: 'Al-Mulk', verses: 30, apiPage: 562 },
-  { id: 68, name: 'Al-Qalam', verses: 52, apiPage: 564 },
-  { id: 69, name: 'Al-Haqqa', verses: 52, apiPage: 567 },
-  { id: 70, name: "Al-Ma'arij", verses: 44, apiPage: 569 },
-  { id: 71, name: 'Nuh', verses: 28, apiPage: 571 },
-  { id: 72, name: 'Al-Jinn', verses: 28, apiPage: 573 },
-  { id: 73, name: 'Al-Muzzammil', verses: 20, apiPage: 576 },
-  { id: 74, name: 'Al-Muddaththir', verses: 56, apiPage: 578 },
-  { id: 75, name: 'Al-Qiyama', verses: 40, apiPage: 580 },
-  { id: 76, name: 'Al-Insan', verses: 31, apiPage: 582 },
-  { id: 77, name: 'Al-Mursalat', verses: 50, apiPage: 584 },
-  { id: 78, name: "An-Naba'", verses: 40, apiPage: 586 },
-  { id: 79, name: "An-Nazi'at", verses: 46, apiPage: 587 },
-  { id: 80, name: 'Abasa', verses: 42, apiPage: 589 },
-  { id: 81, name: 'At-Takwir', verses: 29, apiPage: 590 },
-  { id: 82, name: 'Al-Infitar', verses: 19, apiPage: 591 },
-  { id: 83, name: 'Al-Mutaffifin', verses: 36, apiPage: 592 },
-  { id: 84, name: 'Al-Inshiqaq', verses: 25, apiPage: 594 },
-  { id: 85, name: 'Al-Buruj', verses: 22, apiPage: 595 },
-  { id: 86, name: 'At-Tariq', verses: 17, apiPage: 596 },
-  { id: 87, name: "Al-A'la", verses: 19, apiPage: 597 },
-  { id: 88, name: 'Al-Ghashiya', verses: 26, apiPage: 597 },
-  { id: 89, name: 'Al-Fajr', verses: 30, apiPage: 598 },
-  { id: 90, name: 'Al-Balad', verses: 20, apiPage: 600 },
-  { id: 91, name: 'Ash-Shams', verses: 15, apiPage: 600 },
-  { id: 92, name: 'Al-Lail', verses: 21, apiPage: 601 },
-  { id: 93, name: 'Ad-Duha', verses: 11, apiPage: 602 },
-  { id: 94, name: 'Ash-Sharh', verses: 8, apiPage: 602 },
-  { id: 95, name: 'At-Tin', verses: 8, apiPage: 603 },
-  { id: 96, name: "Al-'Alaq", verses: 19, apiPage: 603 },
-  { id: 97, name: 'Al-Qadr', verses: 5, apiPage: 604 },
-  { id: 98, name: 'Al-Bayyina', verses: 8, apiPage: 604 },
-  { id: 99, name: 'Az-Zalzala', verses: 8, apiPage: 605 },
-  { id: 100, name: "Al-'Adiyat", verses: 11, apiPage: 605 },
-  { id: 101, name: "Al-Qari'a", verses: 11, apiPage: 606 },
-  { id: 102, name: 'At-Takathur', verses: 8, apiPage: 606 },
-  { id: 103, name: "Al-'Asr", verses: 3, apiPage: 607 },
-  { id: 104, name: 'Al-Humaza', verses: 9, apiPage: 607 },
-  { id: 105, name: 'Al-Fil', verses: 5, apiPage: 607 },
-  { id: 106, name: 'Quraish', verses: 4, apiPage: 608 },
-  { id: 107, name: "Al-Ma'un", verses: 7, apiPage: 608 },
-  { id: 108, name: 'Al-Kauthar', verses: 3, apiPage: 608 },
-  { id: 109, name: 'Al-Kafirun', verses: 6, apiPage: 608 },
-  { id: 110, name: 'An-Nasr', verses: 3, apiPage: 609 },
-  { id: 111, name: 'Al-Masad', verses: 5, apiPage: 609 },
-  { id: 112, name: 'Al-Ikhlas', verses: 4, apiPage: 609 },
-  { id: 113, name: 'Al-Falaq', verses: 5, apiPage: 610 },
-  { id: 114, name: 'An-Nas', verses: 6, apiPage: 610 },
+// Chapter data with verse counts and starting page numbers
+// apiPage: QPC Nastaleeq 15-line Mushaf (610 pages) - used for word-by-word view
+// mushafPage: Standard Madani Mushaf (604 pages) - used for mushaf renderer view
+const chapterData = [
+  { id: 1, name: 'Al-Fathiha', verses: 7, apiPage: 1, mushafPage: 1 },
+  { id: 2, name: 'Al-Baqara', verses: 286, apiPage: 2, mushafPage: 2 },
+  { id: 3, name: "Al-i'Imran", verses: 200, apiPage: 50, mushafPage: 50 },
+  { id: 4, name: 'An-Nisaa', verses: 176, apiPage: 77, mushafPage: 77 },
+  { id: 5, name: 'Al-Maida', verses: 120, apiPage: 106, mushafPage: 106 },
+  { id: 6, name: "Al-An'am", verses: 165, apiPage: 128, mushafPage: 128 },
+  { id: 7, name: "Al-A'raf", verses: 206, apiPage: 151, mushafPage: 151 },
+  { id: 8, name: 'Al-Anfal', verses: 75, apiPage: 177, mushafPage: 177 },
+  { id: 9, name: 'At-Tauba', verses: 129, apiPage: 187, mushafPage: 187 },
+  { id: 10, name: 'Yunus', verses: 109, apiPage: 208, mushafPage: 208 },
+  { id: 11, name: 'Hud', verses: 123, apiPage: 221, mushafPage: 221 },
+  { id: 12, name: 'Yusuf', verses: 111, apiPage: 235, mushafPage: 235 },
+  { id: 13, name: "Ar-Ra'd", verses: 43, apiPage: 249, mushafPage: 249 },
+  { id: 14, name: 'Ibrahim', verses: 52, apiPage: 255, mushafPage: 255 },
+  { id: 15, name: 'Al-Hijr', verses: 99, apiPage: 261, mushafPage: 262 },
+  { id: 16, name: 'An-Nahl', verses: 128, apiPage: 267, mushafPage: 267 },
+  { id: 17, name: 'Al-Israa', verses: 111, apiPage: 282, mushafPage: 282 },
+  { id: 18, name: 'Al-Kahf', verses: 110, apiPage: 293, mushafPage: 293 },
+  { id: 19, name: 'Maryam', verses: 98, apiPage: 305, mushafPage: 305 },
+  { id: 20, name: 'Ta-ha', verses: 135, apiPage: 312, mushafPage: 312 },
+  { id: 21, name: 'Al-Anbiyaa', verses: 112, apiPage: 322, mushafPage: 322 },
+  { id: 22, name: 'Al-Hajj', verses: 78, apiPage: 331, mushafPage: 332 },
+  { id: 23, name: "Al-Mu'minun", verses: 118, apiPage: 342, mushafPage: 342 },
+  { id: 24, name: 'An-Nur', verses: 64, apiPage: 350, mushafPage: 350 },
+  { id: 25, name: 'Al-Furqan', verses: 77, apiPage: 359, mushafPage: 359 },
+  { id: 26, name: "Ash-Shu'ara", verses: 227, apiPage: 366, mushafPage: 367 },
+  { id: 27, name: 'An-Naml', verses: 93, apiPage: 376, mushafPage: 377 },
+  { id: 28, name: 'Al-Qasas', verses: 88, apiPage: 385, mushafPage: 385 },
+  { id: 29, name: 'Al-Ankabut', verses: 69, apiPage: 396, mushafPage: 396 },
+  { id: 30, name: 'Ar-Rum', verses: 60, apiPage: 404, mushafPage: 404 },
+  { id: 31, name: 'Luqman', verses: 34, apiPage: 411, mushafPage: 411 },
+  { id: 32, name: 'As-Sajda', verses: 30, apiPage: 415, mushafPage: 415 },
+  { id: 33, name: 'Al-Ahzab', verses: 73, apiPage: 418, mushafPage: 418 },
+  { id: 34, name: 'Saba', verses: 54, apiPage: 428, mushafPage: 428 },
+  { id: 35, name: 'Fatir', verses: 45, apiPage: 434, mushafPage: 434 },
+  { id: 36, name: 'Ya-Sin', verses: 83, apiPage: 440, mushafPage: 440 },
+  { id: 37, name: 'As-Saffat', verses: 182, apiPage: 445, mushafPage: 446 },
+  { id: 38, name: 'Sad', verses: 88, apiPage: 452, mushafPage: 453 },
+  { id: 39, name: 'Az-Zumar', verses: 75, apiPage: 458, mushafPage: 458 },
+  { id: 40, name: 'Ghafir', verses: 85, apiPage: 467, mushafPage: 467 },
+  { id: 41, name: 'Fussilat', verses: 54, apiPage: 477, mushafPage: 477 },
+  { id: 42, name: 'Ash-Shura', verses: 53, apiPage: 483, mushafPage: 483 },
+  { id: 43, name: 'Az-Zukhruf', verses: 89, apiPage: 489, mushafPage: 489 },
+  { id: 44, name: 'Ad-Dukhan', verses: 59, apiPage: 495, mushafPage: 496 },
+  { id: 45, name: 'Al-Jathiya', verses: 37, apiPage: 498, mushafPage: 499 },
+  { id: 46, name: 'Al-Ahqaf', verses: 35, apiPage: 502, mushafPage: 502 },
+  { id: 47, name: 'Muhammad', verses: 38, apiPage: 506, mushafPage: 507 },
+  { id: 48, name: 'Al-Fath', verses: 29, apiPage: 511, mushafPage: 511 },
+  { id: 49, name: 'Al-Hujurat', verses: 18, apiPage: 515, mushafPage: 515 },
+  { id: 50, name: 'Qaf', verses: 45, apiPage: 518, mushafPage: 518 },
+  { id: 51, name: 'Adh-Dhariyat', verses: 60, apiPage: 520, mushafPage: 520 },
+  { id: 52, name: 'At-Tur', verses: 49, apiPage: 523, mushafPage: 523 },
+  { id: 53, name: 'An-Najm', verses: 62, apiPage: 526, mushafPage: 526 },
+  { id: 54, name: 'Al-Qamar', verses: 55, apiPage: 528, mushafPage: 528 },
+  { id: 55, name: 'Ar-Rahman', verses: 78, apiPage: 531, mushafPage: 531 },
+  { id: 56, name: "Al-Waqi'a", verses: 96, apiPage: 534, mushafPage: 534 },
+  { id: 57, name: 'Al-Hadid', verses: 29, apiPage: 537, mushafPage: 537 },
+  { id: 58, name: 'Al-Mujadila', verses: 22, apiPage: 542, mushafPage: 542 },
+  { id: 59, name: 'Al-Hashr', verses: 24, apiPage: 545, mushafPage: 545 },
+  { id: 60, name: 'Al-Mumtahana', verses: 13, apiPage: 549, mushafPage: 549 },
+  { id: 61, name: 'As-Saff', verses: 14, apiPage: 551, mushafPage: 551 },
+  { id: 62, name: "Al-Jumu'a", verses: 11, apiPage: 553, mushafPage: 553 },
+  { id: 63, name: 'Al-Munafiqun', verses: 11, apiPage: 554, mushafPage: 554 },
+  { id: 64, name: 'At-Taghabun', verses: 18, apiPage: 556, mushafPage: 556 },
+  { id: 65, name: 'At-Talaq', verses: 12, apiPage: 558, mushafPage: 558 },
+  { id: 66, name: 'At-Tahrim', verses: 12, apiPage: 560, mushafPage: 560 },
+  { id: 67, name: 'Al-Mulk', verses: 30, apiPage: 562, mushafPage: 562 },
+  { id: 68, name: 'Al-Qalam', verses: 52, apiPage: 564, mushafPage: 564 },
+  { id: 69, name: 'Al-Haqqa', verses: 52, apiPage: 567, mushafPage: 566 },
+  { id: 70, name: "Al-Ma'arij", verses: 44, apiPage: 569, mushafPage: 568 },
+  { id: 71, name: 'Nuh', verses: 28, apiPage: 571, mushafPage: 570 },
+  { id: 72, name: 'Al-Jinn', verses: 28, apiPage: 573, mushafPage: 572 },
+  { id: 73, name: 'Al-Muzzammil', verses: 20, apiPage: 576, mushafPage: 574 },
+  { id: 74, name: 'Al-Muddaththir', verses: 56, apiPage: 578, mushafPage: 575 },
+  { id: 75, name: 'Al-Qiyama', verses: 40, apiPage: 580, mushafPage: 577 },
+  { id: 76, name: 'Al-Insan', verses: 31, apiPage: 582, mushafPage: 578 },
+  { id: 77, name: 'Al-Mursalat', verses: 50, apiPage: 584, mushafPage: 580 },
+  { id: 78, name: "An-Naba'", verses: 40, apiPage: 586, mushafPage: 582 },
+  { id: 79, name: "An-Nazi'at", verses: 46, apiPage: 587, mushafPage: 583 },
+  { id: 80, name: 'Abasa', verses: 42, apiPage: 589, mushafPage: 585 },
+  { id: 81, name: 'At-Takwir', verses: 29, apiPage: 590, mushafPage: 586 },
+  { id: 82, name: 'Al-Infitar', verses: 19, apiPage: 591, mushafPage: 587 },
+  { id: 83, name: 'Al-Mutaffifin', verses: 36, apiPage: 592, mushafPage: 587 },
+  { id: 84, name: 'Al-Inshiqaq', verses: 25, apiPage: 594, mushafPage: 589 },
+  { id: 85, name: 'Al-Buruj', verses: 22, apiPage: 595, mushafPage: 590 },
+  { id: 86, name: 'At-Tariq', verses: 17, apiPage: 596, mushafPage: 591 },
+  { id: 87, name: "Al-A'la", verses: 19, apiPage: 597, mushafPage: 591 },
+  { id: 88, name: 'Al-Ghashiya', verses: 26, apiPage: 597, mushafPage: 592 },
+  { id: 89, name: 'Al-Fajr', verses: 30, apiPage: 598, mushafPage: 593 },
+  { id: 90, name: 'Al-Balad', verses: 20, apiPage: 600, mushafPage: 594 },
+  { id: 91, name: 'Ash-Shams', verses: 15, apiPage: 600, mushafPage: 595 },
+  { id: 92, name: 'Al-Lail', verses: 21, apiPage: 601, mushafPage: 595 },
+  { id: 93, name: 'Ad-Duha', verses: 11, apiPage: 602, mushafPage: 596 },
+  { id: 94, name: 'Ash-Sharh', verses: 8, apiPage: 602, mushafPage: 596 },
+  { id: 95, name: 'At-Tin', verses: 8, apiPage: 603, mushafPage: 597 },
+  { id: 96, name: "Al-'Alaq", verses: 19, apiPage: 603, mushafPage: 597 },
+  { id: 97, name: 'Al-Qadr', verses: 5, apiPage: 604, mushafPage: 598 },
+  { id: 98, name: 'Al-Bayyina', verses: 8, apiPage: 604, mushafPage: 598 },
+  { id: 99, name: 'Az-Zalzala', verses: 8, apiPage: 605, mushafPage: 599 },
+  { id: 100, name: "Al-'Adiyat", verses: 11, apiPage: 605, mushafPage: 599 },
+  { id: 101, name: "Al-Qari'a", verses: 11, apiPage: 606, mushafPage: 600 },
+  { id: 102, name: 'At-Takathur', verses: 8, apiPage: 606, mushafPage: 600 },
+  { id: 103, name: "Al-'Asr", verses: 3, apiPage: 607, mushafPage: 601 },
+  { id: 104, name: 'Al-Humaza', verses: 9, apiPage: 607, mushafPage: 601 },
+  { id: 105, name: 'Al-Fil', verses: 5, apiPage: 607, mushafPage: 601 },
+  { id: 106, name: 'Quraish', verses: 4, apiPage: 608, mushafPage: 602 },
+  { id: 107, name: "Al-Ma'un", verses: 7, apiPage: 608, mushafPage: 602 },
+  { id: 108, name: 'Al-Kauthar', verses: 3, apiPage: 608, mushafPage: 602 },
+  { id: 109, name: 'Al-Kafirun', verses: 6, apiPage: 608, mushafPage: 603 },
+  { id: 110, name: 'An-Nasr', verses: 3, apiPage: 609, mushafPage: 603 },
+  { id: 111, name: 'Al-Masad', verses: 5, apiPage: 609, mushafPage: 603 },
+  { id: 112, name: 'Al-Ikhlas', verses: 4, apiPage: 609, mushafPage: 604 },
+  { id: 113, name: 'Al-Falaq', verses: 5, apiPage: 610, mushafPage: 604 },
+  { id: 114, name: 'An-Nas', verses: 6, apiPage: 610, mushafPage: 604 },
 ];
 
-// Export chapters with UI page numbers for external use
-export const chapters = chapterApiPages.map(ch => ({
+// Export chapters with UI page numbers for external use (word-by-word view uses apiPage)
+export const chapters = chapterData.map(ch => ({
   ...ch,
-  page: apiPageToUiPage(ch.apiPage), // Convert to UI page number
+  page: apiPageToUiPage(ch.apiPage), // Convert to UI page number for word-by-word
+  mushafUiPage: ch.mushafPage + 1, // Convert to UI page number for mushaf view (add 1 for intro page)
 }));
 
 interface ChapterQuickLinksProps {
@@ -148,8 +150,9 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
 
   const handleChapterClick = (chapter: typeof chapters[0]) => {
     // Navigate to the same mode the user is currently in
+    // Use mushafUiPage for mushaf view (604-page mushaf) and page for word-by-word (610-page mushaf)
     if (isMushafMode) {
-      navigate(`/mushaf/${chapter.page}`);
+      navigate(`/mushaf/${chapter.mushafUiPage}`);
     } else {
       navigate(`/page/${chapter.page}`);
     }
@@ -348,19 +351,24 @@ export function MobileChapterSelector({
   // Determine if we're in mushaf mode based on current route
   const isMushafMode = location.pathname.startsWith('/mushaf');
 
-  const handleChapterClick = (page: number) => {
+  const handleChapterClick = (chapter: typeof chapters[0]) => {
     // Navigate to the same mode the user is currently in
+    // Use mushafUiPage for mushaf view (604-page mushaf) and page for word-by-word (610-page mushaf)
     if (isMushafMode) {
-      navigate(`/mushaf/${page}`);
+      navigate(`/mushaf/${chapter.mushafUiPage}`);
     } else {
-      navigate(`/page/${page}`);
+      navigate(`/page/${chapter.page}`);
     }
     setIsOpen(false);
   };
 
+  // Total pages differs between mushaf view (604 pages) and word-by-word view (610 pages)
+  const MUSHAF_TOTAL_UI_PAGES = 605; // 604 + 1 intro page
+  const effectiveTotalPages = isMushafMode ? MUSHAF_TOTAL_UI_PAGES : totalPages;
+
   const handleGoToPage = () => {
     const page = parseInt(goToPage);
-    if (page >= 1 && page <= totalPages) {
+    if (page >= 1 && page <= effectiveTotalPages) {
       // Navigate to the same mode the user is currently in
       if (isMushafMode) {
         navigate(`/mushaf/${page}`);
@@ -430,10 +438,10 @@ export function MobileChapterSelector({
                       <input
                         type="number"
                         min={1}
-                        max={totalPages}
+                        max={effectiveTotalPages}
                         value={goToPage}
                         onChange={(e) => setGoToPage(e.target.value)}
-                        placeholder={`1-${totalPages}`}
+                        placeholder={`1-${effectiveTotalPages}`}
                         className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         onKeyDown={(e) => e.key === 'Enter' && handleGoToPage()}
                       />
@@ -453,7 +461,7 @@ export function MobileChapterSelector({
                     {chapters.map((chapter) => (
                       <button
                         key={chapter.id}
-                        onClick={() => handleChapterClick(chapter.page)}
+                        onClick={() => handleChapterClick(chapter)}
                         className="text-left p-2 hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-text-header)] text-gray-700 rounded-lg transition-colors border border-gray-100"
                       >
                         <span className="font-medium">{chapter.id}.</span>{' '}
