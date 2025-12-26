@@ -1,16 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { Header } from './components/Header';
-import { MobileChapterList } from './components/ChapterList';
 import { WordForWordView } from './components/WordForWordView';
+import { RendererMushafView } from './components/RendererMushafView';
 import { IntroPage } from './components/IntroPage';
 import { SearchResults } from './components/SearchResults';
 import { AudioPlayer } from './components/AudioPlayer';
 import { ChapterQuickLinks, MobileChapterSelector } from './components/ChapterQuickLinks';
 import { OfflineIndicator } from './components/OfflineIndicator';
-// FontSelector not currently used but may be needed later
-// import { FontSelector } from './components/FontSelector';
-import { useChapters } from './hooks/useChapters';
 import { usePage } from './hooks/usePage';
 import { useSearch } from './hooks/useSearch';
 import { useAudio } from './hooks/useAudio';
@@ -41,59 +38,21 @@ const VerseNumberContext = createContext<{
 });
 export const useVerseNumberFormat = () => useContext(VerseNumberContext);
 
+// View mode context to allow switching views from anywhere
 type ViewMode = 'mushaf' | 'wordforword';
+const ViewModeContext = createContext<{
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+}>({
+  viewMode: 'wordforword',
+  setViewMode: () => {},
+});
+export const useViewMode = () => useContext(ViewModeContext);
 
 
 function MushafPageView() {
-  const { pageNumber } = useParams();
-  const navigate = useNavigate();
-  const page = pageNumber ? parseInt(pageNumber) : 1;
-  const { verses, loading, error, totalPages, isIntroPage } = usePage(page);
-  const audio = useAudio();
   const { openMenu } = useMenu();
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      navigate(`/page/${newPage}`);
-    }
-  };
-
-  const handleStartReading = () => {
-    navigate("/page/2"); // Go to first Quran page (Al-Fatiha)
-  };
-
-  const isAudioActive = audio.isPlaying || audio.duration > 0;
-
-  // Show intro page for page 1
-  if (isIntroPage) {
-    return <IntroPage onStartReading={handleStartReading} />;
-  }
-
-  return (
-    <>
-      <WordForWordView
-        verses={verses}
-        loading={loading}
-        error={error}
-        pageNumber={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-        onPlayWord={audio.playWord}
-        onPlayVerse={audio.playVerse}
-        isAudioActive={isAudioActive}
-        onOpenMenu={openMenu}
-      />
-      <AudioPlayer
-        isPlaying={audio.isPlaying}
-        currentTime={audio.currentTime}
-        duration={audio.duration}
-        onPause={audio.pause}
-        onResume={audio.resume}
-        onStop={audio.stop}
-        onSeek={audio.seek}
-      />
-    </>
-  );
+  return <RendererMushafView onOpenMenu={openMenu} />;
 }
 
 function WordForWordPageView() {
@@ -103,6 +62,8 @@ function WordForWordPageView() {
   const { verses, loading, error, totalPages, isIntroPage } = usePage(page);
   const audio = useAudio();
   const { openMenu } = useMenu();
+  const [highlightedVerseKey, setHighlightedVerseKey] = useState<string | null>(null);
+  const [highlightedWordId, setHighlightedWordId] = useState<number | null>(null);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -114,6 +75,13 @@ function WordForWordPageView() {
     navigate('/page/2'); // Go to first Quran page (Al-Fatiha)
   };
 
+  // Clear highlights when audio stops
+  const audioStopped = !audio.isPlaying && audio.duration === 0;
+  if (audioStopped && (highlightedVerseKey !== null || highlightedWordId !== null)) {
+    setHighlightedVerseKey(null);
+    setHighlightedWordId(null);
+  }
+
   const isAudioActive = audio.isPlaying || audio.duration > 0;
 
   // Show intro page for page 1
@@ -134,6 +102,10 @@ function WordForWordPageView() {
         onPlayVerse={audio.playVerse}
         isAudioActive={isAudioActive}
         onOpenMenu={openMenu}
+        highlightedVerseKey={highlightedVerseKey}
+        onHighlightVerse={setHighlightedVerseKey}
+        highlightedWordId={highlightedWordId}
+        onHighlightWord={setHighlightedWordId}
       />
       <AudioPlayer
         isPlaying={audio.isPlaying}
@@ -224,9 +196,9 @@ function ViewModeToggle({
   const handleChange = (newMode: ViewMode) => {
     onModeChange(newMode);
     if (newMode === 'mushaf') {
-      navigate('/chapter/1');
+      navigate('/mushaf/2'); // Go to first Quran page
     } else {
-      navigate('/page/1');
+      navigate('/page/2'); // Go to first Word-by-Word page
     }
   };
 
@@ -285,7 +257,6 @@ function AppContentInner() {
     return (saved === 'arabic' || saved === 'english') ? saved : 'arabic';
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { chapters } = useChapters();
   const search = useSearch();
   const font = useFont();
   const { isNavVisible } = useMobileNav();
@@ -300,6 +271,7 @@ function AppContentInner() {
   return (
     <FontContext.Provider value={font.fontClassName}>
     <VerseNumberContext.Provider value={{ format: verseNumberFormat, setFormat: setVerseNumberFormat }}>
+    <ViewModeContext.Provider value={{ viewMode, setViewMode }}>
     <MenuContext.Provider value={{ openMenu }}>
     <div className="min-h-screen lg:h-screen lg:flex lg:flex-col lg:overflow-hidden bg-[var(--color-bg-light)]">
       {/* Header - hidden on mobile for word-for-word view */}
@@ -314,17 +286,13 @@ function AppContentInner() {
       </div>
 
       <div className="flex min-h-0 lg:flex-1 lg:overflow-hidden">
-        {viewMode === 'mushaf' && (
-          <ChapterQuickLinks side="left" linkType="chapter" />
-        )}
-        {viewMode === 'wordforword' && (
-          <ChapterQuickLinks side="left" />
-        )}
+        <ChapterQuickLinks side="left" />
 
         <main className="flex-1 min-w-0 overflow-hidden">
           <Routes>
             <Route path="/" element={<Navigate to="/page/1" replace />} />
-            <Route path="/chapter/:chapterId" element={<MushafPageView />} />
+            <Route path="/mushaf/:pageNumber" element={<MushafPageView />} />
+            <Route path="/chapter/:chapterId" element={<Navigate to="/mushaf/2" replace />} />
             <Route path="/page/:pageNumber" element={<WordForWordPageView />} />
             <Route
               path="/search"
@@ -343,26 +311,19 @@ function AppContentInner() {
           </Routes>
         </main>
 
-        {viewMode === 'wordforword' && (
-          <ChapterQuickLinks side="right" />
-        )}
-        {viewMode === 'mushaf' && (
-          <ChapterQuickLinks side="right" linkType="chapter" />
-        )}
+        <ChapterQuickLinks side="right" />
       </div>
 
-      {/* Mobile chapter selector menu */}
-      {viewMode === 'wordforword' && (
-        <MobileChapterSelector
-          verseNumberFormat={verseNumberFormat}
-          onVerseNumberFormatChange={setVerseNumberFormat}
-          isMenuOpen={isMenuOpen}
-          onMenuOpenChange={setIsMenuOpen}
-        />
-      )}
-      {viewMode === 'mushaf' && <MobileChapterList chapters={chapters} />}
+      {/* Mobile chapter selector menu - used for both views */}
+      <MobileChapterSelector
+        verseNumberFormat={verseNumberFormat}
+        onVerseNumberFormatChange={setVerseNumberFormat}
+        isMenuOpen={isMenuOpen}
+        onMenuOpenChange={setIsMenuOpen}
+      />
     </div>
     </MenuContext.Provider>
+    </ViewModeContext.Provider>
     </VerseNumberContext.Provider>
     </FontContext.Provider>
   );

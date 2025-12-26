@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { useViewMode } from '../App';
 import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
 
 // Chapter data with verse counts and starting page numbers (API pages from QPC Nastaleeq 15-line Mushaf)
@@ -130,12 +131,15 @@ export const chapters = chapterApiPages.map(ch => ({
 
 interface ChapterQuickLinksProps {
   side: 'left' | 'right';
-  linkType?: 'page' | 'chapter'; // 'page' navigates to /page/:pageNumber, 'chapter' navigates to /chapter/:chapterId
 }
 
 // Desktop sidebar component - hidden on mobile
-export function ChapterQuickLinks({ side, linkType = 'page' }: ChapterQuickLinksProps) {
+export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine if we're in mushaf mode based on current route
+  const isMushafMode = location.pathname.startsWith('/mushaf');
 
   // Split chapters: 1-57 on left, 58-114 on right
   const displayChapters = side === 'left'
@@ -143,8 +147,9 @@ export function ChapterQuickLinks({ side, linkType = 'page' }: ChapterQuickLinks
     : chapters.slice(57);
 
   const handleChapterClick = (chapter: typeof chapters[0]) => {
-    if (linkType === 'chapter') {
-      navigate(`/chapter/${chapter.id}`);
+    // Navigate to the same mode the user is currently in
+    if (isMushafMode) {
+      navigate(`/mushaf/${chapter.page}`);
     } else {
       navigate(`/page/${chapter.page}`);
     }
@@ -178,14 +183,61 @@ type VerseNumberFormat = 'arabic' | 'english';
 function SettingsTab({
   verseNumberFormat,
   onVerseNumberFormatChange,
+  onClose,
 }: {
   verseNumberFormat?: VerseNumberFormat;
   onVerseNumberFormatChange?: (format: VerseNumberFormat) => void;
+  onClose?: () => void;
 }) {
   const { theme, setTheme } = useTheme();
+  const { viewMode, setViewMode } = useViewMode();
+  const navigate = useNavigate();
+
+  const handleViewModeChange = (mode: 'mushaf' | 'wordforword') => {
+    setViewMode(mode);
+    if (mode === 'mushaf') {
+      navigate('/mushaf/2');
+    } else {
+      navigate('/page/2');
+    }
+    onClose?.();
+  };
 
   return (
     <div className="p-4 space-y-4">
+      {/* View mode toggle */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-700 mb-2">View Mode</h3>
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => handleViewModeChange('mushaf')}
+            className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-2 ${
+              viewMode === 'mushaf'
+                ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            Mushaf
+          </button>
+          <button
+            onClick={() => handleViewModeChange('wordforword')}
+            className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-2 ${
+              viewMode === 'wordforword'
+                ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+            Word by Word
+          </button>
+        </div>
+      </div>
+
       {/* Theme toggle */}
       <div>
         <h3 className="text-sm font-medium text-gray-700 mb-2">Theme</h3>
@@ -291,16 +343,30 @@ export function MobileChapterSelector({
   const [activeTab, setActiveTab] = useState<MenuTab>('chapters');
   const [goToPage, setGoToPage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine if we're in mushaf mode based on current route
+  const isMushafMode = location.pathname.startsWith('/mushaf');
 
   const handleChapterClick = (page: number) => {
-    navigate(`/page/${page}`);
+    // Navigate to the same mode the user is currently in
+    if (isMushafMode) {
+      navigate(`/mushaf/${page}`);
+    } else {
+      navigate(`/page/${page}`);
+    }
     setIsOpen(false);
   };
 
   const handleGoToPage = () => {
     const page = parseInt(goToPage);
     if (page >= 1 && page <= totalPages) {
-      navigate(`/page/${page}`);
+      // Navigate to the same mode the user is currently in
+      if (isMushafMode) {
+        navigate(`/mushaf/${page}`);
+      } else {
+        navigate(`/page/${page}`);
+      }
       setGoToPage('');
       setIsOpen(false);
     }
@@ -403,6 +469,7 @@ export function MobileChapterSelector({
                 <SettingsTab
                   verseNumberFormat={verseNumberFormat}
                   onVerseNumberFormatChange={onVerseNumberFormatChange}
+                  onClose={() => setIsOpen(false)}
                 />
               )}
             </div>
