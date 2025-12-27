@@ -9,6 +9,7 @@ import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
 import { RENDERER_MUSHAF } from '../config/constants';
+import { preloadPages } from '../utils/apiCache';
 
 // Hook to detect if we're on mobile
 function useIsMobile() {
@@ -93,6 +94,13 @@ function MushafContent({
   // Loading state - ayat is null while data is being fetched
   const isLoading = ayat === null && error === null;
   const isAudioActive = audio.isPlaying || audio.duration > 0;
+
+  // Preload adjacent pages when current page data is loaded
+  useEffect(() => {
+    if (!isLoading && ayat) {
+      preloadPages(pageNumber);
+    }
+  }, [isLoading, ayat, pageNumber]);
 
   // Calculate optimal scale for mobile
   const mobileScale = useMobileScale(isAudioActive);

@@ -72,6 +72,20 @@ export default defineConfig({
             },
           },
           {
+            urlPattern: /^https:\/\/api\.quranhub\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'quranhub-api-cache',
+              expiration: {
+                maxEntries: 700,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
