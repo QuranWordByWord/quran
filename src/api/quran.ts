@@ -6,18 +6,12 @@ import type {
   Chapter,
   Verse,
 } from '../types/quran';
-
-const BASE_URL = 'https://api.quran.com/api/v4';
-const QDC_BASE_URL = 'https://api.qurancdn.com/api/qdc';
-
-// Default translation ID (Sahih International)
-const DEFAULT_TRANSLATION = 131;
-
-// Mushaf IDs
-const MUSHAF_QPC_NASTALEEQ_15 = 14; // QPC Hafs Nastaleeq 15 lines (610 pages)
+import { API_CONFIG, ACTIVE_MUSHAF } from '../config/constants';
+import { DEFAULT_TRANSLATION_ID } from '../config/translations';
+import { getReciterById, getReciterAudioUrl, DEFAULT_RECITER_ID } from '../config/reciters';
 
 // Total pages in QPC Hafs Nastaleeq 15 lines Mushaf (API pages)
-export const TOTAL_MUSHAF_PAGES = 610;
+export const TOTAL_MUSHAF_PAGES = ACTIVE_MUSHAF.totalPages;
 
 // Total UI pages (includes intro page)
 export const TOTAL_UI_PAGES = TOTAL_MUSHAF_PAGES + 1; // 611 pages (1 intro + 610 Quran pages)
@@ -33,7 +27,7 @@ export function apiPageToUiPage(apiPage: number): number {
 }
 
 async function fetchApi<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`);
+  const response = await fetch(`${API_CONFIG.baseUrl}${endpoint}`);
   if (!response.ok) {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
@@ -57,7 +51,7 @@ export async function getVerses(
   chapterId: number,
   page: number = 1,
   perPage: number = 50,
-  translationId: number = DEFAULT_TRANSLATION
+  translationId: number = DEFAULT_TRANSLATION_ID
 ): Promise<VersesResponse> {
   const params = new URLSearchParams({
     words: 'true',
@@ -76,7 +70,7 @@ export async function getVerses(
 // Get all verses for a chapter (handles pagination)
 export async function getAllVerses(
   chapterId: number,
-  translationId: number = DEFAULT_TRANSLATION
+  translationId: number = DEFAULT_TRANSLATION_ID
 ): Promise<Verse[]> {
   const allVerses: Verse[] = [];
   let page = 1;
@@ -97,7 +91,7 @@ export async function searchQuran(
   query: string,
   page: number = 1,
   perPage: number = 20,
-  _translationId: number = DEFAULT_TRANSLATION
+  _translationId: number = DEFAULT_TRANSLATION_ID
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({
     q: query,
@@ -114,24 +108,29 @@ export async function getReciters(): Promise<RecitersResponse> {
   return fetchApi<RecitersResponse>('/resources/recitations');
 }
 
-// Get audio URL for a verse
-export function getVerseAudioUrl(
-  _reciterId: number,
-  verseKey: string
-): string {
-  // Format: https://verses.quran.com/{reciterId}/{verseKey}.mp3
-  // Example: https://verses.quran.com/AbdulBaset/AbdulSamad/Murattal/mp3/001001.mp3
+// Get audio URL for a verse using reciter config
+export function getVerseAudioUrl(reciterId: number, verseKey: string): string {
+  const reciter = getReciterById(reciterId);
+  if (reciter) {
+    return getReciterAudioUrl(reciter, verseKey);
+  }
+  // Fallback to default reciter if not found
+  const defaultReciter = getReciterById(DEFAULT_RECITER_ID);
+  if (defaultReciter) {
+    return getReciterAudioUrl(defaultReciter, verseKey);
+  }
+  // Ultimate fallback with hardcoded Alafasy URL
   const [chapter, verse] = verseKey.split(':');
   const paddedChapter = chapter.padStart(3, '0');
   const paddedVerse = verse.padStart(3, '0');
-  return `https://verses.quran.com/Alafasy/mp3/${paddedChapter}${paddedVerse}.mp3`;
+  return `${API_CONFIG.verseAudioBaseUrl}/Alafasy/mp3/${paddedChapter}${paddedVerse}.mp3`;
 }
 
 // Build full audio URL from relative path
 export function buildAudioUrl(relativePath: string | null): string | null {
   if (!relativePath) return null;
   if (relativePath.startsWith('http')) return relativePath;
-  return `https://audio.qurancdn.com/${relativePath}`;
+  return `${API_CONFIG.audioBaseUrl}/${relativePath}`;
 }
 
 // Generate correct word audio URL based on verse key and word position
@@ -163,17 +162,15 @@ function fixVerseAudioUrls(verses: Verse[]): void {
 }
 
 // Get verses by Mushaf page number (for QPC Hafs Nastaleeq 15-line layout)
-export async function getVersesByPage(
-  pageNumber: number
-): Promise<VersesResponse> {
+export async function getVersesByPage(pageNumber: number): Promise<VersesResponse> {
   const params = new URLSearchParams({
-    mushaf: MUSHAF_QPC_NASTALEEQ_15.toString(),
+    mushaf: ACTIVE_MUSHAF.id.toString(),
     words: 'true',
     word_fields: 'text_uthmani,text_indopak,audio_url',
     per_page: '50',
   });
 
-  const response = await fetch(`${QDC_BASE_URL}/verses/by_page/${pageNumber}?${params}`);
+  const response = await fetch(`${API_CONFIG.qdcBaseUrl}/verses/by_page/${pageNumber}?${params}`);
   if (!response.ok) {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }

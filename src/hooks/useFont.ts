@@ -1,65 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useSettingsOptional } from '../contexts/SettingsContext';
+import { FONT_OPTIONS } from '../config/defaults';
+import type { FontConfig } from '../config/types';
 
 export type FontStyle = 'nastaleeq' | 'madina' | 'old-madina' | 'indopak';
 
-export interface FontOption {
-  id: FontStyle;
-  name: string;
-  description: string;
-  className: string;
-}
+// Re-export FontConfig as FontOption for backward compatibility
+export type FontOption = FontConfig;
 
-export const fontOptions: FontOption[] = [
-  {
-    id: 'nastaleeq',
-    name: 'KFGQPC Nastaleeq',
-    description: 'Default - QPC Nastaleeq style',
-    className: 'font-nastaleeq',
-  },
-  {
-    id: 'madina',
-    name: 'Madina Mushaf',
-    description: 'Modern Saudi standard (1420H)',
-    className: 'font-madina',
-  },
-  {
-    id: 'old-madina',
-    name: 'Old Madina',
-    description: 'Classic traditional style',
-    className: 'font-old-madina',
-  },
-  {
-    id: 'indopak',
-    name: 'IndoPak',
-    description: 'South Asian Nastaliq style',
-    className: 'font-indopak',
-  },
-];
-
-const STORAGE_KEY = 'quran-font-preference';
+// Re-export font options for backward compatibility
+export const fontOptions: FontOption[] = FONT_OPTIONS;
 
 export function useFont() {
-  const [fontStyle, setFontStyle] = useState<FontStyle>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved && fontOptions.some(f => f.id === saved)) {
-        return saved as FontStyle;
-      }
-    }
-    return 'nastaleeq';
-  });
+  const settings = useSettingsOptional();
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, fontStyle);
-  }, [fontStyle]);
+  // If SettingsContext is available, use it
+  if (settings) {
+    return {
+      fontStyle: settings.fontStyle as FontStyle,
+      setFontStyle: settings.setFontStyle,
+      currentFont: settings.currentFont,
+      fontOptions: settings.fontOptions,
+      fontClassName: settings.fontClassName,
+    };
+  }
 
-  const currentFont = fontOptions.find(f => f.id === fontStyle) || fontOptions[0];
-
+  // Fallback for when used outside of SettingsProvider (shouldn't happen normally)
+  const defaultFont = FONT_OPTIONS[0];
   return {
-    fontStyle,
-    setFontStyle,
-    currentFont,
-    fontOptions,
-    fontClassName: currentFont.className,
+    fontStyle: 'nastaleeq' as FontStyle,
+    setFontStyle: () => {
+      console.warn('useFont: SettingsProvider not found, font change ignored');
+    },
+    currentFont: defaultFont,
+    fontOptions: FONT_OPTIONS,
+    fontClassName: defaultFont.className,
   };
 }

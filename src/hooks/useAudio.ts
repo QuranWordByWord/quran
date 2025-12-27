@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { buildAudioUrl, getVerseAudioUrl } from '../api/quran';
+import { useSettingsOptional } from '../contexts/SettingsContext';
+import { DEFAULT_RECITER_ID } from '../config/reciters';
 
 interface UseAudioResult {
   isPlaying: boolean;
@@ -17,6 +19,9 @@ interface UseAudioResult {
 }
 
 export function useAudio(): UseAudioResult {
+  const settings = useSettingsOptional();
+  const reciterId = settings?.reciter.id ?? DEFAULT_RECITER_ID;
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
@@ -99,11 +104,14 @@ export function useAudio(): UseAudioResult {
     }
   }, [playUrl]);
 
-  const playVerse = useCallback((verseKey: string) => {
-    // Using Mishary Alafasy recitation (default)
-    const url = getVerseAudioUrl(7, verseKey);
-    playUrl(url);
-  }, [playUrl]);
+  const playVerse = useCallback(
+    (verseKey: string) => {
+      // Use reciter from settings (or default)
+      const url = getVerseAudioUrl(reciterId, verseKey);
+      playUrl(url);
+    },
+    [playUrl, reciterId]
+  );
 
   const pause = useCallback(() => {
     audioRef.current?.pause();

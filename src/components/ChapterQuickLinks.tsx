@@ -159,22 +159,30 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
   };
 
   return (
-    <div className="hidden lg:block w-44 xl:w-48 bg-[var(--color-bg-card)] border-x border-[var(--color-border)] h-[calc(100vh-64px)] overflow-y-auto text-sm shrink-0">
+    <nav
+      className="hidden lg:block w-44 xl:w-48 bg-[var(--color-bg-card)] border-x border-[var(--color-border)] h-[calc(100vh-64px)] overflow-y-auto text-sm shrink-0"
+      aria-label={`Chapters ${side === 'left' ? '1 to 57' : '58 to 114'}`}
+      role="navigation"
+    >
       <div className="sticky top-0 bg-[var(--mushaf-header-bg)] px-2 py-2 border-b border-[var(--color-border)]">
-        <h3 className="font-semibold text-[var(--color-text-primary)] text-center text-xs xl:text-sm">Chapter (Verses)</h3>
+        <h2 className="font-semibold text-[var(--color-text-primary)] text-center text-xs xl:text-sm" id={`chapter-heading-${side}`}>
+          Chapter (Verses)
+        </h2>
       </div>
-      <div className="py-1">
+      <ul className="py-1" role="list" aria-labelledby={`chapter-heading-${side}`}>
         {displayChapters.map((chapter) => (
-          <button
-            key={chapter.id}
-            onClick={() => handleChapterClick(chapter)}
-            className="w-full text-left px-2 py-1 hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-text-header)] text-[var(--color-text-secondary)] transition-colors border-b border-[var(--color-border)] text-xs xl:text-sm"
-          >
-            {chapter.id}. {chapter.name} ({chapter.verses})
-          </button>
+          <li key={chapter.id}>
+            <button
+              onClick={() => handleChapterClick(chapter)}
+              className="w-full text-left px-2 py-1 hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-text-header)] text-[var(--color-text-secondary)] transition-colors border-b border-[var(--color-border)] text-xs xl:text-sm"
+              aria-label={`Chapter ${chapter.id}: ${chapter.name}, ${chapter.verses} verses`}
+            >
+              {chapter.id}. {chapter.name} ({chapter.verses})
+            </button>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </nav>
   );
 }
 
@@ -207,11 +215,11 @@ function SettingsTab({
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4" role="group" aria-label="Settings">
       {/* View mode toggle */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">View Mode</h3>
-        <div className="flex bg-gray-100 rounded-lg p-1">
+      <fieldset>
+        <legend className="text-sm font-medium text-gray-700 mb-2">View Mode</legend>
+        <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="View mode selection">
           <button
             onClick={() => handleViewModeChange('mushaf')}
             className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-2 ${
@@ -219,8 +227,10 @@ function SettingsTab({
                 ? 'bg-white text-[var(--color-primary)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
+            role="radio"
+            aria-checked={viewMode === 'mushaf'}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
             Mushaf
@@ -232,19 +242,21 @@ function SettingsTab({
                 ? 'bg-white text-[var(--color-primary)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
+            role="radio"
+            aria-checked={viewMode === 'wordforword'}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
             </svg>
             Word by Word
           </button>
         </div>
-      </div>
+      </fieldset>
 
       {/* Theme toggle */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Theme</h3>
-        <div className="flex bg-gray-100 rounded-lg p-1">
+      <fieldset>
+        <legend className="text-sm font-medium text-gray-700 mb-2">Theme</legend>
+        <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Theme selection">
           <button
             onClick={() => setTheme('light')}
             className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-2 ${
@@ -252,8 +264,10 @@ function SettingsTab({
                 ? 'bg-white text-[var(--color-primary)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
+            role="radio"
+            aria-checked={theme === 'light'}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
             Light
@@ -265,19 +279,21 @@ function SettingsTab({
                 ? 'bg-white text-[var(--color-primary)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
+            role="radio"
+            aria-checked={theme === 'dark'}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
             Dark
           </button>
         </div>
-      </div>
+      </fieldset>
 
       {/* Verse number format */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Verse Numbers</h3>
-        <div className="flex bg-gray-100 rounded-lg p-1">
+      <fieldset>
+        <legend className="text-sm font-medium text-gray-700 mb-2">Verse Numbers</legend>
+        <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Verse number format">
           <button
             onClick={() => onVerseNumberFormatChange?.('arabic')}
             className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
@@ -285,6 +301,8 @@ function SettingsTab({
                 ? 'bg-white text-[var(--color-primary)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
+            role="radio"
+            aria-checked={verseNumberFormat === 'arabic'}
           >
             Arabic (١٢٣)
           </button>
@@ -295,17 +313,19 @@ function SettingsTab({
                 ? 'bg-white text-[var(--color-primary)] shadow-sm'
                 : 'text-gray-600 hover:text-gray-800'
             }`}
+            role="radio"
+            aria-checked={verseNumberFormat === 'english'}
           >
             English (123)
           </button>
         </div>
-      </div>
+      </fieldset>
 
       {/* App info */}
       <div className="pt-4 border-t border-gray-200">
         <div className="text-center">
-          <span className="text-2xl">📖</span>
-          <h3 className="font-semibold text-gray-800 mt-1">Quran Word by Word</h3>
+          <span className="text-2xl" aria-hidden="true">📖</span>
+          <p className="font-semibold text-gray-800 mt-1">Quran Word by Word</p>
           <p className="text-xs text-gray-500 mt-1">15-Line Mushaf</p>
         </div>
       </div>
@@ -384,11 +404,17 @@ export function MobileChapterSelector({
     <div className="lg:hidden">
       {/* Modal overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mobile-menu-title"
+        >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setIsOpen(false)}
+            aria-hidden="true"
           />
 
           {/* Modal content */}
@@ -396,23 +422,28 @@ export function MobileChapterSelector({
             {/* Header with tabs */}
             <div className="sticky top-0 bg-[var(--color-primary)] text-white">
               <div className="px-4 py-3 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Menu</h2>
+                <h2 id="mobile-menu-title" className="text-lg font-semibold">Menu</h2>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                  aria-label="Close menu"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
               {/* Tabs */}
-              <div className="flex border-t border-white/20">
+              <div className="flex border-t border-white/20" role="tablist" aria-label="Menu sections">
                 <button
                   onClick={() => setActiveTab('chapters')}
                   className={`flex-1 py-2 text-sm font-medium transition-colors ${
                     activeTab === 'chapters' ? 'bg-white/20' : 'hover:bg-white/10'
                   }`}
+                  role="tab"
+                  aria-selected={activeTab === 'chapters'}
+                  aria-controls="chapters-panel"
+                  id="chapters-tab"
                 >
                   Chapters
                 </button>
@@ -421,6 +452,10 @@ export function MobileChapterSelector({
                   className={`flex-1 py-2 text-sm font-medium transition-colors ${
                     activeTab === 'settings' ? 'bg-white/20' : 'hover:bg-white/10'
                   }`}
+                  role="tab"
+                  aria-selected={activeTab === 'settings'}
+                  aria-controls="settings-panel"
+                  id="settings-tab"
                 >
                   Settings
                 </button>
@@ -430,12 +465,17 @@ export function MobileChapterSelector({
             {/* Content */}
             <div className="overflow-y-auto max-h-[calc(85vh-100px)]">
               {activeTab === 'chapters' && (
-                <>
+                <div
+                  id="chapters-panel"
+                  role="tabpanel"
+                  aria-labelledby="chapters-tab"
+                >
                   {/* Go to page */}
                   <div className="p-3 border-b border-gray-200 bg-gray-50">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Go to page:</span>
+                      <label htmlFor="go-to-page" className="text-sm text-gray-600">Go to page:</label>
                       <input
+                        id="go-to-page"
                         type="number"
                         min={1}
                         max={effectiveTotalPages}
@@ -444,6 +484,7 @@ export function MobileChapterSelector({
                         placeholder={`1-${effectiveTotalPages}`}
                         className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         onKeyDown={(e) => e.key === 'Enter' && handleGoToPage()}
+                        aria-describedby="current-page-info"
                       />
                       <button
                         onClick={handleGoToPage}
@@ -451,34 +492,42 @@ export function MobileChapterSelector({
                       >
                         Go
                       </button>
-                      <span className="text-xs text-gray-400 ml-auto">
+                      <span id="current-page-info" className="text-xs text-gray-400 ml-auto">
                         Current: {pageNumber}
                       </span>
                     </div>
                   </div>
                   {/* Chapter list */}
-                  <div className="grid grid-cols-2 gap-1 p-2">
+                  <ul className="grid grid-cols-2 gap-1 p-2" role="list" aria-label="All chapters">
                     {chapters.map((chapter) => (
-                      <button
-                        key={chapter.id}
-                        onClick={() => handleChapterClick(chapter)}
-                        className="text-left p-2 hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-text-header)] text-gray-700 rounded-lg transition-colors border border-gray-100"
-                      >
-                        <span className="font-medium">{chapter.id}.</span>{' '}
-                        <span className="text-sm">{chapter.name}</span>
-                        <span className="text-xs text-gray-400 block">({chapter.verses} verses)</span>
-                      </button>
+                      <li key={chapter.id}>
+                        <button
+                          onClick={() => handleChapterClick(chapter)}
+                          className="w-full text-left p-2 hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-text-header)] text-gray-700 rounded-lg transition-colors border border-gray-100"
+                          aria-label={`Chapter ${chapter.id}: ${chapter.name}, ${chapter.verses} verses`}
+                        >
+                          <span className="font-medium">{chapter.id}.</span>{' '}
+                          <span className="text-sm">{chapter.name}</span>
+                          <span className="text-xs text-gray-400 block">({chapter.verses} verses)</span>
+                        </button>
+                      </li>
                     ))}
-                  </div>
-                </>
+                  </ul>
+                </div>
               )}
 
               {activeTab === 'settings' && (
-                <SettingsTab
-                  verseNumberFormat={verseNumberFormat}
-                  onVerseNumberFormatChange={onVerseNumberFormatChange}
-                  onClose={() => setIsOpen(false)}
-                />
+                <div
+                  id="settings-panel"
+                  role="tabpanel"
+                  aria-labelledby="settings-tab"
+                >
+                  <SettingsTab
+                    verseNumberFormat={verseNumberFormat}
+                    onVerseNumberFormatChange={onVerseNumberFormatChange}
+                    onClose={() => setIsOpen(false)}
+                  />
+                </div>
               )}
             </div>
           </div>

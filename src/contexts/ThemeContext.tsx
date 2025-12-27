@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { ReactNode } from 'react';
+// Re-export theme functionality from SettingsContext for backward compatibility
+import { useSettingsOptional } from './SettingsContext';
 
 type Theme = 'light' | 'dark';
 
@@ -9,54 +9,28 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
-  theme: 'light',
-  setTheme: () => {},
-  toggleTheme: () => {},
-});
+// Hook that wraps useSettings for theme functionality
+export function useTheme(): ThemeContextType {
+  const settings = useSettingsOptional();
 
-export const useTheme = () => useContext(ThemeContext);
+  if (settings) {
+    return {
+      theme: settings.theme,
+      setTheme: settings.setTheme,
+      toggleTheme: settings.toggleTheme,
+    };
+  }
 
-interface ThemeProviderProps {
-  children: ReactNode;
+  // Fallback when used outside of SettingsProvider
+  return {
+    theme: 'light',
+    setTheme: () => console.warn('useTheme: SettingsProvider not found'),
+    toggleTheme: () => console.warn('useTheme: SettingsProvider not found'),
+  };
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    // Check localStorage first
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') {
-      return saved;
-    }
-    // Check system preference
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
-  });
-
-  // Apply theme class to document
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const setTheme = useCallback((newTheme: Theme) => {
-    setThemeState(newTheme);
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light');
-  }, []);
-
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+// ThemeProvider is no longer needed - SettingsProvider handles theme
+// Kept for backward compatibility but just passes through children
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

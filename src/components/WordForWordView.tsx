@@ -108,10 +108,11 @@ export function WordForWordView({
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6 bg-[#f5f0e6]">
+      <div className="flex-1 flex items-center justify-center p-6 bg-[#f5f0e6]" role="status" aria-live="polite">
         <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="animate-spin w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full mx-auto mb-4" aria-hidden="true" />
           <p className="text-[var(--color-text-secondary)]">Loading page {pageNumber}...</p>
+          <span className="sr-only">Loading Quran page {pageNumber}, please wait</span>
         </div>
       </div>
     );
@@ -119,9 +120,9 @@ export function WordForWordView({
 
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6 bg-[#f5f0e6]">
+      <div className="flex-1 flex items-center justify-center p-6 bg-[#f5f0e6]" role="alert" aria-live="assertive">
         <div className="text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠</div>
+          <div className="text-red-500 text-6xl mb-4" aria-hidden="true">⚠</div>
           <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
             Error Loading Page
           </h2>
@@ -195,7 +196,11 @@ export function WordForWordView({
   });
 
   return (
-    <div className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]">
+    <div
+      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]"
+      role="article"
+      aria-label={`Quran page ${pageNumber} of ${totalPages}, Juz ${juzNumber}`}
+    >
       {/* Mushaf Page Container with side navigation */}
       <div className="flex-1 flex items-stretch relative min-h-0 overflow-hidden">
         {/* Left arrow - Previous page (desktop only) */}
@@ -203,9 +208,10 @@ export function WordForWordView({
           onClick={() => onPageChange(pageNumber - 1)}
           disabled={pageNumber <= 1}
           className="hidden lg:flex items-center justify-center w-16 xl:w-20 bg-[var(--mushaf-arrow-bg)] hover:bg-[var(--mushaf-arrow-hover)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors group"
-          aria-label="Previous page"
+          aria-label={`Go to previous page ${pageNumber - 1}`}
+          aria-disabled={pageNumber <= 1}
         >
-          <span className="text-3xl xl:text-4xl text-[var(--mushaf-arrow-color)] group-hover:opacity-80 transition-colors">←</span>
+          <span className="text-3xl xl:text-4xl text-[var(--mushaf-arrow-color)] group-hover:opacity-80 transition-colors" aria-hidden="true">←</span>
         </button>
 
         {/* Scrollable content area */}

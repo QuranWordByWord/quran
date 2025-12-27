@@ -8,6 +8,7 @@ import { useMobileNav } from '../contexts/MobileNavContext';
 import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
+import { RENDERER_MUSHAF } from '../config/constants';
 
 // Hook to detect if we're on mobile
 function useIsMobile() {
@@ -67,7 +68,7 @@ function useMobileScale(isAudioActive: boolean) {
 
 // Total pages in the standard Hafs Mushaf (misraj-mushaf-renderer uses this)
 // Note: This is different from the QPC Nastaleeq 15-line mushaf which has 610 pages
-const TOTAL_PAGES = 604;
+const TOTAL_PAGES = RENDERER_MUSHAF.totalPages;
 
 interface RendererMushafViewProps {
   onOpenMenu?: () => void;
@@ -235,6 +236,19 @@ function MushafContent({
             .mobile-mushaf > div {
               transform-origin: center center;
               transform: scale(${mobileScale});
+            }
+          `}</style>
+        )}
+
+        {/* Hide mushaf renderer's page number when audio player is active to prevent z-index conflicts */}
+        {isAudioActive && (
+          <style>{`
+            /* Target the mushaf renderer's page number container and number */
+            .Page-pageNumberContainer,
+            .Page-pageNumber,
+            [class*="pageNumberContainer"],
+            [class*="pageNumber"]:not(input):not(button) {
+              display: none !important;
             }
           `}</style>
         )}

@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import type { FontStyle, FontOption } from '../hooks/useFont';
+import type { FontOption } from '../hooks/useFont';
 
 interface FontSelectorProps {
   currentFont: FontOption;
   fontOptions: FontOption[];
-  onFontChange: (fontId: FontStyle) => void;
+  onFontChange: (fontId: string) => void;
 }
 
 export function FontSelector({ currentFont, fontOptions, onFontChange }: FontSelectorProps) {
