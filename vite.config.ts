@@ -18,8 +18,8 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait-primary',
-        scope: '/',
-        start_url: '/',
+        scope: '/Quran/',
+        start_url: '/Quran/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -159,5 +159,5 @@ export default defineConfig({
       },
     }),
   ],
-  base: '/',
+  base: '/Quran/',
 })

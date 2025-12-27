@@ -347,7 +347,7 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/Quran">
       <SettingsProvider>
         <OfflineIndicator />
         <AppContent />
