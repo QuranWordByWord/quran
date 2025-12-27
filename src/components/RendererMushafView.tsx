@@ -286,10 +286,12 @@ function MushafContent({
         isPlaying={audio.isPlaying}
         currentTime={audio.currentTime}
         duration={audio.duration}
+        isLooping={audio.isLooping}
         onPause={audio.pause}
         onResume={audio.resume}
         onStop={audio.stop}
         onSeek={audio.seek}
+        onToggleLoop={audio.toggleLoop}
       />
     </div>
   );

@@ -6,12 +6,14 @@ interface UseAudioResult {
   currentUrl: string | null;
   duration: number;
   currentTime: number;
+  isLooping: boolean;
   playWord: (audioUrl: string | null) => void;
   playVerse: (verseKey: string) => void;
   pause: () => void;
   resume: () => void;
   stop: () => void;
   seek: (time: number) => void;
+  toggleLoop: () => void;
 }
 
 export function useAudio(): UseAudioResult {
@@ -19,6 +21,7 @@ export function useAudio(): UseAudioResult {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isLooping, setIsLooping] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isStoppedRef = useRef(false);
@@ -30,8 +33,11 @@ export function useAudio(): UseAudioResult {
     const audio = audioRef.current;
 
     audio.addEventListener('ended', () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
+      // Loop handling is done via the audio.loop property
+      if (!audio.loop) {
+        setIsPlaying(false);
+        setCurrentTime(0);
+      }
     });
 
     audio.addEventListener('timeupdate', () => {
@@ -135,16 +141,26 @@ export function useAudio(): UseAudioResult {
     }
   }, []);
 
+  const toggleLoop = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.loop = !audio.loop;
+      setIsLooping(audio.loop);
+    }
+  }, []);
+
   return {
     isPlaying,
     currentUrl,
     duration,
     currentTime,
+    isLooping,
     playWord,
     playVerse,
     pause,
     resume,
     stop,
     seek,
+    toggleLoop,
   };
 }

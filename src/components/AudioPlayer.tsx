@@ -2,10 +2,12 @@ interface AudioPlayerProps {
   isPlaying: boolean;
   currentTime: number;
   duration: number;
+  isLooping?: boolean;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
   onSeek: (time: number) => void;
+  onToggleLoop?: () => void;
   onDismiss?: () => void;
 }
 
@@ -13,10 +15,12 @@ export function AudioPlayer({
   isPlaying,
   currentTime,
   duration,
+  isLooping = false,
   onPause,
   onResume,
   onStop,
   onSeek,
+  onToggleLoop,
   onDismiss,
 }: AudioPlayerProps) {
   if (!isPlaying && duration === 0) {
@@ -55,6 +59,24 @@ export function AudioPlayer({
               </svg>
             )}
           </button>
+
+          {/* Loop/Repeat Button */}
+          {onToggleLoop && (
+            <button
+              onClick={onToggleLoop}
+              className={`p-1.5 sm:p-2 rounded-full transition-colors shrink-0 ${
+                isLooping
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'hover:bg-gray-100 text-[var(--color-text-secondary)]'
+              }`}
+              aria-label={isLooping ? 'Disable repeat' : 'Enable repeat'}
+              title={isLooping ? 'Repeat on' : 'Repeat off'}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          )}
 
           {/* Progress Bar */}
           <div className="flex-1 min-w-0">
