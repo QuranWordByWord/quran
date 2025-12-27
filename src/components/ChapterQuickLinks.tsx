@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../App';
 import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
+import { useBookmarks } from '../contexts/BookmarkContext';
+import { BookmarkList } from './BookmarkList';
+import { loadSidebarExpanded, saveSidebarExpanded } from '../utils/bookmarkStorage';
 
 // Chapter data with verse counts and starting page numbers
 // apiPage: QPC Nastaleeq 15-line Mushaf (610 pages) - used for word-by-word view
@@ -139,6 +142,13 @@ interface ChapterQuickLinksProps {
 export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { bookmarks } = useBookmarks();
+  const [isBookmarksExpanded, setIsBookmarksExpanded] = useState(() => loadSidebarExpanded());
+
+  // Persist sidebar expanded state
+  useEffect(() => {
+    saveSidebarExpanded(isBookmarksExpanded);
+  }, [isBookmarksExpanded]);
 
   // Determine if we're in mushaf mode based on current route
   const isMushafMode = location.pathname.startsWith('/mushaf');
@@ -164,6 +174,38 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
       aria-label={`Chapters ${side === 'left' ? '1 to 57' : '58 to 114'}`}
       role="navigation"
     >
+      {/* Bookmarks section - only show on left sidebar */}
+      {side === 'left' && bookmarks.length > 0 && (
+        <div className="border-b border-[var(--color-border)]">
+          <button
+            onClick={() => setIsBookmarksExpanded(!isBookmarksExpanded)}
+            className="w-full flex items-center justify-between px-2 py-2 bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 transition-colors"
+            aria-expanded={isBookmarksExpanded}
+          >
+            <span className="flex items-center gap-1.5 font-semibold text-[var(--color-primary)] text-xs xl:text-sm">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              Bookmarks ({bookmarks.length})
+            </span>
+            <svg
+              className={`w-4 h-4 text-[var(--color-primary)] transition-transform ${isBookmarksExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {isBookmarksExpanded && (
+            <div className="max-h-48 overflow-y-auto">
+              <BookmarkList compact onNavigate={() => {}} />
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="sticky top-0 bg-[var(--mushaf-header-bg)] px-2 py-2 border-b border-[var(--color-border)]">
         <h2 className="font-semibold text-[var(--color-text-primary)] text-center text-xs xl:text-sm" id={`chapter-heading-${side}`}>
           Chapter (Verses)
@@ -187,7 +229,7 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
 }
 
 // Mobile chapter selector - dropdown/modal style
-type MenuTab = 'chapters' | 'settings';
+type MenuTab = 'chapters' | 'bookmarks' | 'settings';
 type VerseNumberFormat = 'arabic' | 'english';
 
 // Settings tab component with theme toggle
@@ -333,6 +375,32 @@ function SettingsTab({
   );
 }
 
+// Bookmarks tab button with count badge
+function BookmarksTabButton({ isActive, onClick }: { isActive: boolean; onClick: () => void }) {
+  const { bookmarks } = useBookmarks();
+  const count = bookmarks.length;
+
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 py-2 text-sm font-medium transition-colors relative ${
+        isActive ? 'bg-white/20' : 'hover:bg-white/10'
+      }`}
+      role="tab"
+      aria-selected={isActive}
+      aria-controls="bookmarks-panel"
+      id="bookmarks-tab"
+    >
+      Bookmarks
+      {count > 0 && (
+        <span className="absolute top-1 right-1/4 w-4 h-4 bg-white text-[var(--color-primary)] text-xs rounded-full flex items-center justify-center font-bold">
+          {count > 9 ? '9+' : count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 interface MobileChapterSelectorProps {
   pageNumber?: number;
   totalPages?: number;
@@ -447,6 +515,10 @@ export function MobileChapterSelector({
                 >
                   Chapters
                 </button>
+                <BookmarksTabButton
+                  isActive={activeTab === 'bookmarks'}
+                  onClick={() => setActiveTab('bookmarks')}
+                />
                 <button
                   onClick={() => setActiveTab('settings')}
                   className={`flex-1 py-2 text-sm font-medium transition-colors ${
@@ -513,6 +585,16 @@ export function MobileChapterSelector({
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {activeTab === 'bookmarks' && (
+                <div
+                  id="bookmarks-panel"
+                  role="tabpanel"
+                  aria-labelledby="bookmarks-tab"
+                >
+                  <BookmarkList onNavigate={() => setIsOpen(false)} />
                 </div>
               )}
 

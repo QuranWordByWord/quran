@@ -40,6 +40,17 @@ export interface ApiConfig {
   verseAudioBaseUrl: string;
 }
 
+// Bookmark data structure
+export interface Bookmark {
+  id: string;                              // Unique ID (timestamp-based)
+  pageNumber: number;                      // UI page number
+  viewMode: 'mushaf' | 'wordforword';      // Which view was bookmarked
+  surahId: number;                         // Chapter ID (1-114)
+  surahName: string;                       // e.g., "Al-Baqara"
+  createdAt: number;                       // Unix timestamp
+  label?: string;                          // Optional custom label
+}
+
 // Complete app settings (user-modifiable)
 export interface AppSettings {
   // Audio settings
@@ -63,4 +74,6 @@ export interface StorageKeys {
   fontPreference: string;
   theme: string;
   verseNumberFormat: string;
+  bookmarks: string;
+  bookmarksSidebarExpanded: string;
 }

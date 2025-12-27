@@ -8,11 +8,14 @@ import { SearchResults } from './components/SearchResults';
 import { AudioPlayer } from './components/AudioPlayer';
 import { ChapterQuickLinks, MobileChapterSelector } from './components/ChapterQuickLinks';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { BookmarkDropdown } from './components/BookmarkDropdown';
 import { usePage } from './hooks/usePage';
 import { useSearch } from './hooks/useSearch';
 import { useAudio } from './hooks/useAudio';
 import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
+import { BookmarkProvider } from './contexts/BookmarkContext';
+import { ToastProvider } from './components/Toast';
 
 // Export hooks that wrap useSettings for backward compatibility
 export const useFontClass = () => useSettings().fontClassName;
@@ -291,6 +294,7 @@ function AppContentInner() {
             <div className="flex items-center gap-2" role="group" aria-label="Display settings">
               <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
               <VerseNumberToggle format={verseNumberFormat} onFormatChange={setVerseNumberFormat} />
+              <BookmarkDropdown />
               <ThemeToggle />
             </div>
           </Header>
@@ -349,8 +353,12 @@ function App() {
   return (
     <BrowserRouter basename="/quran">
       <SettingsProvider>
-        <OfflineIndicator />
-        <AppContent />
+        <BookmarkProvider>
+          <ToastProvider>
+            <OfflineIndicator />
+            <AppContent />
+          </ToastProvider>
+        </BookmarkProvider>
       </SettingsProvider>
     </BrowserRouter>
   );

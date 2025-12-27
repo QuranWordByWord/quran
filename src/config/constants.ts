@@ -36,4 +36,6 @@ export const STORAGE_KEYS: StorageKeys = {
   fontPreference: 'quran-font-preference',
   theme: 'theme',
   verseNumberFormat: 'verseNumberFormat',
+  bookmarks: 'quran-app-bookmarks',
+  bookmarksSidebarExpanded: 'quran-bookmarks-sidebar-expanded',
 };

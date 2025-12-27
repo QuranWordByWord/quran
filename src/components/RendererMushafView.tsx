@@ -10,6 +10,7 @@ import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
 import { RENDERER_MUSHAF } from '../config/constants';
 import { preloadPages } from '../utils/apiCache';
+import { InlineBookmarkButton } from './BookmarkButton';
 
 // Hook to detect if we're on mobile
 function useIsMobile() {
@@ -275,31 +276,47 @@ function MushafContent({
       {/* Mobile navigation buttons - hidden when menu is open */}
       {!isMenuOpen && (
       <div
-        className={`lg:hidden fixed left-0 right-0 flex justify-between items-center px-2 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
+        className={`lg:hidden fixed left-0 right-0 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
       >
-        <button
-          onClick={() => handlePageChange(pageNumber - 1)}
-          disabled={pageNumber <= 1}
-          className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-          aria-label="Previous page"
-        >
-          <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
-        </button>
-        <button
-          onClick={onOpenMenu}
-          className="pointer-events-auto text-xs text-[var(--mushaf-text-secondary)] bg-[var(--mushaf-page-bg)]/90 px-3 py-1.5 rounded-full border border-[var(--mushaf-border)] shadow-md active:scale-95 transition-transform"
-          aria-label="Open menu"
-        >
-          {pageNumber} / {TOTAL_PAGES}
-        </button>
-        <button
-          onClick={() => handlePageChange(pageNumber + 1)}
-          disabled={pageNumber >= TOTAL_PAGES}
-          className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-          aria-label="Next page"
-        >
-          <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
-        </button>
+        {/* Center - Page number button (absolutely centered) */}
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-0">
+          <button
+            onClick={onOpenMenu}
+            className="pointer-events-auto text-xs text-[var(--mushaf-text-secondary)] bg-[var(--mushaf-page-bg)]/90 px-3 py-1.5 rounded-full border border-[var(--mushaf-border)] shadow-md active:scale-95 transition-transform"
+            aria-label="Open menu"
+          >
+            {pageNumber} / {TOTAL_PAGES}
+          </button>
+        </div>
+
+        {/* Left side - Previous button */}
+        <div className="absolute left-2 bottom-0">
+          <button
+            onClick={() => handlePageChange(pageNumber - 1)}
+            disabled={pageNumber <= 1}
+            className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            aria-label="Previous page"
+          >
+            <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
+          </button>
+        </div>
+
+        {/* Right side - Bookmark and Next button */}
+        <div className="absolute right-2 bottom-0 flex items-center gap-2">
+          {/* Bookmark button */}
+          <div className="pointer-events-auto">
+            <InlineBookmarkButton pageNumber={pageNumber + 1} viewMode="mushaf" />
+          </div>
+          {/* Next button */}
+          <button
+            onClick={() => handlePageChange(pageNumber + 1)}
+            disabled={pageNumber >= TOTAL_PAGES}
+            className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            aria-label="Next page"
+          >
+            <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
+          </button>
+        </div>
       </div>
       )}
 
