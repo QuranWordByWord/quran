@@ -56,6 +56,8 @@
   --mushaf-arrow-bg: transparent;
   --mushaf-arrow-hover: #e8e4d8;
   --mushaf-arrow-color: #2d5016;
+  /* Verse highlight background - opaque to prevent overlap issues */
+  --mushaf-highlight-bg: #f5edd8;
   /* Focus color for accessibility */
   --color-focus: #0047ab;
 }
@@ -74,6 +76,8 @@
   --mushaf-arrow-bg: transparent;
   --mushaf-arrow-hover: #252525;
   --mushaf-arrow-color: #c0c0c0;
+  /* Verse highlight background - opaque to prevent overlap issues */
+  --mushaf-highlight-bg: #3d3520;
   /* Focus color for accessibility in dark mode */
   --color-focus: #6eb5ff;
 
@@ -337,4 +341,15 @@ textarea:focus-visible,
   .word-scale-85 {
     transform: none;
   }
+}
+
+/* Custom verse highlighting for Mushaf view */
+/* This overrides the library's highlighting which incorrectly highlights all verses with same numberInSurah */
+/* Uses a bright gold color matching the verse marker highlight for visibility */
+.custom-verse-highlight {
+  color: #d4a000 !important;
+}
+
+.dark .custom-verse-highlight {
+  color: #ffc107 !important;
 }

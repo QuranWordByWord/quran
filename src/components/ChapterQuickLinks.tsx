@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import { useViewMode } from '../App';
+import { useSettings } from '../contexts/SettingsContext';
 import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { BookmarkList } from './BookmarkList';
 import { loadSidebarExpanded, saveSidebarExpanded } from '../utils/bookmarkStorage';
+import { convertPageBetweenViews } from '../utils/pageToSurah';
 
 // Chapter data with verse counts and starting page numbers
 // apiPage: QPC Nastaleeq 15-line Mushaf (610 pages) - used for word-by-word view
@@ -243,15 +244,28 @@ function SettingsTab({
   onClose?: () => void;
 }) {
   const { theme, setTheme } = useTheme();
-  const { viewMode, setViewMode } = useViewMode();
+  const { viewMode, setViewMode, layoutMode, setLayoutMode } = useSettings();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract current page number and view mode from URL
+  const getCurrentPageAndMode = (): { page: number; currentMode: 'mushaf' | 'wordforword' } => {
+    const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
+    const pageMatch = location.pathname.match(/^\/page\/(\d+)/);
+    if (mushafMatch) return { page: parseInt(mushafMatch[1]), currentMode: 'mushaf' };
+    if (pageMatch) return { page: parseInt(pageMatch[1]), currentMode: 'wordforword' };
+    return { page: 2, currentMode: viewMode }; // Default to first Quran page
+  };
 
   const handleViewModeChange = (mode: 'mushaf' | 'wordforword') => {
     setViewMode(mode);
+    const { page: currentPage, currentMode } = getCurrentPageAndMode();
+    // Convert page number between the two different page numbering systems
+    const targetPage = convertPageBetweenViews(currentPage, currentMode, mode);
     if (mode === 'mushaf') {
-      navigate('/mushaf/2');
+      navigate(`/mushaf/${targetPage}`);
     } else {
-      navigate('/page/2');
+      navigate(`/page/${targetPage}`);
     }
     onClose?.();
   };
@@ -363,6 +377,55 @@ function SettingsTab({
         </div>
       </fieldset>
 
+      {/* Layout mode */}
+      <fieldset>
+        <legend className="text-sm font-medium text-gray-700 mb-2">Layout</legend>
+        <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Layout mode">
+          <button
+            onClick={() => setLayoutMode('auto')}
+            className={`flex-1 px-2 py-2 text-sm rounded-md transition-colors ${
+              layoutMode === 'auto'
+                ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+            role="radio"
+            aria-checked={layoutMode === 'auto'}
+          >
+            Auto
+          </button>
+          <button
+            onClick={() => setLayoutMode('desktop')}
+            className={`flex-1 px-2 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-1 ${
+              layoutMode === 'desktop'
+                ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+            role="radio"
+            aria-checked={layoutMode === 'desktop'}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Desktop
+          </button>
+          <button
+            onClick={() => setLayoutMode('mobile')}
+            className={`flex-1 px-2 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-1 ${
+              layoutMode === 'mobile'
+                ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+            role="radio"
+            aria-checked={layoutMode === 'mobile'}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            Mobile
+          </button>
+        </div>
+      </fieldset>
+
       {/* App info */}
       <div className="pt-4 border-t border-gray-200">
         <div className="text-center">
@@ -383,7 +446,7 @@ function BookmarksTabButton({ isActive, onClick }: { isActive: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`flex-1 py-2 text-sm font-medium transition-colors relative ${
+      className={`flex-1 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
         isActive ? 'bg-white/20' : 'hover:bg-white/10'
       }`}
       role="tab"
@@ -393,8 +456,8 @@ function BookmarksTabButton({ isActive, onClick }: { isActive: boolean; onClick:
     >
       Bookmarks
       {count > 0 && (
-        <span className="absolute top-1 right-1/4 w-4 h-4 bg-white text-[var(--color-primary)] text-xs rounded-full flex items-center justify-center font-bold">
-          {count > 9 ? '9+' : count}
+        <span className="min-w-5 h-5 px-1 bg-white text-[var(--color-primary)] text-xs rounded-full flex items-center justify-center font-bold">
+          {count}
         </span>
       )}
     </button>
@@ -412,7 +475,7 @@ interface MobileChapterSelectorProps {
 }
 
 export function MobileChapterSelector({
-  pageNumber = 1,
+  pageNumber: _pageNumber,
   totalPages = TOTAL_UI_PAGES,
   onPageChange: _onPageChange,
   verseNumberFormat = 'arabic',
@@ -439,6 +502,23 @@ export function MobileChapterSelector({
   // Determine if we're in mushaf mode based on current route
   const isMushafMode = location.pathname.startsWith('/mushaf');
 
+  // Get current page from URL and convert to display page
+  const getCurrentDisplayPage = (): number => {
+    const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
+    const pageMatch = location.pathname.match(/^\/page\/(\d+)/);
+    if (mushafMatch) {
+      // Mushaf: app page is in URL, convert to renderer page (subtract 1 for intro offset)
+      const appPage = parseInt(mushafMatch[1]);
+      return Math.max(1, appPage - 1);
+    }
+    if (pageMatch) {
+      return parseInt(pageMatch[1]);
+    }
+    return 1;
+  };
+
+  const currentDisplayPage = getCurrentDisplayPage();
+
   const handleChapterClick = (chapter: typeof chapters[0]) => {
     // Navigate to the same mode the user is currently in
     // Use mushafUiPage for mushaf view (604-page mushaf) and page for word-by-word (610-page mushaf)
@@ -451,15 +531,18 @@ export function MobileChapterSelector({
   };
 
   // Total pages differs between mushaf view (604 pages) and word-by-word view (610 pages)
-  const MUSHAF_TOTAL_UI_PAGES = 605; // 604 + 1 intro page
-  const effectiveTotalPages = isMushafMode ? MUSHAF_TOTAL_UI_PAGES : totalPages;
+  // For mushaf, users see pages 1-604 (renderer pages), but URLs use 2-605 (app pages with intro offset)
+  const MUSHAF_RENDERER_TOTAL_PAGES = 604;
+  const effectiveTotalPages = isMushafMode ? MUSHAF_RENDERER_TOTAL_PAGES : totalPages;
 
   const handleGoToPage = () => {
     const page = parseInt(goToPage);
     if (page >= 1 && page <= effectiveTotalPages) {
       // Navigate to the same mode the user is currently in
       if (isMushafMode) {
-        navigate(`/mushaf/${page}`);
+        // User enters renderer page (1-604), but URL needs app page (2-605)
+        // Add 1 to convert renderer page to app page (intro page offset)
+        navigate(`/mushaf/${page + 1}`);
       } else {
         navigate(`/page/${page}`);
       }
@@ -534,8 +617,8 @@ export function MobileChapterSelector({
               </div>
             </div>
 
-            {/* Content */}
-            <div className="overflow-y-auto max-h-[calc(85vh-100px)]">
+            {/* Content - account for header tabs (~100px) and potential audio player (~80px) */}
+            <div className="overflow-y-auto max-h-[calc(85vh-180px)] pb-4">
               {activeTab === 'chapters' && (
                 <div
                   id="chapters-panel"
@@ -565,7 +648,7 @@ export function MobileChapterSelector({
                         Go
                       </button>
                       <span id="current-page-info" className="text-xs text-gray-400 ml-auto">
-                        Current: {pageNumber}
+                        Current: {currentDisplayPage}
                       </span>
                     </div>
                   </div>

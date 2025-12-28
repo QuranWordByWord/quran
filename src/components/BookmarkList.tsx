@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import type { Bookmark } from '../config/types';
 import { useBookmarks } from '../contexts/BookmarkContext';
-import { formatRelativeTime } from '../utils/bookmarkStorage';
+import { formatDateTime } from '../utils/bookmarkStorage';
 
 interface BookmarkListProps {
   compact?: boolean;
@@ -54,19 +54,21 @@ export function BookmarkList({ compact = false, maxItems, onNavigate }: Bookmark
     return (
       <div className="divide-y divide-[var(--color-border)]">
         {displayBookmarks.map(bookmark => (
-          <button
+          <div
             key={bookmark.id}
-            onClick={() => handleNavigate(bookmark)}
             className="w-full flex items-center justify-between px-3 py-2 hover:bg-[var(--mushaf-header-bg)] transition-colors text-left"
           >
-            <div className="flex-1 min-w-0">
+            <button
+              onClick={() => handleNavigate(bookmark)}
+              className="flex-1 min-w-0 text-left"
+            >
               <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
                 {bookmark.surahName}
               </p>
               <p className="text-xs text-[var(--color-text-secondary)]">
-                Page {bookmark.pageNumber} · {formatRelativeTime(bookmark.createdAt)}
+                Page {bookmark.pageNumber} · {formatDateTime(bookmark.createdAt)}
               </p>
-            </div>
+            </button>
             <button
               onClick={(e) => handleDelete(e, bookmark.id)}
               className="ml-2 p-1 text-[var(--color-text-secondary)] hover:text-red-500 rounded transition-colors"
@@ -76,7 +78,7 @@ export function BookmarkList({ compact = false, maxItems, onNavigate }: Bookmark
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          </button>
+          </div>
         ))}
       </div>
     );
@@ -109,12 +111,14 @@ function BookmarkCard({ bookmark, onNavigate, onDelete }: BookmarkCardProps) {
   };
 
   return (
-    <button
-      onClick={onNavigate}
+    <div
       className="w-full text-left p-3 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--mushaf-header-bg)] hover:border-[var(--color-primary)]/30 transition-all group"
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
+        <button
+          onClick={onNavigate}
+          className="flex-1 min-w-0 text-left"
+        >
           <div className="flex items-center gap-2">
             <svg
               className="w-4 h-4 text-[var(--color-primary)] shrink-0"
@@ -132,9 +136,9 @@ function BookmarkCard({ bookmark, onNavigate, onDelete }: BookmarkCardProps) {
             <span>·</span>
             <span className="capitalize">{bookmark.viewMode === 'wordforword' ? 'Word by Word' : 'Mushaf'}</span>
             <span>·</span>
-            <span>{formatRelativeTime(bookmark.createdAt)}</span>
+            <span>{formatDateTime(bookmark.createdAt)}</span>
           </div>
-        </div>
+        </button>
         <button
           onClick={handleDelete}
           className="p-1.5 text-[var(--color-text-secondary)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors opacity-0 group-hover:opacity-100"
@@ -145,6 +149,6 @@ function BookmarkCard({ bookmark, onNavigate, onDelete }: BookmarkCardProps) {
           </svg>
         </button>
       </div>
-    </button>
+    </div>
   );
 }

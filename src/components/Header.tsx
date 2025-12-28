@@ -24,7 +24,8 @@ export function Header({ onSearch, searchQuery = '', children, isVisible = true 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    onSearch(value);
+    // Only trigger search on submit, not on every keystroke
+    // This prevents unnecessary API calls while typing
   };
 
   return (

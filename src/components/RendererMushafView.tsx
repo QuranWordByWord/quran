@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MushafReaderProvider, Mushaf, useMushafContext } from 'misraj-mushaf-renderer';
 import 'misraj-mushaf-renderer/dist/styles';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { useAudio } from '../hooks/useAudio';
 import { useMobileNav } from '../contexts/MobileNavContext';
 import { useMenu } from '../App';
@@ -12,18 +13,62 @@ import { RENDERER_MUSHAF } from '../config/constants';
 import { preloadPages } from '../utils/apiCache';
 import { InlineBookmarkButton } from './BookmarkButton';
 
-// Hook to detect if we're on mobile
-function useIsMobile() {
+// Hook to detect if we're on mobile (respects layoutMode setting)
+function useIsMobile(layoutMode: 'auto' | 'desktop' | 'mobile' = 'auto') {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    const checkMobile = () => {
+      if (layoutMode === 'desktop') {
+        setIsMobile(false);
+      } else if (layoutMode === 'mobile') {
+        setIsMobile(true);
+      } else {
+        // 'auto' - follow device width
+        setIsMobile(window.innerWidth < 1024);
+      }
+    };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [layoutMode]);
 
   return isMobile;
+}
+
+// Hook to calculate responsive font scale based on screen width
+function useResponsiveFontScale() {
+  const [fontScale, setFontScale] = useState(3);
+
+  useEffect(() => {
+    const calculateFontScale = () => {
+      const width = window.innerWidth;
+      // Scale font based on available width
+      // Smaller screens need smaller font to prevent overlap
+      if (width < 1024) {
+        // Mobile - handled separately with CSS transform
+        setFontScale(2.5);
+      } else if (width < 1200) {
+        // Small desktop/tablet
+        setFontScale(2.2);
+      } else if (width < 1400) {
+        // Medium desktop
+        setFontScale(2.5);
+      } else if (width < 1600) {
+        // Large desktop
+        setFontScale(2.8);
+      } else {
+        // Extra large screens
+        setFontScale(3);
+      }
+    };
+
+    calculateFontScale();
+    window.addEventListener('resize', calculateFontScale);
+    return () => window.removeEventListener('resize', calculateFontScale);
+  }, []);
+
+  return fontScale;
 }
 
 // Hook to calculate optimal scale for mobile to fill available space
@@ -87,10 +132,12 @@ function MushafContent({
   isMobile: boolean;
 }) {
   const navigate = useNavigate();
-  const { pageNumber, setSelectedVerse, ayat, error } = useMushafContext();
+  const { pageNumber, ayat, error } = useMushafContext();
   const { registerScrollContainer } = useMobileNav();
   const { isMenuOpen } = useMenu();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Use shared highlight state from context so it persists when switching views
+  const { highlightedVerseKey, setHighlightedVerseKey } = useSettings();
 
   // Loading state - ayat is null while data is being fetched
   const isLoading = ayat === null && error === null;
@@ -112,19 +159,38 @@ function MushafContent({
     return () => registerScrollContainer(null);
   }, [registerScrollContainer]);
 
-  // Clear verse highlight when audio stops playing
+  // Apply CSS-based highlighting for the selected verse
+  // This workaround uses data-word-location attribute which contains verse_key:position
+  // The highlight persists even when audio stops so it remains visible when switching views
+  // Also depends on `ayat` so it re-applies when page content loads (e.g., when switching views)
   useEffect(() => {
-    if (!audio.isPlaying && audio.duration === 0) {
-      setSelectedVerse(null);
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Remove previous highlights
+    container.querySelectorAll('.custom-verse-highlight').forEach(el => {
+      el.classList.remove('custom-verse-highlight');
+    });
+
+    // Show highlight if there's a highlighted verse (persists after audio stops)
+    if (highlightedVerseKey) {
+      // data-word-location format is "verse_key:position" e.g., "99:5:1"
+      container.querySelectorAll(`[data-word-location^="${highlightedVerseKey}:"]`).forEach(el => {
+        el.classList.add('custom-verse-highlight');
+      });
     }
-  }, [audio.isPlaying, audio.duration, setSelectedVerse]);
+  }, [highlightedVerseKey, ayat]);
 
   // Handle word click for audio playback
   const handleWordClick = (word: unknown) => {
+    // Debug: log the raw word data to understand its structure
+    console.log('Word clicked:', JSON.stringify(word, null, 2));
+
     const wordData = word as {
       verse_key?: string;
       position?: number;
       char_type_name?: string;
+      location?: string; // Alternative format: "chapter:verse:position"
       verse?: {
         number: number;
         text: string;
@@ -140,30 +206,46 @@ function MushafContent({
       };
     };
 
-    // End markers (verse numbers) play the full verse and highlight it
-    if (wordData?.char_type_name === 'end' && wordData?.verse_key) {
-      // Highlight the verse if verse data is available
-      if (wordData.verse) {
-        setSelectedVerse(wordData.verse as Parameters<typeof setSelectedVerse>[0]);
+    // Try to get verse_key from multiple possible sources
+    let verseKey = wordData?.verse_key;
+
+    // If verse_key is not available, try to construct it from location or verse data
+    if (!verseKey && wordData?.location) {
+      // location format is "chapter:verse:position"
+      const parts = wordData.location.split(':');
+      if (parts.length >= 2) {
+        verseKey = `${parts[0]}:${parts[1]}`;
       }
-      audio.playVerse(wordData.verse_key);
+    }
+
+    if (!verseKey && wordData?.verse) {
+      // Construct from verse data
+      verseKey = `${wordData.verse.surah.number}:${wordData.verse.numberInSurah}`;
+    }
+
+    // End markers (verse numbers) play the full verse and highlight it
+    if (wordData?.char_type_name === 'end' && verseKey) {
+      // Use our own highlighting with the full verse key (e.g., "99:5")
+      // instead of library's setSelectedVerse which only compares numberInSurah
+      setHighlightedVerseKey(verseKey);
+      audio.playVerse(verseKey);
       return;
     }
 
     // For regular words, clear verse highlight and play word audio
-    setSelectedVerse(null);
+    setHighlightedVerseKey(null);
 
-    if (wordData?.verse_key && wordData?.position) {
-      const [chapter, verse] = wordData.verse_key.split(':');
+    if (verseKey && wordData?.position) {
+      const [chapter, verse] = verseKey.split(':');
       const paddedChapter = chapter.padStart(3, '0');
       const paddedVerse = verse.padStart(3, '0');
       const paddedPosition = String(wordData.position).padStart(3, '0');
       // Word audio URL format: wbw/{chapter}_{verse}_{position}.mp3
       const wordAudioUrl = `wbw/${paddedChapter}_${paddedVerse}_${paddedPosition}.mp3`;
       audio.playWord(wordAudioUrl);
-    } else if (wordData?.verse_key) {
+    } else if (verseKey) {
       // Fallback: play the verse if we can't construct word audio
-      audio.playVerse(wordData.verse_key);
+      audio.playVerse(verseKey);
     }
   };
 
@@ -340,8 +422,10 @@ export function RendererMushafView({ onOpenMenu }: RendererMushafViewProps) {
   const { pageNumber: pageParam } = useParams();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { layoutMode } = useSettings();
   const audio = useAudio();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(layoutMode);
+  const fontScale = useResponsiveFontScale();
 
   const page = pageParam ? parseInt(pageParam) : 1;
 
@@ -384,7 +468,7 @@ export function RendererMushafView({ onOpenMenu }: RendererMushafViewProps) {
     <MushafReaderProvider
       dataId="quran-hafs"
       pageNumber={rendererPage}
-      initialFontScale={ 3}
+      initialFontScale={fontScale}
       hasBorder={!isMobile}
       initialIsTwoPagesView={false}
       themeProps={themeProps}

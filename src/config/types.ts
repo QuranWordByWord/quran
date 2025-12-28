@@ -66,6 +66,9 @@ export interface AppSettings {
 
   // View settings
   viewMode: 'mushaf' | 'wordforword';
+
+  // Layout mode: 'auto' follows device, 'desktop' forces desktop, 'mobile' forces mobile
+  layoutMode: 'auto' | 'desktop' | 'mobile';
 }
 
 // Storage keys

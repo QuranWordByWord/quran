@@ -39,4 +39,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
   verseNumberFormat: 'arabic',
   viewMode: 'wordforword',
+  layoutMode: 'auto',
 };

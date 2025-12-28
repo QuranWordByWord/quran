@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { useToast } from './Toast';
@@ -21,6 +21,15 @@ export function BookmarkDropdown() {
 
   const bookmarked = isBookmarked(pageNumber, viewMode);
 
+  const handleToggleBookmark = useCallback(() => {
+    const result = toggleBookmark(pageNumber, viewMode);
+    if (result.added) {
+      showToast('Bookmark added', 'success');
+    } else {
+      showToast('Bookmark removed', 'info');
+    }
+  }, [toggleBookmark, pageNumber, viewMode, showToast]);
+
   // Keyboard shortcut (Ctrl/Cmd + D)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,16 +41,7 @@ export function BookmarkDropdown() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [pageNumber, viewMode]);
-
-  const handleToggleBookmark = () => {
-    const result = toggleBookmark(pageNumber, viewMode);
-    if (result.added) {
-      showToast('Bookmark added', 'success');
-    } else {
-      showToast('Bookmark removed', 'info');
-    }
-  };
+  }, [handleToggleBookmark]);
 
   // Get current date formatted as day and short month
   const now = new Date();

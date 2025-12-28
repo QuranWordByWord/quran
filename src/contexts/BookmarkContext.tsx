@@ -1,12 +1,7 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Bookmark } from '../config/types';
-import {
-  loadBookmarks,
-  addBookmark as addBookmarkToStorage,
-  removeBookmark as removeBookmarkFromStorage,
-  getBookmarkForPage,
-} from '../utils/bookmarkStorage';
+import { loadBookmarks, saveBookmarks } from '../utils/bookmarkStorage';
 import { getSurahForPage } from '../utils/pageToSurah';
 
 interface BookmarkContextType {
@@ -26,10 +21,25 @@ interface BookmarkProviderProps {
 
 export function BookmarkProvider({ children }: BookmarkProviderProps) {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadBookmarks());
+  // Track if we're currently updating to prevent storage event loops
+  const isUpdatingRef = useRef(false);
+
+  // Persist bookmarks to localStorage whenever they change
+  useEffect(() => {
+    isUpdatingRef.current = true;
+    saveBookmarks(bookmarks);
+    // Reset flag after a small delay to allow storage event to fire
+    const timeout = setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 50);
+    return () => clearTimeout(timeout);
+  }, [bookmarks]);
 
   // Sync with localStorage changes (e.g., from other tabs)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
+      // Ignore if we triggered this change
+      if (isUpdatingRef.current) return;
       if (e.key === 'quran-app-bookmarks') {
         setBookmarks(loadBookmarks());
       }
@@ -42,34 +52,59 @@ export function BookmarkProvider({ children }: BookmarkProviderProps) {
   const addBookmark = useCallback((pageNumber: number, viewMode: 'mushaf' | 'wordforword'): Bookmark => {
     const surahInfo = getSurahForPage(pageNumber, viewMode);
 
-    const newBookmark = addBookmarkToStorage({
+    const newBookmark: Bookmark = {
+      id: `bookmark-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       pageNumber,
       viewMode,
       surahId: surahInfo.id,
       surahName: surahInfo.name,
+      createdAt: Date.now(),
+    };
+
+    // Update state directly - localStorage sync happens via useEffect
+    setBookmarks(prev => {
+      const updated = [newBookmark, ...prev];
+      return updated.sort((a, b) => b.createdAt - a.createdAt);
     });
 
-    setBookmarks(loadBookmarks());
     return newBookmark;
   }, []);
 
   const removeBookmark = useCallback((id: string) => {
-    removeBookmarkFromStorage(id);
-    setBookmarks(loadBookmarks());
+    // Update state directly - localStorage sync happens via useEffect
+    setBookmarks(prev => prev.filter(b => b.id !== id));
   }, []);
 
   const toggleBookmark = useCallback((pageNumber: number, viewMode: 'mushaf' | 'wordforword'): { added: boolean; bookmark?: Bookmark } => {
-    const existing = getBookmarkForPage(pageNumber, viewMode);
+    // Use functional update to ensure we have latest state
+    let result: { added: boolean; bookmark?: Bookmark } = { added: false };
 
-    if (existing) {
-      removeBookmarkFromStorage(existing.id);
-      setBookmarks(loadBookmarks());
-      return { added: false };
-    } else {
-      const newBookmark = addBookmark(pageNumber, viewMode);
-      return { added: true, bookmark: newBookmark };
-    }
-  }, [addBookmark]);
+    setBookmarks(prev => {
+      const existing = prev.find(
+        b => b.pageNumber === pageNumber && b.viewMode === viewMode
+      );
+
+      if (existing) {
+        result = { added: false };
+        return prev.filter(b => b.id !== existing.id);
+      } else {
+        const surahInfo = getSurahForPage(pageNumber, viewMode);
+        const newBookmark: Bookmark = {
+          id: `bookmark-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          pageNumber,
+          viewMode,
+          surahId: surahInfo.id,
+          surahName: surahInfo.name,
+          createdAt: Date.now(),
+        };
+        result = { added: true, bookmark: newBookmark };
+        const updated = [newBookmark, ...prev];
+        return updated.sort((a, b) => b.createdAt - a.createdAt);
+      }
+    });
+
+    return result;
+  }, []);
 
   const isBookmarked = useCallback((pageNumber: number, viewMode: 'mushaf' | 'wordforword'): boolean => {
     return bookmarks.some(

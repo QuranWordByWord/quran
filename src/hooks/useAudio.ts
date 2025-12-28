@@ -83,17 +83,27 @@ export function useAudio(): UseAudioResult {
         if (audio.currentTime >= audio.duration || audio.ended) {
           audio.currentTime = 0;
         }
-        audio.play();
+        audio.play().catch(() => {
+          // Ignore autoplay errors
+        });
         return;
       }
       // Already playing the same URL, do nothing
       return;
     }
 
-    // Play new URL
+    // Play new URL - wait for canplay event before playing to avoid race condition
     audio.src = url;
+
+    const handleCanPlay = () => {
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.play().catch(() => {
+        // Ignore autoplay errors (e.g., user hasn't interacted with page yet)
+      });
+    };
+
+    audio.addEventListener('canplay', handleCanPlay);
     audio.load();
-    audio.play();
     setCurrentUrl(url);
   }, [currentUrl]);
 
@@ -124,7 +134,9 @@ export function useAudio(): UseAudioResult {
       if (audio.currentTime >= audio.duration || audio.ended) {
         audio.currentTime = 0;
       }
-      audio.play();
+      audio.play().catch(() => {
+        // Ignore autoplay errors
+      });
     }
   }, []);
 

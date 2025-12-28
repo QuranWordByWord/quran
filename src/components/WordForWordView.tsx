@@ -338,7 +338,7 @@ export function WordForWordView({
           onClick={() => onPageChange(pageNumber + 1)}
           disabled={pageNumber >= totalPages}
           className="hidden lg:flex items-center justify-center w-16 xl:w-20 bg-[var(--mushaf-arrow-bg)] hover:bg-[var(--mushaf-arrow-hover)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors group"
-          aria-label="Next page"
+          aria-label={`Go to next page ${pageNumber + 1}`}
         >
           <span className="text-3xl xl:text-4xl text-[var(--mushaf-arrow-color)] group-hover:opacity-80 transition-colors">→</span>
         </button>
@@ -366,7 +366,7 @@ export function WordForWordView({
             onClick={() => onPageChange(pageNumber - 1)}
             disabled={pageNumber <= 1}
             className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-            aria-label="Previous page"
+            aria-label={`Go to previous page ${pageNumber - 1}`}
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
           </button>
@@ -383,7 +383,7 @@ export function WordForWordView({
             onClick={() => onPageChange(pageNumber + 1)}
             disabled={pageNumber >= totalPages}
             className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-            aria-label="Next page"
+            aria-label={`Go to next page ${pageNumber + 1}`}
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
           </button>
@@ -599,9 +599,9 @@ function TraditionalMushafLine({
             <span
               key={`${item.word.id}-${idx}`}
               onClick={() => handleWordClick(item.word, item.surahNumber, item.verseNumber)}
-              className={`inline select-none transition-colors ${
+              className={`inline select-none transition-colors rounded ${
                 isHighlighted
-                  ? 'bg-[var(--mushaf-accent)]/20 rounded'
+                  ? 'bg-[var(--mushaf-highlight-bg)]'
                   : item.word.audio_url || isEndMarker
                   ? 'cursor-pointer hover:text-[var(--mushaf-accent)]'
                   : ''
@@ -709,31 +709,31 @@ function WordCell({
   return (
     <div
       onClick={handleClick}
-      className={`group flex flex-col items-center min-w-0 rounded transition-colors cursor-pointer ${
-        isHighlighted
-          ? "bg-[var(--mushaf-accent)]/20"
-          : word.audio_url || isEndMarker
-          ? "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
-          : "hover:bg-[var(--mushaf-header-bg)]/50"
-      }`}
+      className="group flex flex-col items-center min-w-0 cursor-pointer"
     >
       {/* Arabic Word - using selected font style */}
       {isEndMarker ? (
         // Verse marker - with optional English number overlay
-        <span className="relative inline-flex items-center justify-center">
+        <span className={`relative inline-flex items-center justify-center rounded transition-colors ${
+          isHighlighted
+            ? "bg-[var(--mushaf-highlight-bg)]"
+            : "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
+        }`}>
           <span
-            className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-xl sm:text-2xl md:text-3xl lg:text-4xl text-[var(--mushaf-accent)]`}
+            className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-accent)]`}
           >
             {word.text || word.text_uthmani}
           </span>
           {verseNumberFormat === "english" && (
             <span
-              className={`absolute font-bold flex items-center justify-center transition-colors group-hover:bg-[var(--mushaf-header-bg)] bg-[var(--mushaf-page-bg)] text-[var(--mushaf-accent)] ${
+              className={`absolute font-bold flex items-center justify-center transition-colors ${
+                isHighlighted ? "bg-[var(--mushaf-highlight-bg)]" : "group-hover:bg-[var(--mushaf-header-bg)] bg-[var(--mushaf-page-bg)]"
+              } text-[var(--mushaf-accent)] ${
                 verseNumber < 10
-                  ? "text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px]"
+                  ? "text-[5px] sm:text-[6px] md:text-[8px] lg:text-[10px]"
                   : verseNumber < 100
-                  ? "text-[5px] sm:text-[7px] md:text-[9px] lg:text-[11px]"
-                  : "text-[4px] sm:text-[6px] md:text-[8px] lg:text-[10px]"
+                  ? "text-[4px] sm:text-[5px] md:text-[7px] lg:text-[9px]"
+                  : "text-[3px] sm:text-[4px] md:text-[6px] lg:text-[8px]"
               }`}
               style={{
                 fontVariantNumeric: "tabular-nums",
@@ -751,7 +751,13 @@ function WordCell({
         </span>
       ) : (
         <span
-          className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-text)] ${scaleClass}`}
+          className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-text)] ${scaleClass} rounded transition-colors ${
+            isHighlighted
+              ? "bg-[var(--mushaf-highlight-bg)]"
+              : word.audio_url
+              ? "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
+              : "hover:bg-[var(--mushaf-header-bg)]/50"
+          }`}
         >
           {word.text || word.text_uthmani}
         </span>

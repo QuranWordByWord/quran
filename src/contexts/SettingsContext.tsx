@@ -40,6 +40,14 @@ interface SettingsContextType {
   viewMode: 'mushaf' | 'wordforword';
   setViewMode: (mode: 'mushaf' | 'wordforword') => void;
 
+  // Layout mode
+  layoutMode: 'auto' | 'desktop' | 'mobile';
+  setLayoutMode: (mode: 'auto' | 'desktop' | 'mobile') => void;
+
+  // Highlighted verse (shared between views, session-only, not persisted)
+  highlightedVerseKey: string | null;
+  setHighlightedVerseKey: (verseKey: string | null) => void;
+
   // Bulk update
   updateSettings: (partial: Partial<AppSettings>) => void;
 }
@@ -65,6 +73,8 @@ interface SettingsProviderProps {
 
 export function SettingsProvider({ children }: SettingsProviderProps) {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
+  // Session-only state for highlighted verse (shared between views, not persisted)
+  const [highlightedVerseKey, setHighlightedVerseKey] = useState<string | null>(null);
 
   // Persist settings whenever they change
   useEffect(() => {
@@ -151,6 +161,13 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     [updateSettings]
   );
 
+  const setLayoutMode = useCallback(
+    (mode: 'auto' | 'desktop' | 'mobile') => {
+      updateSettings({ layoutMode: mode });
+    },
+    [updateSettings]
+  );
+
   const value: SettingsContextType = {
     settings,
     reciter,
@@ -171,6 +188,10 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setVerseNumberFormat,
     viewMode: settings.viewMode,
     setViewMode,
+    layoutMode: settings.layoutMode,
+    setLayoutMode,
+    highlightedVerseKey,
+    setHighlightedVerseKey,
     updateSettings,
   };
 

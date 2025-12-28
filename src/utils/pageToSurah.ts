@@ -172,3 +172,76 @@ export function getAllChapters() {
     name: ch.name,
   }));
 }
+
+/**
+ * Convert a UI page number from one view mode to another
+ * This uses the surah starting pages to approximate the equivalent page
+ *
+ * @param uiPageNumber - The UI page number (1-indexed, where 1 is intro page)
+ * @param fromMode - The source view mode
+ * @param toMode - The target view mode
+ * @returns The equivalent UI page number in the target view mode
+ */
+export function convertPageBetweenViews(
+  uiPageNumber: number,
+  fromMode: 'mushaf' | 'wordforword',
+  toMode: 'mushaf' | 'wordforword'
+): number {
+  // If same mode, return as is
+  if (fromMode === toMode) {
+    return uiPageNumber;
+  }
+
+  // Handle intro page
+  if (uiPageNumber === 1) {
+    return 1;
+  }
+
+  // Convert UI page to Quran page (subtract 1 for intro page)
+  const quranPage = uiPageNumber - 1;
+
+  // Get the appropriate page fields based on view modes
+  const fromField = fromMode === 'mushaf' ? 'mushafPage' : 'apiPage';
+  const toField = toMode === 'mushaf' ? 'mushafPage' : 'apiPage';
+
+  // Find the surah that contains this page in the source view
+  let surahIndex = 0;
+  for (let i = chapterData.length - 1; i >= 0; i--) {
+    if (chapterData[i][fromField] <= quranPage) {
+      surahIndex = i;
+      break;
+    }
+  }
+
+  // Calculate the offset within the surah
+  const surahStartInSource = chapterData[surahIndex][fromField];
+  const pageOffsetInSurah = quranPage - surahStartInSource;
+
+  // Get the equivalent page in the target view
+  const surahStartInTarget = chapterData[surahIndex][toField];
+  const targetQuranPage = surahStartInTarget + pageOffsetInSurah;
+
+  // Convert back to UI page (add 1 for intro page)
+  return targetQuranPage + 1;
+}
+
+/**
+ * Get the UI page number for a surah in a specific view mode
+ *
+ * @param surahId - The surah ID (1-114)
+ * @param viewMode - The view mode
+ * @returns The UI page number where the surah starts
+ */
+export function getSurahStartPage(
+  surahId: number,
+  viewMode: 'mushaf' | 'wordforword'
+): number {
+  const surah = chapterData.find(ch => ch.id === surahId);
+  if (!surah) {
+    return 2; // Default to first Quran page
+  }
+
+  const pageField = viewMode === 'mushaf' ? 'mushafPage' : 'apiPage';
+  // Convert to UI page (add 1 for intro page)
+  return surah[pageField] + 1;
+}

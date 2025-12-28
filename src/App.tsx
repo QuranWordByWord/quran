@@ -9,6 +9,7 @@ import { AudioPlayer } from './components/AudioPlayer';
 import { ChapterQuickLinks, MobileChapterSelector } from './components/ChapterQuickLinks';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { BookmarkDropdown } from './components/BookmarkDropdown';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { usePage } from './hooks/usePage';
 import { useSearch } from './hooks/useSearch';
 import { useAudio } from './hooks/useAudio';
@@ -16,6 +17,7 @@ import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { BookmarkProvider } from './contexts/BookmarkContext';
 import { ToastProvider } from './components/Toast';
+import { convertPageBetweenViews } from './utils/pageToSurah';
 
 // Export hooks that wrap useSettings for backward compatibility
 export const useFontClass = () => useSettings().fontClassName;
@@ -62,7 +64,8 @@ function WordForWordPageView() {
   const { verses, loading, error, totalPages, isIntroPage } = usePage(page);
   const audio = useAudio();
   const { openMenu } = useMenu();
-  const [highlightedVerseKey, setHighlightedVerseKey] = useState<string | null>(null);
+  // Use shared highlight state from context so it persists when switching views
+  const { highlightedVerseKey, setHighlightedVerseKey } = useSettings();
   const [highlightedWordId, setHighlightedWordId] = useState<number | null>(null);
 
   const handlePageChange = (newPage: number) => {
@@ -75,10 +78,11 @@ function WordForWordPageView() {
     navigate('/page/2'); // Go to first Quran page (Al-Fatiha)
   };
 
-  // Clear highlights when audio stops
+  // Note: We no longer clear verse highlight when audio stops
+  // The verse highlight should persist when switching views
+  // Only clear word highlight when audio stops (word highlights are more transient)
   const audioStopped = !audio.isPlaying && audio.duration === 0;
-  if (audioStopped && (highlightedVerseKey !== null || highlightedWordId !== null)) {
-    setHighlightedVerseKey(null);
+  if (audioStopped && highlightedWordId !== null) {
     setHighlightedWordId(null);
   }
 
@@ -200,22 +204,24 @@ function ViewModeToggle({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Extract current page number from URL
-  const getCurrentPage = (): number => {
+  // Extract current page number and view mode from URL
+  const getCurrentPageAndMode = (): { page: number; currentMode: ViewMode } => {
     const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
     const pageMatch = location.pathname.match(/^\/page\/(\d+)/);
-    if (mushafMatch) return parseInt(mushafMatch[1]);
-    if (pageMatch) return parseInt(pageMatch[1]);
-    return 2; // Default to first Quran page
+    if (mushafMatch) return { page: parseInt(mushafMatch[1]), currentMode: 'mushaf' };
+    if (pageMatch) return { page: parseInt(pageMatch[1]), currentMode: 'wordforword' };
+    return { page: 2, currentMode: mode }; // Default to first Quran page
   };
 
   const handleChange = (newMode: ViewMode) => {
     onModeChange(newMode);
-    const currentPage = getCurrentPage();
+    const { page: currentPage, currentMode } = getCurrentPageAndMode();
+    // Convert page number between the two different page numbering systems
+    const targetPage = convertPageBetweenViews(currentPage, currentMode, newMode);
     if (newMode === 'mushaf') {
-      navigate(`/mushaf/${currentPage}`);
+      navigate(`/mushaf/${targetPage}`);
     } else {
-      navigate(`/page/${currentPage}`);
+      navigate(`/page/${targetPage}`);
     }
   };
 
@@ -351,16 +357,18 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter basename="/quran">
-      <SettingsProvider>
-        <BookmarkProvider>
-          <ToastProvider>
-            <OfflineIndicator />
-            <AppContent />
-          </ToastProvider>
-        </BookmarkProvider>
-      </SettingsProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter basename="/quran">
+        <SettingsProvider>
+          <BookmarkProvider>
+            <ToastProvider>
+              <OfflineIndicator />
+              <AppContent />
+            </ToastProvider>
+          </BookmarkProvider>
+        </SettingsProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
