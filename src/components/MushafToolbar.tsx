@@ -9,9 +9,12 @@ interface MushafToolbarProps {
   // Tajweed toggle
   tajweedEnabled: boolean;
   onTajweedChange: (enabled: boolean) => void;
-  // Zoom controls
+  // Zoom controls (page scale)
   zoom: number;
   onZoomChange: (zoom: number) => void;
+  // Font scale controls
+  fontScale: number;
+  onFontScaleChange: (scale: number) => void;
   // Page info
   currentPage: number;
   totalPages: number;
@@ -25,6 +28,8 @@ export function MushafToolbar({
   onTajweedChange,
   zoom,
   onZoomChange,
+  fontScale,
+  onFontScaleChange,
   currentPage,
   totalPages,
   onOpenMenu,
@@ -54,6 +59,16 @@ export function MushafToolbar({
   const handleZoomOut = () => {
     const newZoom = Math.max(0.5, zoom / 1.15);
     onZoomChange(newZoom);
+  };
+
+  const handleFontScaleUp = () => {
+    const newScale = Math.min(1.2, fontScale + 0.05);
+    onFontScaleChange(newScale);
+  };
+
+  const handleFontScaleDown = () => {
+    const newScale = Math.max(0.5, fontScale - 0.05);
+    onFontScaleChange(newScale);
   };
 
   return (
@@ -138,12 +153,12 @@ export function MushafToolbar({
       {/* Divider */}
       <div className="w-px h-5 bg-[var(--mushaf-border)]" />
 
-      {/* Zoom controls */}
+      {/* Zoom controls (page scale) */}
       <div className="flex items-center gap-0.5">
         <button
           onClick={handleZoomOut}
           className="p-1 text-[var(--mushaf-text-secondary)] hover:bg-[var(--mushaf-arrow-hover)] rounded transition-colors"
-          title="Zoom out"
+          title="Zoom out (page scale)"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
@@ -155,10 +170,38 @@ export function MushafToolbar({
         <button
           onClick={handleZoomIn}
           className="p-1 text-[var(--mushaf-text-secondary)] hover:bg-[var(--mushaf-arrow-hover)] rounded transition-colors"
-          title="Zoom in"
+          title="Zoom in (page scale)"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="w-px h-5 bg-[var(--mushaf-border)]" />
+
+      {/* Font size controls */}
+      <div className="flex items-center gap-0.5">
+        <button
+          onClick={handleFontScaleDown}
+          className="p-1 text-[var(--mushaf-text-secondary)] hover:bg-[var(--mushaf-arrow-hover)] rounded transition-colors"
+          title="Decrease font size"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+        <span className="text-xs text-[var(--mushaf-text-secondary)] w-8 text-center" title="Font size">
+          {Math.round(fontScale * 100)}%
+        </span>
+        <button
+          onClick={handleFontScaleUp}
+          className="p-1 text-[var(--mushaf-text-secondary)] hover:bg-[var(--mushaf-arrow-hover)] rounded transition-colors"
+          title="Increase font size"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </button>
       </div>

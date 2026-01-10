@@ -77,6 +77,7 @@ export interface AppSettings {
   mushafScript: MushafScript;
   tajweedEnabled: boolean;
   mushafZoom: number;
+  mushafFontScale: number; // Font size scale (0.5 to 1.2, default 0.75)
 }
 
 // Storage keys

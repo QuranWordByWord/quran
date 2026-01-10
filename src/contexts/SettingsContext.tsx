@@ -51,6 +51,8 @@ interface SettingsContextType {
   setTajweedEnabled: (enabled: boolean) => void;
   mushafZoom: number;
   setMushafZoom: (zoom: number) => void;
+  mushafFontScale: number;
+  setMushafFontScale: (scale: number) => void;
 
   // Highlighted verse (shared between views, session-only, not persisted)
   highlightedVerseKey: string | null;
@@ -197,6 +199,15 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     [updateSettings]
   );
 
+  const setMushafFontScale = useCallback(
+    (scale: number) => {
+      // Clamp to valid range (0.5 to 1.2)
+      const clamped = Math.max(0.5, Math.min(1.2, scale));
+      updateSettings({ mushafFontScale: clamped });
+    },
+    [updateSettings]
+  );
+
   const value: SettingsContextType = {
     settings,
     reciter,
@@ -225,6 +236,8 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setTajweedEnabled,
     mushafZoom: settings.mushafZoom,
     setMushafZoom,
+    mushafFontScale: settings.mushafFontScale,
+    setMushafFontScale,
     highlightedVerseKey,
     setHighlightedVerseKey,
     updateSettings,

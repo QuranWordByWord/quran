@@ -44,4 +44,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   mushafScript: 'indoPak15',
   tajweedEnabled: true,
   mushafZoom: 1,
+  mushafFontScale: 0.75, // Default font scale
 };

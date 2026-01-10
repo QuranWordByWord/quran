@@ -93,6 +93,8 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     setTajweedEnabled,
     mushafZoom,
     setMushafZoom,
+    mushafFontScale,
+    setMushafFontScale,
     setMushafScript,
     verseNumberFormat,
   } = useSettings();
@@ -247,6 +249,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
                       pageWidth={Math.min(350, window.innerWidth - 50)}
                       scale={mushafZoom}
                       onScaleChange={setMushafZoom}
+                      fontScale={mushafFontScale}
                       tajweedEnabled={tajweedEnabled}
                       verseNumberFormat={verseNumberFormat}
                       backgroundColor="transparent"
@@ -269,6 +272,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               pageWidth={400}
               scale={mushafZoom}
               onScaleChange={setMushafZoom}
+              fontScale={mushafFontScale}
               tajweedEnabled={tajweedEnabled}
               verseNumberFormat={verseNumberFormat}
               backgroundColor={theme === 'dark' ? '#1a1a1a' : '#f5f5f0'}
@@ -301,6 +305,8 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
           onTajweedChange={setTajweedEnabled}
           zoom={mushafZoom}
           onZoomChange={setMushafZoom}
+          fontScale={mushafFontScale}
+          onFontScaleChange={setMushafFontScale}
           currentPage={quranPage}
           totalPages={totalPages}
           onOpenMenu={onOpenMenu}
@@ -321,6 +327,8 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               onTajweedChange={setTajweedEnabled}
               zoom={mushafZoom}
               onZoomChange={setMushafZoom}
+              fontScale={mushafFontScale}
+              onFontScaleChange={setMushafFontScale}
               currentPage={quranPage}
               totalPages={totalPages}
               onOpenMenu={onOpenMenu}
