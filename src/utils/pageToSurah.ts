@@ -1,7 +1,9 @@
+import type { MushafScript } from '../config/types';
+
 /**
  * Chapter data with page mappings
- * apiPage: QPC Nastaleeq 15-line Mushaf (610 pages) - used for word-by-word view
- * mushafPage: Standard Madani Mushaf (604 pages) - used for mushaf renderer view
+ * apiPage: QPC Nastaleeq 15-line Mushaf (610 pages) - used for word-by-word view and IndoPak mushaf
+ * mushafPage: Standard Madani Mushaf (604 pages) - used for New/Old Madinah mushaf
  */
 const chapterData = [
   { id: 1, name: 'Al-Fathiha', apiPage: 1, mushafPage: 1 },
@@ -174,35 +176,52 @@ export function getAllChapters() {
 }
 
 /**
+ * Get the page field key based on mushaf script
+ * IndoPak 15-line uses apiPage (610 pages), Madinah variants use mushafPage (604 pages)
+ */
+function getPageFieldForScript(script: MushafScript): 'apiPage' | 'mushafPage' {
+  return script === 'indoPak15' ? 'apiPage' : 'mushafPage';
+}
+
+/**
  * Convert a UI page number from one view mode to another
  * This uses the surah starting pages to approximate the equivalent page
  *
  * @param uiPageNumber - The UI page number (1-indexed, where 1 is intro page)
  * @param fromMode - The source view mode
  * @param toMode - The target view mode
+ * @param mushafScript - The mushaf script (only relevant when fromMode or toMode is 'mushaf')
  * @returns The equivalent UI page number in the target view mode
  */
 export function convertPageBetweenViews(
   uiPageNumber: number,
   fromMode: 'mushaf' | 'wordforword',
-  toMode: 'mushaf' | 'wordforword'
+  toMode: 'mushaf' | 'wordforword',
+  mushafScript: MushafScript = 'indoPak15'
 ): number {
-  // If same mode, return as is
-  if (fromMode === toMode) {
-    return uiPageNumber;
-  }
-
   // Handle intro page
   if (uiPageNumber === 1) {
     return 1;
   }
 
+  // Determine the page field based on mode and script
+  // - wordforword always uses apiPage (610 pages)
+  // - mushaf uses apiPage for IndoPak, mushafPage for Madinah
+  const getPageField = (mode: 'mushaf' | 'wordforword'): 'apiPage' | 'mushafPage' => {
+    if (mode === 'wordforword') return 'apiPage';
+    return getPageFieldForScript(mushafScript);
+  };
+
+  const fromField = getPageField(fromMode);
+  const toField = getPageField(toMode);
+
+  // If both use the same page system, return as is (direct 1:1 mapping)
+  if (fromField === toField) {
+    return uiPageNumber;
+  }
+
   // Convert UI page to Quran page (subtract 1 for intro page)
   const quranPage = uiPageNumber - 1;
-
-  // Get the appropriate page fields based on view modes
-  const fromField = fromMode === 'mushaf' ? 'mushafPage' : 'apiPage';
-  const toField = toMode === 'mushaf' ? 'mushafPage' : 'apiPage';
 
   // Find the surah that contains this page in the source view
   let surahIndex = 0;
@@ -230,18 +249,24 @@ export function convertPageBetweenViews(
  *
  * @param surahId - The surah ID (1-114)
  * @param viewMode - The view mode
+ * @param mushafScript - The mushaf script (only relevant when viewMode is 'mushaf')
  * @returns The UI page number where the surah starts
  */
 export function getSurahStartPage(
   surahId: number,
-  viewMode: 'mushaf' | 'wordforword'
+  viewMode: 'mushaf' | 'wordforword',
+  mushafScript: MushafScript = 'indoPak15'
 ): number {
   const surah = chapterData.find(ch => ch.id === surahId);
   if (!surah) {
     return 2; // Default to first Quran page
   }
 
-  const pageField = viewMode === 'mushaf' ? 'mushafPage' : 'apiPage';
+  // Determine page field: wordforword uses apiPage, mushaf depends on script
+  const pageField = viewMode === 'wordforword'
+    ? 'apiPage'
+    : getPageFieldForScript(mushafScript);
+
   // Convert to UI page (add 1 for intro page)
   return surah[pageField] + 1;
 }

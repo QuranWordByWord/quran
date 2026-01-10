@@ -51,6 +51,9 @@ export interface Bookmark {
   label?: string;                          // Optional custom label
 }
 
+// Mushaf script type for DigitalKhatt renderer
+export type MushafScript = 'indoPak15' | 'newMadinah' | 'oldMadinah';
+
 // Complete app settings (user-modifiable)
 export interface AppSettings {
   // Audio settings
@@ -69,6 +72,11 @@ export interface AppSettings {
 
   // Layout mode: 'auto' follows device, 'desktop' forces desktop, 'mobile' forces mobile
   layoutMode: 'auto' | 'desktop' | 'mobile';
+
+  // Mushaf settings (for DigitalKhatt renderer)
+  mushafScript: MushafScript;
+  tajweedEnabled: boolean;
+  mushafZoom: number;
 }
 
 // Storage keys

@@ -30,6 +30,23 @@ export const ACTIVE_MUSHAF = MUSHAF_CONFIGS['qpc-nastaleeq-15'];
 // Renderer mushaf (misraj-mushaf-renderer uses standard 604 pages)
 export const RENDERER_MUSHAF = MUSHAF_CONFIGS['standard-hafs'];
 
+// Import MushafScript type from types.ts
+import type { MushafScript } from './types';
+
+// Page counts for each mushaf script
+export const MUSHAF_PAGE_COUNTS: Record<MushafScript, number> = {
+  indoPak15: 610,
+  newMadinah: 604,
+  oldMadinah: 604,
+} as const;
+
+// Mushaf script options for UI
+export const MUSHAF_SCRIPTS: readonly { id: MushafScript; name: string; pages: number }[] = [
+  { id: 'indoPak15', name: 'IndoPak 15-Line', pages: 610 },
+  { id: 'newMadinah', name: 'New Madinah', pages: 604 },
+  { id: 'oldMadinah', name: 'Old Madinah', pages: 604 },
+] as const;
+
 // Storage keys - centralized
 export const STORAGE_KEYS: StorageKeys = {
   settings: 'quran-app-settings',

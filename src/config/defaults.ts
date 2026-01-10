@@ -40,4 +40,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   verseNumberFormat: 'arabic',
   viewMode: 'wordforword',
   layoutMode: 'auto',
+  // Mushaf settings (for DigitalKhatt renderer)
+  mushafScript: 'indoPak15',
+  tajweedEnabled: true,
+  mushafZoom: 1,
 };

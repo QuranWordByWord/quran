@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate, useLoca
 import { useState, createContext, useContext } from 'react';
 import { Header } from './components/Header';
 import { WordForWordView } from './components/WordForWordView';
-import { RendererMushafView } from './components/RendererMushafView';
+import { DigitalKhattMushafView } from './components/DigitalKhattMushafView';
 import { IntroPage } from './components/IntroPage';
 import { SearchResults } from './components/SearchResults';
 import { AudioPlayer } from './components/AudioPlayer';
@@ -54,7 +54,7 @@ type ViewMode = 'mushaf' | 'wordforword';
 
 function MushafPageView() {
   const { openMenu } = useMenu();
-  return <RendererMushafView onOpenMenu={openMenu} />;
+  return <DigitalKhattMushafView onOpenMenu={openMenu} />;
 }
 
 function WordForWordPageView() {
@@ -203,6 +203,7 @@ function ViewModeToggle({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { mushafScript } = useSettings();
 
   // Extract current page number and view mode from URL
   const getCurrentPageAndMode = (): { page: number; currentMode: ViewMode } => {
@@ -217,7 +218,8 @@ function ViewModeToggle({
     onModeChange(newMode);
     const { page: currentPage, currentMode } = getCurrentPageAndMode();
     // Convert page number between the two different page numbering systems
-    const targetPage = convertPageBetweenViews(currentPage, currentMode, newMode);
+    // Pass mushaf script for accurate conversion (IndoPak has same pages as word-for-word)
+    const targetPage = convertPageBetweenViews(currentPage, currentMode, newMode, mushafScript);
     if (newMode === 'mushaf') {
       navigate(`/mushaf/${targetPage}`);
     } else {

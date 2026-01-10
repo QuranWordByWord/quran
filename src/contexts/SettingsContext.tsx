@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import type { AppSettings, ReciterConfig, TranslationConfig, FontConfig } from '../config/types';
+import type { AppSettings, ReciterConfig, TranslationConfig, FontConfig, MushafScript } from '../config/types';
 import { FONT_OPTIONS } from '../config/defaults';
 import { RECITERS, getReciterById, DEFAULT_RECITER_ID } from '../config/reciters';
 import { TRANSLATIONS, getTranslationById, DEFAULT_TRANSLATION_ID } from '../config/translations';
@@ -43,6 +43,14 @@ interface SettingsContextType {
   // Layout mode
   layoutMode: 'auto' | 'desktop' | 'mobile';
   setLayoutMode: (mode: 'auto' | 'desktop' | 'mobile') => void;
+
+  // Mushaf settings (for DigitalKhatt renderer)
+  mushafScript: MushafScript;
+  setMushafScript: (script: MushafScript) => void;
+  tajweedEnabled: boolean;
+  setTajweedEnabled: (enabled: boolean) => void;
+  mushafZoom: number;
+  setMushafZoom: (zoom: number) => void;
 
   // Highlighted verse (shared between views, session-only, not persisted)
   highlightedVerseKey: string | null;
@@ -168,6 +176,27 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     [updateSettings]
   );
 
+  const setMushafScript = useCallback(
+    (script: MushafScript) => {
+      updateSettings({ mushafScript: script });
+    },
+    [updateSettings]
+  );
+
+  const setTajweedEnabled = useCallback(
+    (enabled: boolean) => {
+      updateSettings({ tajweedEnabled: enabled });
+    },
+    [updateSettings]
+  );
+
+  const setMushafZoom = useCallback(
+    (zoom: number) => {
+      updateSettings({ mushafZoom: zoom });
+    },
+    [updateSettings]
+  );
+
   const value: SettingsContextType = {
     settings,
     reciter,
@@ -190,6 +219,12 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setViewMode,
     layoutMode: settings.layoutMode,
     setLayoutMode,
+    mushafScript: settings.mushafScript,
+    setMushafScript,
+    tajweedEnabled: settings.tajweedEnabled,
+    setTajweedEnabled,
+    mushafZoom: settings.mushafZoom,
+    setMushafZoom,
     highlightedVerseKey,
     setHighlightedVerseKey,
     updateSettings,

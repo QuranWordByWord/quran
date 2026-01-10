@@ -25,7 +25,7 @@ public/
 
 ### 1.2 Copy Quran Text Data
 Create `src/data/` directory and copy:
-- `quran_text_indopak_15.ts` (848 pages)
+- `quran_text_indopak_15.ts` (610 pages)
 - `quran_text_madina.ts` (604 pages)
 - `quran_text_old_madinah.ts` (604 pages)
 
