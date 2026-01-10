@@ -1,0 +1,439 @@
+{
+  "name": "Quraysh",
+  "nameArabic": "قريش",
+  "verses": [
+    {
+      "number": 1,
+      "words": [
+        {
+          "arabic": "لِإِيلَـٰفِ",
+          "english": "For (the) familiarity",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "لِ",
+              "type": "preposition"
+            },
+            {
+              "text": "إِيلَٰفِ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "For",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "familiarity",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "قُرَيْشٍ",
+          "english": "(of the) Quraish",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Quraish",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "words": [
+        {
+          "arabic": "إِۦلَـٰفِهِمْ",
+          "english": "Their familiarity",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "Their",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "familiarity",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "رِحْلَةَ",
+          "english": "(with the) journey",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(with the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "journey",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلشِّتَآءِ",
+          "english": "(of) winter",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "winter",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱلصَّيْفِ",
+          "english": "and summer",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱل",
+              "type": "preposition"
+            },
+            {
+              "text": "صَّيْفِ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "summer",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "words": [
+        {
+          "arabic": "فَلْيَعْبُدُوا۟",
+          "english": "So let them worship",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "لْ",
+              "type": "preposition"
+            },
+            {
+              "text": "يَعْبُدُ",
+              "type": "verb"
+            },
+            {
+              "text": "وا۟",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "So",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "let",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "worship",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "رَبَّ",
+          "english": "(the) Lord",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "هَـٰذَا",
+          "english": "(of) this",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "هَٰ",
+              "type": "preposition"
+            },
+            {
+              "text": "ذَا",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "this",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْبَيْتِ",
+          "english": "House",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "House",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "words": [
+        {
+          "arabic": "ٱلَّذِىٓ",
+          "english": "The One Who",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "The",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "One",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Who",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَطْعَمَهُم",
+          "english": "feeds them",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "feeds",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مِّن",
+          "english": "[from]",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "[",
+              "type": "bracket"
+            },
+            {
+              "text": "from",
+              "type": "preposition"
+            },
+            {
+              "text": "]",
+              "type": "bracket"
+            }
+          ]
+        },
+        {
+          "arabic": "جُوعٍۢ",
+          "english": "(against) hunger",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(against)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "hunger",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَءَامَنَهُم",
+          "english": "and gives them security",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ءَامَنَ",
+              "type": "verb"
+            },
+            {
+              "text": "هُم",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "gives",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "security",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مِّنْ",
+          "english": "from",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "from",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "خَوْفٍۭ",
+          "english": "fear",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "fear",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
