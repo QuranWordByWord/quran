@@ -277,6 +277,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               verseNumberFormat={verseNumberFormat}
               backgroundColor={theme === 'dark' ? '#1a1a1a' : '#f5f5f0'}
               pageGap={30}
+              showBorder={true}
               highlightGroups={highlightGroups}
               onWordClick={handleWordClick}
               onVerseClick={handleVerseClick}

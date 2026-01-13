@@ -10,6 +10,7 @@ import type { MushafLayoutTypeString, WordClickInfo, VerseClickInfo, HighlightGr
 import type { VerseNumberFormat } from '@digitalkhatt/quran-engine';
 import { QuranPage } from './QuranPage';
 import { useDigitalKhatt } from './QuranProvider';
+import { MushafBorder } from './MushafBorder';
 
 // ============================================
 // Types
@@ -81,6 +82,10 @@ export interface QuranViewerProps {
   /** Number of pages to pre-render above and below viewport */
   overscanPages?: number;
 
+  // Border
+  /** Show decorative border around pages */
+  showBorder?: boolean;
+
   /** Custom class name */
   className?: string;
   /** Custom style */
@@ -117,6 +122,7 @@ export function QuranViewer({
   onVerseClick,
   onWordHover,
   overscanPages = 2,
+  showBorder = false,
   className,
   style,
 }: QuranViewerProps) {
@@ -148,10 +154,17 @@ export function QuranViewer({
     return (pageWidth * 410) / 255;
   }, [pageWidth]);
 
-  // Calculate total content height
+  // Border dimensions (scaled) - calculate early for use in height calculations
+  // MushafBorder adds: borderSize (25) on each side = 50 total horizontal
+  // Plus header (24) and footer (32) heights = 56 total vertical extra
+  const borderSize = showBorder ? 25 * scale : 0;
+  const headerFooterHeight = showBorder ? (24 + 32) * scale : 0;
+  const totalBorderOffset = borderSize * 2 + headerFooterHeight;
+
+  // Calculate total content height (including border offset)
   const totalHeight = useMemo(() => {
-    return totalPages * (pageHeight * scale + pageGap) - pageGap;
-  }, [totalPages, pageHeight, scale, pageGap]);
+    return totalPages * (pageHeight * scale + totalBorderOffset + pageGap) - pageGap;
+  }, [totalPages, pageHeight, scale, pageGap, totalBorderOffset]);
 
   // Calculate visible pages based on scroll position
   const calculateVisibleRange = useCallback(() => {
@@ -160,7 +173,7 @@ export function QuranViewer({
 
     const scrollTop = container.scrollTop;
     const viewportHeight = container.clientHeight;
-    const scaledPageHeight = pageHeight * scale + pageGap;
+    const scaledPageHeight = pageHeight * scale + totalBorderOffset + pageGap;
 
     const startPage = Math.max(0, Math.floor(scrollTop / scaledPageHeight) - overscanPages);
     const endPage = Math.min(
@@ -179,7 +192,7 @@ export function QuranViewer({
       setCurrentPage(newCurrentPage);
       onPageChange?.(newCurrentPage);
     }
-  }, [pageHeight, scale, pageGap, overscanPages, totalPages, currentPage, onPageChange]);
+  }, [pageHeight, scale, pageGap, totalBorderOffset, overscanPages, totalPages, currentPage, onPageChange]);
 
   // Handle scroll events
   useEffect(() => {
@@ -380,36 +393,51 @@ export function QuranViewer({
     for (let i = visibleRange.start; i <= visibleRange.end; i++) {
       const pageNumber = i + 1;
       const scaledPageHeight = pageHeight * scale;
+      const scaledPageWidth = pageWidth * scale;
+
+      const pageContent = (
+        <QuranPage
+          pageNumber={pageNumber}
+          layoutType={layoutType}
+          width={pageWidth}
+          scale={scale}
+          tajweedEnabled={tajweedEnabled}
+          backgroundColor={backgroundColor}
+          verseNumberFormat={verseNumberFormat}
+          fontScale={fontScale}
+          highlightedVerses={highlightedVerses}
+          highlightedWords={getHighlightedWordsForPage(pageNumber)}
+          highlightColor={highlightColor}
+          highlightGroups={highlightGroups}
+          onWordClick={onWordClick}
+          onVerseClick={onVerseClick}
+          onWordHover={onWordHover}
+        />
+      );
 
       pages.push(
         <div
           key={pageNumber}
           style={{
             position: 'absolute',
-            top: i * (scaledPageHeight + pageGap),
+            top: i * (scaledPageHeight + totalBorderOffset + pageGap),
             left: '50%',
             transform: 'translateX(-50%)',
-            width: pageWidth * scale,
-            height: scaledPageHeight,
           }}
         >
-          <QuranPage
-            pageNumber={pageNumber}
-            layoutType={layoutType}
-            width={pageWidth}
-            scale={scale}
-            tajweedEnabled={tajweedEnabled}
-            backgroundColor={backgroundColor}
-            verseNumberFormat={verseNumberFormat}
-            fontScale={fontScale}
-            highlightedVerses={highlightedVerses}
-            highlightedWords={getHighlightedWordsForPage(pageNumber)}
-            highlightColor={highlightColor}
-            highlightGroups={highlightGroups}
-            onWordClick={onWordClick}
-            onVerseClick={onVerseClick}
-            onWordHover={onWordHover}
-          />
+          {showBorder ? (
+            <MushafBorder
+              pageNumber={pageNumber}
+              contentWidth={scaledPageWidth}
+              contentHeight={scaledPageHeight}
+              scale={scale}
+              borderColor="var(--mushaf-border, #2d5a27)"
+            >
+              {pageContent}
+            </MushafBorder>
+          ) : (
+            pageContent
+          )}
         </div>
       );
     }
@@ -425,6 +453,7 @@ export function QuranViewer({
     tajweedEnabled,
     backgroundColor,
     verseNumberFormat,
+    fontScale,
     highlightedVerses,
     highlightColor,
     highlightGroups,
@@ -432,6 +461,8 @@ export function QuranViewer({
     onVerseClick,
     onWordHover,
     getHighlightedWordsForPage,
+    showBorder,
+    totalBorderOffset,
   ]);
 
   if (!isReady) {
