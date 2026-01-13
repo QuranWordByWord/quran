@@ -20,7 +20,7 @@ import type {
 import { LAYOUT_TYPE_MAP, PAGE_WIDTH } from '../core/types';
 import { useDigitalKhatt } from './QuranProvider';
 import type { SVGWordClickInfo, SVGHighlightGroup, VerseNumberFormat, CSSWordClickInfo, CSSHighlightGroup } from '@digitalkhatt/quran-engine';
-import { JustStyleEnum, getWordsForVerse } from '@digitalkhatt/quran-engine';
+import { JustStyleEnum, getWordsForVerse, isAyahMarker } from '@digitalkhatt/quran-engine';
 import { AyaGlyph, getAyaSvgGroup } from './AyaGlyph';
 
 // Note: CSS styles are imported in lib/index.ts from @digitalkhatt/quran-engine/styles/quran-renderer.css
@@ -244,16 +244,20 @@ export function QuranPage({
         ayah,
       };
 
-      // Fire word click
-      onWordClick?.(wordClickInfo);
-
-      // Fire verse click if word has verse info
-      if (onVerseClick && surah !== undefined && ayah !== undefined) {
-        onVerseClick({
-          surah,
-          ayah,
-          pageNumber,
-        });
+      // Fire word click for regular words
+      // Fire verse click only for verse markers (ayah numbers)
+      if (isAyahMarker(info.text)) {
+        // This is a verse marker - fire verse click
+        if (onVerseClick && surah !== undefined && ayah !== undefined) {
+          onVerseClick({
+            surah,
+            ayah,
+            pageNumber,
+          });
+        }
+      } else {
+        // This is a regular word - fire word click
+        onWordClick?.(wordClickInfo);
       }
     },
     [pageNumber, verseMapping, onWordClick, onVerseClick]
@@ -285,16 +289,20 @@ export function QuranPage({
         ayah,
       };
 
-      // Fire word click
-      onWordClick?.(wordClickInfo);
-
-      // Fire verse click if word has verse info
-      if (onVerseClick && surah !== undefined && ayah !== undefined) {
-        onVerseClick({
-          surah,
-          ayah,
-          pageNumber,
-        });
+      // Fire word click for regular words
+      // Fire verse click only for verse markers (ayah numbers)
+      if (isAyahMarker(info.text)) {
+        // This is a verse marker - fire verse click
+        if (onVerseClick && surah !== undefined && ayah !== undefined) {
+          onVerseClick({
+            surah,
+            ayah,
+            pageNumber,
+          });
+        }
+      } else {
+        // This is a regular word - fire word click
+        onWordClick?.(wordClickInfo);
       }
     },
     [pageNumber, verseMapping, onWordClick, onVerseClick]

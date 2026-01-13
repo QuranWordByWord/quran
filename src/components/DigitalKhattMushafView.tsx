@@ -138,7 +138,12 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const handleWordClick = useCallback((info: WordClickInfo) => {
     if (!info.surah || !info.ayah) return;
 
+    // For Al-Fatiha (surah 1), the audio files treat Bismillah as verse 1,
+    // but the IndoPak mushaf text has Bismillah unnumbered and starts numbering from "الحمد لله".
+    // So we need to add 1 to the ayah number for audio playback in Al-Fatiha.
+    const audioAyah = info.surah === 1 ? info.ayah + 1 : info.ayah;
     const verseKey = `${info.surah}:${info.ayah}`;
+    const audioVerseKey = `${info.surah}:${audioAyah}`;
 
     // Get verse mapping to find word position within verse
     if (verseMapping) {
@@ -156,7 +161,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
       if (wordPosition > 0) {
         // Build word audio URL: wbw/{chapter}_{verse}_{position}.mp3
         const paddedChapter = String(info.surah).padStart(3, '0');
-        const paddedVerse = String(info.ayah).padStart(3, '0');
+        const paddedVerse = String(audioAyah).padStart(3, '0');
         const paddedPosition = String(wordPosition).padStart(3, '0');
         const wordAudioUrl = `wbw/${paddedChapter}_${paddedVerse}_${paddedPosition}.mp3`;
 
@@ -168,14 +173,19 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
 
     // Fallback: play verse audio if word mapping fails
     setHighlightedVerseKey(verseKey);
-    audio.playVerse(verseKey);
+    audio.playVerse(audioVerseKey);
   }, [verseMapping, setHighlightedVerseKey, audio]);
 
   // Handle verse click (verse marker) - play full verse
   const handleVerseClick = useCallback((info: VerseClickInfo) => {
+    // For Al-Fatiha (surah 1), the audio files treat Bismillah as verse 1,
+    // but the IndoPak mushaf text has Bismillah unnumbered and starts numbering from "الحمد لله".
+    // So we need to add 1 to the ayah number for audio playback in Al-Fatiha.
+    const audioAyah = info.surah === 1 ? info.ayah + 1 : info.ayah;
     const verseKey = `${info.surah}:${info.ayah}`;
+    const audioVerseKey = `${info.surah}:${audioAyah}`;
     setHighlightedVerseKey(verseKey);
-    audio.playVerse(verseKey);
+    audio.playVerse(audioVerseKey);
   }, [setHighlightedVerseKey, audio]);
 
   // Build highlight groups for verse highlighting
