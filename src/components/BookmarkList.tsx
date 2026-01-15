@@ -16,8 +16,9 @@ export function BookmarkList({ compact = false, maxItems, onNavigate }: Bookmark
   const displayBookmarks = maxItems ? bookmarks.slice(0, maxItems) : bookmarks;
 
   const handleNavigate = (bookmark: Bookmark) => {
+    // For mushaf, add 1 to convert quran page to app page (app page 2 = quran page 1)
     const path = bookmark.viewMode === 'mushaf'
-      ? `/mushaf/${bookmark.pageNumber}`
+      ? `/mushaf/${bookmark.pageNumber + 1}`
       : `/page/${bookmark.pageNumber}`;
     navigate(path);
     onNavigate?.();

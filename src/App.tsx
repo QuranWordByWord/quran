@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useState, createContext, useContext } from 'react';
+import { useState, createContext, useContext, useRef, useEffect } from 'react';
 import { Header } from './components/Header';
 import { WordForWordView } from './components/WordForWordView';
 import { DigitalKhattMushafView } from './components/DigitalKhattMushafView';
@@ -18,6 +18,8 @@ import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { BookmarkProvider } from './contexts/BookmarkContext';
 import { ToastProvider } from './components/Toast';
 import { convertPageBetweenViews } from './utils/pageToSurah';
+import { MUSHAF_SCRIPTS } from './config/constants';
+import type { MushafScript } from './config/types';
 
 // Export hooks that wrap useSettings for backward compatibility
 export const useFontClass = () => useSettings().fontClassName;
@@ -280,11 +282,221 @@ function ThemeToggle() {
   );
 }
 
+// Mushaf-specific controls for header
+function ScriptSelector({
+  script,
+  onScriptChange,
+}: {
+  script: MushafScript;
+  onScriptChange: (script: MushafScript) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const currentScript = MUSHAF_SCRIPTS.find(s => s.id === script) || MUSHAF_SCRIPTS[0];
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+      >
+        <span className="text-gray-700">{currentScript.name}</span>
+        <svg
+          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          <div className="px-3 py-1.5 border-b border-gray-100">
+            <p className="text-xs font-medium text-gray-500 uppercase">Mushaf Script</p>
+          </div>
+          {MUSHAF_SCRIPTS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => {
+                onScriptChange(s.id);
+                setIsOpen(false);
+              }}
+              className={`w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors ${
+                script === s.id ? 'bg-gray-100' : ''
+              }`}
+              role="option"
+              aria-selected={script === s.id}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-sm font-medium ${script === s.id ? 'text-[var(--color-primary)]' : 'text-gray-700'}`}>
+                    {s.name}
+                  </p>
+                  <p className="text-xs text-gray-500">{s.pages} pages</p>
+                </div>
+                {script === s.id && (
+                  <svg className="w-4 h-4 text-[var(--color-primary)]" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TajweedToggle({
+  enabled,
+  onToggle,
+}: {
+  enabled: boolean;
+  onToggle: (enabled: boolean) => void;
+}) {
+  return (
+    <button
+      onClick={() => onToggle(!enabled)}
+      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+        enabled
+          ? 'bg-[var(--color-primary)] text-white'
+          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+      }`}
+      aria-pressed={enabled}
+      title={enabled ? 'Disable tajweed colors' : 'Enable tajweed colors'}
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+      </svg>
+      <span>Tajweed</span>
+    </button>
+  );
+}
+
+function ZoomControls({
+  zoom,
+  onZoomChange,
+}: {
+  zoom: number;
+  onZoomChange: (zoom: number) => void;
+}) {
+  const handleZoomOut = () => {
+    const newZoom = Math.max(0.5, zoom / 1.15);
+    onZoomChange(newZoom);
+  };
+
+  const handleZoomIn = () => {
+    const newZoom = Math.min(3, zoom * 1.15);
+    onZoomChange(newZoom);
+  };
+
+  return (
+    <div className="flex items-center bg-gray-100 rounded-lg">
+      <button
+        onClick={handleZoomOut}
+        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-l-lg transition-colors"
+        title="Zoom out"
+        aria-label="Zoom out"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+        </svg>
+      </button>
+      <span className="px-2 text-sm text-gray-700 min-w-[3rem] text-center">
+        {Math.round(zoom * 100)}%
+      </span>
+      <button
+        onClick={handleZoomIn}
+        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-r-lg transition-colors"
+        title="Zoom in"
+        aria-label="Zoom in"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function FontScaleControls({
+  fontScale,
+  onFontScaleChange,
+}: {
+  fontScale: number;
+  onFontScaleChange: (scale: number) => void;
+}) {
+  const handleDecrease = () => {
+    const newScale = Math.max(0.5, fontScale - 0.05);
+    onFontScaleChange(newScale);
+  };
+
+  const handleIncrease = () => {
+    const newScale = Math.min(1.2, fontScale + 0.05);
+    onFontScaleChange(newScale);
+  };
+
+  return (
+    <div className="flex items-center bg-gray-100 rounded-lg">
+      <button
+        onClick={handleDecrease}
+        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-l-lg transition-colors"
+        title="Decrease font size"
+        aria-label="Decrease font size"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+      <span className="px-1.5 text-sm text-gray-700 min-w-[2.5rem] text-center" title="Font size">
+        {Math.round(fontScale * 100)}%
+      </span>
+      <button
+        onClick={handleIncrease}
+        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-r-lg transition-colors"
+        title="Increase font size"
+        aria-label="Increase font size"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 function AppContentInner() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const search = useSearch();
   const { isNavVisible } = useMobileNav();
-  const { viewMode, setViewMode, verseNumberFormat, setVerseNumberFormat } = useSettings();
+  const {
+    viewMode, setViewMode,
+    verseNumberFormat, setVerseNumberFormat,
+    mushafScript, setMushafScript,
+    tajweedEnabled, setTajweedEnabled,
+    mushafZoom, setMushafZoom,
+    mushafFontScale, setMushafFontScale
+  } = useSettings();
 
   const openMenu = () => setIsMenuOpen(true);
 
@@ -298,9 +510,17 @@ function AppContentInner() {
 
         {/* Header - hidden on mobile for word-for-word view */}
         <div className={viewMode === 'wordforword' ? 'hidden lg:block' : ''}>
-          <Header onSearch={search.search} isVisible={isNavVisible}>
+          <Header isVisible={isNavVisible}>
             <div className="flex items-center gap-2" role="group" aria-label="Display settings">
               <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
+              {viewMode === 'mushaf' && (
+                <>
+                  <ScriptSelector script={mushafScript} onScriptChange={setMushafScript} />
+                  <TajweedToggle enabled={tajweedEnabled} onToggle={setTajweedEnabled} />
+                  <ZoomControls zoom={mushafZoom} onZoomChange={setMushafZoom} />
+                  <FontScaleControls fontScale={mushafFontScale} onFontScaleChange={setMushafFontScale} />
+                </>
+              )}
               <VerseNumberToggle format={verseNumberFormat} onFormatChange={setVerseNumberFormat} />
               <BookmarkDropdown />
               <ThemeToggle />

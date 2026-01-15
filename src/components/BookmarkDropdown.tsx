@@ -12,7 +12,8 @@ export function BookmarkDropdown() {
   const getPageInfo = (): { pageNumber: number; viewMode: 'mushaf' | 'wordforword' } => {
     const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
     const pageMatch = location.pathname.match(/^\/page\/(\d+)/);
-    if (mushafMatch) return { pageNumber: parseInt(mushafMatch[1]), viewMode: 'mushaf' };
+    // For mushaf, convert app page to quran page (app page 2 = quran page 1)
+    if (mushafMatch) return { pageNumber: parseInt(mushafMatch[1]) - 1, viewMode: 'mushaf' };
     if (pageMatch) return { pageNumber: parseInt(pageMatch[1]), viewMode: 'wordforword' };
     return { pageNumber: 1, viewMode: 'mushaf' };
   };

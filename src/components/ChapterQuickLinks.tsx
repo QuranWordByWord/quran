@@ -6,7 +6,8 @@ import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { BookmarkList } from './BookmarkList';
 import { loadSidebarExpanded, saveSidebarExpanded } from '../utils/bookmarkStorage';
-import { convertPageBetweenViews } from '../utils/pageToSurah';
+import { convertPageBetweenViews, getSurahStartPage } from '../utils/pageToSurah';
+import { MUSHAF_SCRIPTS, MUSHAF_PAGE_COUNTS } from '../config/constants';
 
 // Chapter data with verse counts and starting page numbers
 // apiPage: QPC Nastaleeq 15-line Mushaf (610 pages) - used for word-by-word view
@@ -144,6 +145,7 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { bookmarks } = useBookmarks();
+  const { mushafScript } = useSettings();
   const [isBookmarksExpanded, setIsBookmarksExpanded] = useState(() => loadSidebarExpanded());
 
   // Persist sidebar expanded state
@@ -161,9 +163,10 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
 
   const handleChapterClick = (chapter: typeof chapters[0]) => {
     // Navigate to the same mode the user is currently in
-    // Use mushafUiPage for mushaf view (604-page mushaf) and page for word-by-word (610-page mushaf)
+    // Use getSurahStartPage to get correct page based on mushaf script
     if (isMushafMode) {
-      navigate(`/mushaf/${chapter.mushafUiPage}`);
+      const targetPage = getSurahStartPage(chapter.id, 'mushaf', mushafScript);
+      navigate(`/mushaf/${targetPage}`);
     } else {
       navigate(`/page/${chapter.page}`);
     }
@@ -244,7 +247,14 @@ function SettingsTab({
   onClose?: () => void;
 }) {
   const { theme, setTheme } = useTheme();
-  const { viewMode, setViewMode, layoutMode, setLayoutMode } = useSettings();
+  const {
+    viewMode, setViewMode,
+    layoutMode, setLayoutMode,
+    mushafScript, setMushafScript,
+    tajweedEnabled, setTajweedEnabled,
+    mushafZoom, setMushafZoom,
+    mushafFontScale, setMushafFontScale,
+  } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -426,6 +436,142 @@ function SettingsTab({
         </div>
       </fieldset>
 
+      {/* Mushaf-specific settings - only show when in mushaf view */}
+      {viewMode === 'mushaf' && (
+        <>
+          {/* Mushaf Script */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Mushaf Script</legend>
+            <div className="flex flex-col gap-1">
+              {MUSHAF_SCRIPTS.map((script) => (
+                <button
+                  key={script.id}
+                  onClick={() => setMushafScript(script.id)}
+                  className={`w-full px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-between ${
+                    mushafScript === script.id
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  role="radio"
+                  aria-checked={mushafScript === script.id}
+                >
+                  <span>{script.name}</span>
+                  <span className={`text-xs ${mushafScript === script.id ? 'text-white/70' : 'text-gray-500'}`}>
+                    {script.pages} pages
+                  </span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          {/* Tajweed toggle */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Tajweed Colors</legend>
+            <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Tajweed colors">
+              <button
+                onClick={() => setTajweedEnabled(false)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
+                  !tajweedEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={!tajweedEnabled}
+              >
+                Off
+              </button>
+              <button
+                onClick={() => setTajweedEnabled(true)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-2 ${
+                  tajweedEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={tajweedEnabled}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+                On
+              </button>
+            </div>
+          </fieldset>
+
+          {/* Zoom controls */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Page Zoom: {Math.round(mushafZoom * 100)}%</legend>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMushafZoom(Math.max(0.5, mushafZoom / 1.15))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Zoom out"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setMushafZoom(1)}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  Math.abs(mushafZoom - 1) < 0.01
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setMushafZoom(Math.min(3, mushafZoom * 1.15))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Zoom in"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+          </fieldset>
+
+          {/* Font scale controls */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Font Size: {Math.round(mushafFontScale * 100)}%</legend>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMushafFontScale(Math.max(0.5, mushafFontScale - 0.05))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Decrease font size"
+              >
+                <span className="text-lg text-gray-600">A</span>
+                <svg className="w-3 h-3 text-gray-600 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setMushafFontScale(1)}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  Math.abs(mushafFontScale - 1) < 0.01
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setMushafFontScale(Math.min(1.2, mushafFontScale + 0.05))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Increase font size"
+              >
+                <span className="text-xl text-gray-600">A</span>
+                <svg className="w-3 h-3 text-gray-600 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+            </div>
+          </fieldset>
+        </>
+      )}
+
       {/* App info */}
       <div className="pt-4 border-t border-gray-200">
         <div className="text-center">
@@ -484,6 +630,7 @@ export function MobileChapterSelector({
   onMenuOpenChange,
 }: MobileChapterSelectorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const { mushafScript } = useSettings();
 
   // Use controlled state if provided, otherwise use internal state
   const isOpen = isMenuOpen !== undefined ? isMenuOpen : internalOpen;
@@ -521,19 +668,20 @@ export function MobileChapterSelector({
 
   const handleChapterClick = (chapter: typeof chapters[0]) => {
     // Navigate to the same mode the user is currently in
-    // Use mushafUiPage for mushaf view (604-page mushaf) and page for word-by-word (610-page mushaf)
+    // Use getSurahStartPage to get correct page based on mushaf script
     if (isMushafMode) {
-      navigate(`/mushaf/${chapter.mushafUiPage}`);
+      const targetPage = getSurahStartPage(chapter.id, 'mushaf', mushafScript);
+      navigate(`/mushaf/${targetPage}`);
     } else {
       navigate(`/page/${chapter.page}`);
     }
     setIsOpen(false);
   };
 
-  // Total pages differs between mushaf view (604 pages) and word-by-word view (610 pages)
-  // For mushaf, users see pages 1-604 (renderer pages), but URLs use 2-605 (app pages with intro offset)
-  const MUSHAF_RENDERER_TOTAL_PAGES = 604;
-  const effectiveTotalPages = isMushafMode ? MUSHAF_RENDERER_TOTAL_PAGES : totalPages;
+  // Total pages differs between mushaf scripts
+  // Get the correct total pages based on the current mushaf script
+  const mushafTotalPages = MUSHAF_PAGE_COUNTS[mushafScript];
+  const effectiveTotalPages = isMushafMode ? mushafTotalPages : totalPages;
 
   const handleGoToPage = () => {
     const page = parseInt(goToPage);

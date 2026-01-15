@@ -19,7 +19,6 @@ import { useMobileNav } from '../contexts/MobileNavContext';
 import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
-import { MushafToolbar } from './MushafToolbar';
 import { InlineBookmarkButton } from './BookmarkButton';
 import { MUSHAF_PAGE_COUNTS } from '../config/constants';
 import type { MushafScript } from '../config/types';
@@ -111,12 +110,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     highlightedVerseKey,
     setHighlightedVerseKey,
     tajweedEnabled,
-    setTajweedEnabled,
     mushafZoom,
     setMushafZoom,
     mushafFontScale,
-    setMushafFontScale,
-    setMushafScript,
     verseNumberFormat,
   } = useSettings();
 
@@ -124,14 +120,37 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const { isReady, getVerseMapping } = useDigitalKhatt();
   const windowDimensions = useWindowDimensions();
 
-  // Calculate responsive page width for mobile
-  // Border adds ~106px width on each side for ornate pages (pages 1-2)
-  // and ~50px for standard pages, so we use 120px as safe margin
-  const mobilePageWidth = useMemo(() => {
-    const maxWidth = 320;
-    const availableWidth = windowDimensions.width - 120;
-    return Math.min(maxWidth, Math.max(200, availableWidth));
-  }, [windowDimensions.width]);
+  // Calculate responsive page dimensions for mobile single-page mode
+  // The page should fit entirely on screen without showing other pages
+  // Page aspect ratio: height/width = 410/255 ≈ 1.608
+  // Border adds: 25px on each side (50 total width), 24px header + 32px footer (56 total height)
+  const mobilePageDimensions = useMemo(() => {
+    const PAGE_ASPECT_RATIO = 410 / 255;
+    const BORDER_WIDTH = 50; // 25px each side
+    const BORDER_HEIGHT = 56; // 24px header + 32px footer
+    const HEADER_HEIGHT = 56; // App header height on mobile
+    const NAV_BUTTONS_HEIGHT = 60; // Bottom navigation buttons area
+    const VERTICAL_PADDING = 16; // Small padding top and bottom
+
+    // Available space for the page (including border)
+    const availableWidth = windowDimensions.width - 16; // 8px padding each side
+    const availableHeight = windowDimensions.height - HEADER_HEIGHT - NAV_BUTTONS_HEIGHT - VERTICAL_PADDING;
+
+    // Calculate page width based on fitting within available height
+    // totalHeight = pageHeight + BORDER_HEIGHT = (pageWidth * PAGE_ASPECT_RATIO) + BORDER_HEIGHT
+    // So: pageWidth = (availableHeight - BORDER_HEIGHT) / PAGE_ASPECT_RATIO
+    const widthFromHeight = (availableHeight - BORDER_HEIGHT) / PAGE_ASPECT_RATIO;
+
+    // Calculate page width based on fitting within available width
+    // totalWidth = pageWidth + BORDER_WIDTH
+    // So: pageWidth = availableWidth - BORDER_WIDTH
+    const widthFromWidth = availableWidth - BORDER_WIDTH;
+
+    // Use the smaller to ensure page fits in both dimensions
+    const pageWidth = Math.max(200, Math.min(widthFromHeight, widthFromWidth));
+
+    return { pageWidth };
+  }, [windowDimensions.width, windowDimensions.height]);
 
   // Page calculation
   const page = pageParam ? parseInt(pageParam) : 2;
@@ -159,9 +178,14 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
 
   // Handle page navigation
   const handlePageChange = useCallback((newPage: number) => {
+    console.log('handlePageChange called with:', newPage, 'totalPages:', totalPages);
     if (newPage >= 1 && newPage <= totalPages) {
       // Convert quran page to app page (add 1 for intro page offset)
-      navigate(`/mushaf/${newPage + 1}`);
+      const targetUrl = `/mushaf/${newPage + 1}`;
+      console.log('Navigating to:', targetUrl);
+      navigate(targetUrl);
+    } else {
+      console.log('Page out of range, not navigating');
     }
   }, [navigate, totalPages]);
 
@@ -230,13 +254,6 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     }];
   }, [highlightedVerseKey, theme]);
 
-  // Handle script change - navigate to equivalent page
-  const handleScriptChange = useCallback((newScript: MushafScript) => {
-    setMushafScript(newScript);
-    // Note: Page mapping will be handled automatically since we're using the same page number
-    // The content will shift to the equivalent content in the new script
-  }, [setMushafScript]);
-
   if (!isReady) {
     return (
       <div className="flex-1 flex items-center justify-center bg-[var(--mushaf-bg)]">
@@ -268,22 +285,21 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
           className={`flex-1 min-h-0 overflow-hidden flex justify-center items-center ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
         >
           {isMobile ? (
-            /* Mobile view - each page gets its own border via showBorder */
-            /* Page width is responsive and recalculates on window resize */
+            /* Mobile view - single page mode, page fits exactly on screen */
             <QuranViewer
               layoutType={layoutType}
               initialPage={quranPage}
               width="100%"
               height="100%"
-              pageWidth={mobilePageWidth}
+              pageWidth={mobilePageDimensions.pageWidth}
               scale={mushafZoom}
               onScaleChange={setMushafZoom}
               fontScale={mushafFontScale}
               tajweedEnabled={tajweedEnabled}
               verseNumberFormat={verseNumberFormat}
               backgroundColor={theme === 'dark' ? '#1a1a1a' : '#f5f5f0'}
-              pageGap={24}
               showBorder={true}
+              singlePageMode={true}
               highlightGroups={highlightGroups}
               onWordClick={handleWordClick}
               onVerseClick={handleVerseClick}
@@ -323,72 +339,30 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         </button>
       </div>
 
-      {/* Floating toolbar - desktop (bottom center) */}
-      <div className="hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-        <MushafToolbar
-          mushafScript={mushafScript}
-          onScriptChange={handleScriptChange}
-          tajweedEnabled={tajweedEnabled}
-          onTajweedChange={setTajweedEnabled}
-          zoom={mushafZoom}
-          onZoomChange={setMushafZoom}
-          fontScale={mushafFontScale}
-          onFontScaleChange={setMushafFontScale}
-          currentPage={quranPage}
-          totalPages={totalPages}
-          onOpenMenu={onOpenMenu}
-        />
-      </div>
-
       {/* Mobile navigation buttons - hidden when menu is open */}
       {!isMenuOpen && (
         <div
           className={`lg:hidden fixed left-0 right-0 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
         >
-          {/* Center - Toolbar */}
+          {/* Center - Page info and menu button */}
           <div className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-auto">
-            <MushafToolbar
-              mushafScript={mushafScript}
-              onScriptChange={handleScriptChange}
-              tajweedEnabled={tajweedEnabled}
-              onTajweedChange={setTajweedEnabled}
-              zoom={mushafZoom}
-              onZoomChange={setMushafZoom}
-              fontScale={mushafFontScale}
-              onFontScaleChange={setMushafFontScale}
-              currentPage={quranPage}
-              totalPages={totalPages}
-              onOpenMenu={onOpenMenu}
-            />
-          </div>
-
-          {/* Left side - Previous button */}
-          <div className="absolute left-2 bottom-0">
             <button
-              onClick={() => handlePageChange(quranPage - 1)}
-              disabled={quranPage <= 1}
-              className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-              aria-label="Previous page"
+              onClick={onOpenMenu}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm rounded-full border border-[var(--mushaf-border)] shadow-lg"
+              aria-label="Open menu"
             >
-              <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
+              <span className="text-sm text-[var(--mushaf-text-primary)]">
+                {quranPage} / {totalPages}
+              </span>
+              <svg className="w-4 h-4 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
           </div>
 
-          {/* Right side - Bookmark and Next button */}
-          <div className="absolute right-2 bottom-0 flex items-center gap-2">
-            {/* Bookmark button */}
-            <div className="pointer-events-auto">
-              <InlineBookmarkButton pageNumber={page} viewMode="mushaf" />
-            </div>
-            {/* Next button */}
-            <button
-              onClick={() => handlePageChange(quranPage + 1)}
-              disabled={quranPage >= totalPages}
-              className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-              aria-label="Next page"
-            >
-              <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
-            </button>
+          {/* Right side - Bookmark button */}
+          <div className="absolute right-2 bottom-0 pointer-events-auto">
+            <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" />
           </div>
         </div>
       )}

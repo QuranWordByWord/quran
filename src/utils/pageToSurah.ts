@@ -128,24 +128,15 @@ interface SurahInfo {
 }
 
 /**
- * Get the surah (chapter) for a given UI page number
- * UI pages include an intro page (page 1), so actual Quran content starts at page 2
+ * Get the surah (chapter) for a given Quran page number
  *
- * @param uiPageNumber - The UI page number (1-indexed, where 1 is intro page)
+ * @param quranPageNumber - The Quran page number (1-indexed, where 1 is the first page of Al-Fatiha)
  * @param viewMode - 'mushaf' uses standard Hafs (604 pages), 'wordforword' uses QPC Nastaleeq (610 pages)
  */
 export function getSurahForPage(
-  uiPageNumber: number,
+  quranPageNumber: number,
   viewMode: 'mushaf' | 'wordforword'
 ): SurahInfo {
-  // Handle intro page
-  if (uiPageNumber === 1) {
-    return { id: 0, name: 'Introduction' };
-  }
-
-  // Convert UI page to actual Quran page (subtract 1 for intro page)
-  const quranPage = uiPageNumber - 1;
-
   // Get the appropriate page field based on view mode
   const pageField = viewMode === 'mushaf' ? 'mushafPage' : 'apiPage';
 
@@ -153,7 +144,7 @@ export function getSurahForPage(
   // We iterate backwards through chapters to find the last chapter
   // whose starting page is <= the current page
   for (let i = chapterData.length - 1; i >= 0; i--) {
-    if (chapterData[i][pageField] <= quranPage) {
+    if (chapterData[i][pageField] <= quranPageNumber) {
       return {
         id: chapterData[i].id,
         name: chapterData[i].name,
