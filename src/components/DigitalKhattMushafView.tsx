@@ -69,21 +69,37 @@ function useIsMobile(layoutMode: 'auto' | 'desktop' | 'mobile' = 'auto') {
 }
 
 // Hook to track window dimensions for responsive layout
-// Uses visualViewport when available for accurate mobile measurements
+// Uses a stable height reference to prevent layout shifts when mobile browser UI appears/disappears
 function useWindowDimensions() {
   const [dimensions, setDimensions] = useState(() => {
-    if (typeof window === 'undefined') return { width: 0, height: 0 };
+    if (typeof window === 'undefined') return { width: 0, height: 0, stableHeight: 0 };
+    const currentHeight = window.visualViewport?.height ?? window.innerHeight;
     return {
       width: window.innerWidth,
-      height: window.visualViewport?.height ?? window.innerHeight,
+      height: currentHeight,
+      // stableHeight tracks the maximum height seen (the "large viewport" when URL bar is hidden)
+      // This prevents layout shifts when browser chrome appears/disappears
+      stableHeight: currentHeight,
     };
   });
 
   useEffect(() => {
     const updateDimensions = () => {
-      setDimensions({
-        width: window.innerWidth,
-        height: window.visualViewport?.height ?? window.innerHeight,
+      const currentHeight = window.visualViewport?.height ?? window.innerHeight;
+      setDimensions(prev => {
+        const newWidth = window.innerWidth;
+        // Only update stableHeight if width changed (true resize) or height increased
+        // This captures the "large viewport" height and keeps it stable when URL bar appears
+        const widthChanged = newWidth !== prev.width;
+        const newStableHeight = widthChanged
+          ? currentHeight
+          : Math.max(prev.stableHeight, currentHeight);
+
+        return {
+          width: newWidth,
+          height: currentHeight,
+          stableHeight: newStableHeight,
+        };
       });
     };
 
@@ -140,15 +156,25 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   // Border adds: 25px on each side (50 total width), 25px top/bottom border + 24px header + 32px footer (106 total height)
   const mobilePageDimensions = useMemo(() => {
     const BORDER_WIDTH = 50; // 25px each side
+    const BORDER_HEIGHT = 106; // 25*2 (top/bottom) + 24 (header) + 32 (footer)
+    const PAGE_ASPECT_RATIO = 410 / 255; // height / width ≈ 1.608
 
-    // Use maximum available width (edge to edge, minus tiny margin)
+    // Calculate max page width based on available screen width
     const availableWidth = windowDimensions.width - 4;
+    const maxPageWidth = availableWidth - BORDER_WIDTH;
 
-    // Calculate page width to use full available width
-    const pageWidth = Math.max(200, availableWidth - BORDER_WIDTH);
+    // Calculate ideal page width based on stable height (to fill vertical space)
+    // Uses stableHeight to prevent layout shifts when mobile browser URL bar appears/disappears
+    // Header ~56px, bottom nav area ~60px, some padding ~8px
+    const availableHeight = windowDimensions.stableHeight - 56 - 60 - 8;
+    const pageContentHeight = availableHeight - BORDER_HEIGHT;
+    const idealPageWidthFromHeight = pageContentHeight / PAGE_ASPECT_RATIO;
+
+    // Use height-based width but constrain to not exceed screen width
+    const pageWidth = Math.max(200, Math.min(maxPageWidth, idealPageWidthFromHeight));
 
     return { pageWidth };
-  }, [windowDimensions.width]);
+  }, [windowDimensions.width, windowDimensions.stableHeight]);
 
   // Page calculation
   const page = pageParam ? parseInt(pageParam) : 2;
@@ -280,7 +306,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         {/* Mushaf content */}
         <div
           ref={scrollContainerRef}
-          className={`flex-1 min-h-0 flex justify-center ${isMobile ? 'items-start pt-1 overflow-visible' : 'items-center overflow-hidden'} ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
+          className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-start pt-1 overflow-visible' : 'h-full'} ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
         >
           {isMobile ? (
             /* Mobile view - single page mode, page fits exactly on screen */

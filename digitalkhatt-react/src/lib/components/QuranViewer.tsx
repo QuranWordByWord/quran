@@ -136,6 +136,9 @@ export function QuranViewer({
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 0 });
 
+  // Pan offset for single page mode when zoomed
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+
   // Use controlled scale if provided, otherwise use internal state
   const scale = controlledScale ?? internalScale;
   const setScale = (newScale: number) => {
@@ -159,17 +162,72 @@ export function QuranViewer({
     return (pageWidth * 410) / 255;
   }, [pageWidth]);
 
-  // Border dimensions (scaled) - calculate early for use in height calculations
-  // MushafBorder adds: borderSize (25) on each side = 50 total horizontal
-  // Plus header (24) and footer (32) heights = 56 total vertical extra
-  const borderSize = showBorder ? 25 * scale : 0;
+  // Border frame dimensions - MushafBorder maintains SVG aspect ratio (437:740)
+  // SVG dimensions: 437x740, inner: 387x690
+  const SVG_WIDTH = 437;
+  const SVG_HEIGHT = 740;
+  const SVG_INNER_WIDTH = 387;
+  const SVG_INNER_HEIGHT = 690;
+
+  // Helper to calculate border offset for any scale value
+  const calculateBorderOffsetForScale = useCallback((s: number): number => {
+    if (!showBorder) return 0;
+
+    const scaledPageWidth = pageWidth * s;
+    const scaledPageHeight = pageHeight * s;
+
+    const frameFromWidth = scaledPageWidth * (SVG_WIDTH / SVG_INNER_WIDTH);
+    const heightFromWidth = frameFromWidth * (SVG_HEIGHT / SVG_WIDTH);
+    const innerHeightFromWidth = heightFromWidth * (SVG_INNER_HEIGHT / SVG_HEIGHT);
+    const frameFromHeight = scaledPageHeight * (SVG_HEIGHT / SVG_INNER_HEIGHT);
+
+    const frameHeight = innerHeightFromWidth >= scaledPageHeight
+      ? Math.round(heightFromWidth)
+      : Math.round(frameFromHeight);
+
+    const headerFooterH = (24 + 32) * s;
+    return (frameHeight - scaledPageHeight) + headerFooterH;
+  }, [showBorder, pageWidth, pageHeight]);
+
+  // Calculate frame dimensions that match MushafBorder's calculation
+  const { frameWidth: borderFrameWidth, frameHeight: borderFrameHeight } = useMemo(() => {
+    if (!showBorder) return { frameWidth: 0, frameHeight: 0 };
+
+    const scaledPageWidth = pageWidth * scale;
+    const scaledPageHeight = pageHeight * scale;
+
+    // Size based on content width (same logic as MushafBorder)
+    const frameFromWidth = scaledPageWidth * (SVG_WIDTH / SVG_INNER_WIDTH);
+    const heightFromWidth = frameFromWidth * (SVG_HEIGHT / SVG_WIDTH);
+    const innerHeightFromWidth = heightFromWidth * (SVG_INNER_HEIGHT / SVG_HEIGHT);
+
+    // Size based on content height
+    const frameFromHeight = scaledPageHeight * (SVG_HEIGHT / SVG_INNER_HEIGHT);
+    const widthFromHeight = frameFromHeight * (SVG_WIDTH / SVG_HEIGHT);
+
+    if (innerHeightFromWidth >= scaledPageHeight) {
+      return { frameWidth: Math.round(frameFromWidth), frameHeight: Math.round(heightFromWidth) };
+    } else {
+      return { frameWidth: Math.round(widthFromHeight), frameHeight: Math.round(frameFromHeight) };
+    }
+  }, [showBorder, pageWidth, pageHeight, scale]);
+
   const headerFooterHeight = showBorder ? (24 + 32) * scale : 0;
-  const totalBorderOffset = borderSize * 2 + headerFooterHeight;
+
+  // Total border offset: frame height - content height + header/footer
+  const totalBorderOffset = showBorder
+    ? (borderFrameHeight - pageHeight * scale) + headerFooterHeight
+    : 0;
 
   // Calculate total content height (including border offset)
   const totalHeight = useMemo(() => {
     return totalPages * (pageHeight * scale + totalBorderOffset + pageGap) - pageGap;
   }, [totalPages, pageHeight, scale, pageGap, totalBorderOffset]);
+
+  // Calculate total content width (frame width or scaled page width)
+  const totalWidth = useMemo(() => {
+    return showBorder ? borderFrameWidth : pageWidth * scale;
+  }, [showBorder, borderFrameWidth, pageWidth, scale]);
 
   // Calculate visible pages based on scroll position (only for multi-page scroll mode)
   const calculateVisibleRange = useCallback(() => {
@@ -236,9 +294,11 @@ export function QuranViewer({
   const prevInitialPageRef = useRef(initialPage);
   const prevScaleRef = useRef(scale);
 
-  // Ref to always have current initialPage for touch handlers (avoid stale closures)
+  // Refs to always have current values for touch handlers (avoid stale closures)
   const initialPageRef = useRef(initialPage);
   initialPageRef.current = initialPage;
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
 
   // Maintain current page position when scale changes externally
   useEffect(() => {
@@ -246,23 +306,34 @@ export function QuranViewer({
       const prevScale = prevScaleRef.current;
       prevScaleRef.current = scale;
 
+      // Reset pan offset when scale returns to 1 (or close to it)
+      if (scale <= 1.05) {
+        setPanOffset({ x: 0, y: 0 });
+      }
+
+      // In single page mode, nothing to do for scroll - page is controlled by initialPage prop
+      if (singlePageMode) return;
+
       const container = containerRef.current;
       if (!container) return;
 
       // Calculate scroll position to maintain the same page in view
-      // Include border offset in calculation for proper positioning
-      const prevBorderOffset = showBorder ? (25 * 2 + 24 + 32) * prevScale : 0;
+      // Use the helper function to get correct border offset for both scales
+      const prevBorderOffset = calculateBorderOffsetForScale(prevScale);
       const prevScaledPageHeight = pageHeight * prevScale + prevBorderOffset + pageGap;
       const newScaledPageHeight = pageHeight * scale + totalBorderOffset + pageGap;
 
-      // Get the current page from scroll position
+      // Get the current fractional page position from scroll
       const scrollTop = container.scrollTop;
       const pageAtTop = scrollTop / prevScaledPageHeight;
 
-      // Adjust scroll to maintain the same page
+      // Adjust scroll to maintain the same fractional page position
       container.scrollTop = pageAtTop * newScaledPageHeight;
+
+      // Recalculate visible range after scale change
+      requestAnimationFrame(calculateVisibleRange);
     }
-  }, [scale, pageHeight, pageGap, showBorder, totalBorderOffset]);
+  }, [scale, pageHeight, pageGap, totalBorderOffset, singlePageMode, calculateVisibleRange, calculateBorderOffsetForScale]);
 
   // Sync with external initialPage prop changes (e.g., navigation, toolbar)
   useEffect(() => {
@@ -272,6 +343,9 @@ export function QuranViewer({
 
       const targetPage = Math.max(1, Math.min(totalPages, initialPage));
       setCurrentPage(targetPage);
+
+      // Reset pan offset when page changes
+      setPanOffset({ x: 0, y: 0 });
 
       // In single page mode, we just update the current page state - no scrolling needed
       if (singlePageMode) return;
@@ -322,47 +396,46 @@ export function QuranViewer({
   // Handle zoom
   const handleZoom = useCallback(
     (newScale: number) => {
-      const container = containerRef.current;
-      if (!container) return;
-
       const clampedScale = Math.max(minScale, Math.min(maxScale, newScale));
-      const scrollRatio = container.scrollTop / (totalHeight || 1);
-
+      // Just update scale - the useEffect handles scroll position adjustment
       setScale(clampedScale);
-
-      // Maintain scroll position ratio after zoom
-      requestAnimationFrame(() => {
-        const newTotalHeight = totalPages * (pageHeight * clampedScale + pageGap) - pageGap;
-        container.scrollTop = scrollRatio * newTotalHeight;
-      });
     },
-    [minScale, maxScale, totalHeight, totalPages, pageHeight, pageGap]
+    [minScale, maxScale]
   );
 
-  // Combined touch handling: pinch zoom + vertical swipe navigation
+  // Combined touch handling: pinch zoom + panning + vertical swipe navigation
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     let initialDistance = 0;
-    let pinchInitialScale = scale;
+    let pinchInitialScale = scaleRef.current;
+    let touchStartX = 0;
     let touchStartY = 0;
     let isSingleTouch = false;
+    let isPanning = false;
+    let panStartOffset = { x: 0, y: 0 };
 
     const handleTouchStart = (e: TouchEvent) => {
-      console.log('TouchStart:', e.touches.length, 'singlePageMode:', singlePageMode);
       if (e.touches.length === 2 && enablePinchZoom) {
         // Pinch zoom start
         isSingleTouch = false;
+        isPanning = false;
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         initialDistance = Math.sqrt(dx * dx + dy * dy);
-        pinchInitialScale = scale;
+        pinchInitialScale = scaleRef.current;
       } else if (e.touches.length === 1) {
-        // Single touch for swipe (always capture in single page mode)
+        // Single touch - could be swipe or pan
         isSingleTouch = true;
+        isPanning = false;
+        touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        console.log('Touch start Y:', touchStartY);
+        // Capture current pan offset at start of touch
+        setPanOffset(current => {
+          panStartOffset = { ...current };
+          return current;
+        });
       }
     };
 
@@ -370,33 +443,43 @@ export function QuranViewer({
       if (e.touches.length === 2 && initialDistance > 0 && enablePinchZoom) {
         e.preventDefault();
         isSingleTouch = false;
+        isPanning = false;
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const distance = Math.sqrt(dx * dx + dy * dy);
         const newScale = pinchInitialScale * (distance / initialDistance);
         handleZoom(newScale);
+      } else if (isSingleTouch && singlePageMode && scaleRef.current > 1 && e.touches.length === 1) {
+        // Pan when zoomed in single page mode
+        e.preventDefault();
+        isPanning = true;
+        const deltaX = e.touches[0].clientX - touchStartX;
+        const deltaY = e.touches[0].clientY - touchStartY;
+        setPanOffset({
+          x: panStartOffset.x + deltaX,
+          y: panStartOffset.y + deltaY,
+        });
       }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      console.log('TouchEnd:', isSingleTouch, singlePageMode, e.changedTouches.length);
-      // Handle swipe navigation
+      // Handle swipe navigation only when not zoomed or not panning significantly
       if (isSingleTouch && singlePageMode && e.changedTouches.length === 1) {
+        const touchEndX = e.changedTouches[0].clientX;
         const touchEndY = e.changedTouches[0].clientY;
+        const deltaX = touchEndX - touchStartX;
         const deltaY = touchEndY - touchStartY;
-        const currentPage = initialPageRef.current; // Use ref to get current value
-        console.log('Swipe deltaY:', deltaY, 'currentPage:', currentPage);
+        const currentPage = initialPageRef.current;
 
-        // Trigger vertical swipe if distance is significant (> 50px)
+        // If zoomed in and was panning, don't navigate
+        // If not zoomed (scale <= 1), use swipe for navigation
         const minSwipeDistance = 50;
-        if (Math.abs(deltaY) > minSwipeDistance) {
+        if (scaleRef.current <= 1 && !isPanning && Math.abs(deltaY) > minSwipeDistance && Math.abs(deltaY) > Math.abs(deltaX)) {
           if (deltaY > 0) {
             // Swipe down - go to previous page
-            console.log('Navigating to previous page:', Math.max(1, currentPage - 1));
             onPageChange?.(Math.max(1, currentPage - 1));
           } else {
             // Swipe up - go to next page
-            console.log('Navigating to next page:', Math.min(totalPages, currentPage + 1));
             onPageChange?.(Math.min(totalPages, currentPage + 1));
           }
         }
@@ -405,6 +488,7 @@ export function QuranViewer({
       // Reset state
       initialDistance = 0;
       isSingleTouch = false;
+      isPanning = false;
     };
 
     container.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -416,7 +500,7 @@ export function QuranViewer({
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [enablePinchZoom, scale, handleZoom, singlePageMode, totalPages, onPageChange]);
+  }, [enablePinchZoom, handleZoom, singlePageMode, totalPages, onPageChange]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -583,31 +667,39 @@ export function QuranViewer({
         style={{
           width,
           height,
-          overflow: 'visible',
+          overflow: 'hidden',
           position: 'relative',
           backgroundColor: backgroundColor || '#f5f5f5',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          touchAction: scale > 1 ? 'none' : 'pan-y',
           ...style,
         }}
         tabIndex={0}
         role="document"
         aria-label={`Quran viewer - Page ${displayPage} of ${totalPages}`}
       >
-        {showBorder ? (
-          <MushafBorder
-            pageNumber={displayPage}
-            contentWidth={scaledPageWidth}
-            contentHeight={scaledPageHeight}
-            scale={scale}
-            borderColor="var(--mushaf-border, #2d5a27)"
-          >
-            {singlePageContent}
-          </MushafBorder>
-        ) : (
-          singlePageContent
-        )}
+        <div
+          style={{
+            transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
+            transition: scale <= 1 ? 'transform 0.2s ease-out' : 'none',
+          }}
+        >
+          {showBorder ? (
+            <MushafBorder
+              pageNumber={displayPage}
+              contentWidth={scaledPageWidth}
+              contentHeight={scaledPageHeight}
+              scale={scale}
+              borderColor="var(--mushaf-border, #2d5a27)"
+            >
+              {singlePageContent}
+            </MushafBorder>
+          ) : (
+            singlePageContent
+          )}
+        </div>
       </div>
     );
   }
@@ -633,6 +725,7 @@ export function QuranViewer({
         style={{
           position: 'relative',
           width: '100%',
+          minWidth: totalWidth,
           height: totalHeight,
           minHeight: '100%',
         }}

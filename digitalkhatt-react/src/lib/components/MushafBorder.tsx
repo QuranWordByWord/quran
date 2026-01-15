@@ -122,14 +122,62 @@ export function MushafBorder({
   const juzName = JUZ_NAMES_ARABIC[juzNumber] || '';
   const pageNumberArabic = toArabicNumerals(pageNumber);
 
-  // Border dimensions - matches misraj-mushaf-renderer CSS
-  const borderSize = 25 * scale;
-  const headerHeight = 24 * scale;
-  const footerHeight = 32 * scale;
+  // SVG dimensions - the border SVG has a fixed aspect ratio that must be preserved
+  const SVG_WIDTH = 437;
+  const SVG_HEIGHT = 740;
+  const SVG_BORDER = 25; // Border size in the original SVG
+  const SVG_ASPECT_RATIO = SVG_WIDTH / SVG_HEIGHT; // ~0.59
 
-  // Total dimensions including border
-  const totalWidth = contentWidth + borderSize * 2;
-  const totalHeight = contentHeight + borderSize * 2 + headerHeight + footerHeight;
+  // Inner area of SVG (where content goes)
+  const SVG_INNER_WIDTH = SVG_WIDTH - SVG_BORDER * 2; // 387
+  const SVG_INNER_HEIGHT = SVG_HEIGHT - SVG_BORDER * 2; // 690
+
+  // Header/footer heights
+  const headerHeight = Math.round(24 * scale);
+  const footerHeight = Math.round(32 * scale);
+
+  // Calculate frame dimensions that:
+  // 1. Maintain SVG's exact aspect ratio (437:740)
+  // 2. Have inner area large enough for content
+
+  // Option A: Size based on content width
+  const frameFromWidth = contentWidth * (SVG_WIDTH / SVG_INNER_WIDTH);
+  const heightFromWidth = frameFromWidth / SVG_ASPECT_RATIO;
+  const innerHeightFromWidth = heightFromWidth * (SVG_INNER_HEIGHT / SVG_HEIGHT);
+
+  // Option B: Size based on content height
+  const frameFromHeight = contentHeight * (SVG_HEIGHT / SVG_INNER_HEIGHT);
+  const widthFromHeight = frameFromHeight * SVG_ASPECT_RATIO;
+
+  // Choose sizing that ensures content fits
+  let frameWidth: number;
+  let frameHeight: number;
+
+  if (innerHeightFromWidth >= contentHeight) {
+    // Width-based sizing works - inner height is enough for content
+    frameWidth = Math.round(frameFromWidth);
+    frameHeight = Math.round(heightFromWidth);
+  } else {
+    // Need height-based sizing - content is taller than width-based inner area
+    frameWidth = Math.round(widthFromHeight);
+    frameHeight = Math.round(frameFromHeight);
+  }
+
+  // Border sizes in the correctly-proportioned frame (same ratio as SVG)
+  const borderX = Math.round(frameWidth * (SVG_BORDER / SVG_WIDTH));
+  const borderY = Math.round(frameHeight * (SVG_BORDER / SVG_HEIGHT));
+
+  // Inner area for content
+  const innerWidth = frameWidth - borderX * 2;
+  const innerHeight = frameHeight - borderY * 2;
+
+  // Center content within inner area
+  const contentPosX = borderX + Math.round((innerWidth - contentWidth) / 2);
+  const contentPosY = borderY + Math.round((innerHeight - contentHeight) / 2);
+
+  // Total dimensions including header/footer
+  const totalWidth = frameWidth;
+  const totalHeight = frameHeight + headerHeight + footerHeight;
 
   return (
     <div
@@ -156,30 +204,32 @@ export function MushafBorder({
         fontFamily: 'var(--font-arabic, "Amiri", "Traditional Arabic", serif)',
         fontSize: 12 * scale,
         color: 'var(--mushaf-border, #3E9257)',
-        padding: `0 ${borderSize}px`,
+        padding: `0 ${borderX}px`,
       }}>
         <span>{juzName}</span>
         <span>سورة {surahName}</span>
       </div>
 
-      {/* Main border container with SVG border-image */}
+      {/* Main border frame - using SVG as background image */}
       <div style={{
         position: 'absolute',
         top: headerHeight,
         left: 0,
-        right: 0,
-        bottom: footerHeight,
-        border: `${borderSize}px solid transparent`,
-        borderImage: `url('/quran/assets/borders/green/full-border.svg') 25 repeat`,
-        borderImageOutset: 0,
-        backgroundColor: 'var(--mushaf-page-bg, #fffef5)',
-        boxSizing: 'border-box',
-        overflow: 'visible',
+        width: frameWidth,
+        height: frameHeight,
+        backgroundImage: `url('/quran/assets/borders/green/full-border.svg')`,
+        backgroundSize: '100% 100%',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
       }}>
-        {/* Page content */}
+        {/* Page content - positioned inside the border */}
         <div style={{
+          position: 'absolute',
+          top: contentPosY,
+          left: contentPosX,
           width: contentWidth,
           height: contentHeight,
+          backgroundColor: 'var(--mushaf-page-bg, #fffef5)',
           overflow: 'hidden',
         }}>
           {children}
