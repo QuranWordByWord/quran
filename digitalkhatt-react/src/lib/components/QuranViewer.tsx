@@ -583,7 +583,7 @@ export function QuranViewer({
         style={{
           width,
           height,
-          overflow: 'hidden',
+          overflow: 'visible',
           position: 'relative',
           backgroundColor: backgroundColor || '#f5f5f5',
           display: 'flex',

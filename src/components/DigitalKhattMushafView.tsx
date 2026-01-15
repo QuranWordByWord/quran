@@ -69,21 +69,35 @@ function useIsMobile(layoutMode: 'auto' | 'desktop' | 'mobile' = 'auto') {
 }
 
 // Hook to track window dimensions for responsive layout
+// Uses visualViewport when available for accurate mobile measurements
 function useWindowDimensions() {
-  const [dimensions, setDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  const [dimensions, setDimensions] = useState(() => {
+    if (typeof window === 'undefined') return { width: 0, height: 0 };
+    return {
+      width: window.innerWidth,
+      height: window.visualViewport?.height ?? window.innerHeight,
+    };
   });
 
   useEffect(() => {
-    const handleResize = () => {
+    const updateDimensions = () => {
       setDimensions({
         width: window.innerWidth,
-        height: window.innerHeight,
+        height: window.visualViewport?.height ?? window.innerHeight,
       });
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    // Listen to both window resize and visualViewport resize
+    window.addEventListener('resize', updateDimensions);
+    window.visualViewport?.addEventListener('resize', updateDimensions);
+
+    // Initial update
+    updateDimensions();
+
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+      window.visualViewport?.removeEventListener('resize', updateDimensions);
+    };
   }, []);
 
   return dimensions;
@@ -123,34 +137,18 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   // Calculate responsive page dimensions for mobile single-page mode
   // The page should fit entirely on screen without showing other pages
   // Page aspect ratio: height/width = 410/255 ≈ 1.608
-  // Border adds: 25px on each side (50 total width), 24px header + 32px footer (56 total height)
+  // Border adds: 25px on each side (50 total width), 25px top/bottom border + 24px header + 32px footer (106 total height)
   const mobilePageDimensions = useMemo(() => {
-    const PAGE_ASPECT_RATIO = 410 / 255;
     const BORDER_WIDTH = 50; // 25px each side
-    const BORDER_HEIGHT = 56; // 24px header + 32px footer
-    const HEADER_HEIGHT = 56; // App header height on mobile
-    const NAV_BUTTONS_HEIGHT = 60; // Bottom navigation buttons area
-    const VERTICAL_PADDING = 16; // Small padding top and bottom
 
-    // Available space for the page (including border)
-    const availableWidth = windowDimensions.width - 16; // 8px padding each side
-    const availableHeight = windowDimensions.height - HEADER_HEIGHT - NAV_BUTTONS_HEIGHT - VERTICAL_PADDING;
+    // Use maximum available width (edge to edge, minus tiny margin)
+    const availableWidth = windowDimensions.width - 4;
 
-    // Calculate page width based on fitting within available height
-    // totalHeight = pageHeight + BORDER_HEIGHT = (pageWidth * PAGE_ASPECT_RATIO) + BORDER_HEIGHT
-    // So: pageWidth = (availableHeight - BORDER_HEIGHT) / PAGE_ASPECT_RATIO
-    const widthFromHeight = (availableHeight - BORDER_HEIGHT) / PAGE_ASPECT_RATIO;
-
-    // Calculate page width based on fitting within available width
-    // totalWidth = pageWidth + BORDER_WIDTH
-    // So: pageWidth = availableWidth - BORDER_WIDTH
-    const widthFromWidth = availableWidth - BORDER_WIDTH;
-
-    // Use the smaller to ensure page fits in both dimensions
-    const pageWidth = Math.max(200, Math.min(widthFromHeight, widthFromWidth));
+    // Calculate page width to use full available width
+    const pageWidth = Math.max(200, availableWidth - BORDER_WIDTH);
 
     return { pageWidth };
-  }, [windowDimensions.width, windowDimensions.height]);
+  }, [windowDimensions.width]);
 
   // Page calculation
   const page = pageParam ? parseInt(pageParam) : 2;
@@ -266,9 +264,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]">
+    <div className={`flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)] ${isMobile ? 'overflow-visible' : ''}`}>
       {/* Main Mushaf area with navigation arrows */}
-      <div className="flex-1 flex items-stretch relative min-h-0 overflow-hidden">
+      <div className={`flex-1 flex items-stretch relative min-h-0 ${isMobile ? 'overflow-visible' : 'overflow-hidden'}`}>
         {/* Left arrow - Previous page (desktop only) */}
         <button
           onClick={() => handlePageChange(quranPage - 1)}
@@ -282,7 +280,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         {/* Mushaf content */}
         <div
           ref={scrollContainerRef}
-          className={`flex-1 min-h-0 overflow-hidden flex justify-center items-center ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
+          className={`flex-1 min-h-0 flex justify-center ${isMobile ? 'items-start pt-1 overflow-visible' : 'items-center overflow-hidden'} ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
         >
           {isMobile ? (
             /* Mobile view - single page mode, page fits exactly on screen */

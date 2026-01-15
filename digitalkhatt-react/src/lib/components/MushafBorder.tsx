@@ -139,6 +139,7 @@ export function MushafBorder({
         width: totalWidth,
         height: totalHeight,
         backgroundColor: 'var(--mushaf-frame-bg, #e8e4d0)',
+        overflow: 'visible',
       }}
     >
       {/* Header with surah name and juz - outside border */}
@@ -169,9 +170,11 @@ export function MushafBorder({
         right: 0,
         bottom: footerHeight,
         border: `${borderSize}px solid transparent`,
-        borderImage: `url('/quran/assets/borders/green/full-border.svg') 20 repeat`,
+        borderImage: `url('/quran/assets/borders/green/full-border.svg') 25 repeat`,
+        borderImageOutset: 0,
         backgroundColor: 'var(--mushaf-page-bg, #fffef5)',
         boxSizing: 'border-box',
+        overflow: 'visible',
       }}>
         {/* Page content */}
         <div style={{
