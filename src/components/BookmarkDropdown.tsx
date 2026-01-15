@@ -1,12 +1,14 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { useToast } from './Toast';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export function BookmarkDropdown() {
-  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { isBookmarked, toggleBookmark, getBookmark } = useBookmarks();
   const { showToast } = useToast();
   const location = useLocation();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Extract current page and view mode from URL
   const getPageInfo = (): { pageNumber: number; viewMode: 'mushaf' | 'wordforword' } => {
@@ -21,15 +23,28 @@ export function BookmarkDropdown() {
   const { pageNumber, viewMode } = getPageInfo();
 
   const bookmarked = isBookmarked(pageNumber, viewMode);
+  const bookmark = getBookmark(pageNumber, viewMode);
 
   const handleToggleBookmark = useCallback(() => {
-    const result = toggleBookmark(pageNumber, viewMode);
-    if (result.added) {
-      showToast('Bookmark added', 'success');
+    if (bookmarked) {
+      setShowConfirm(true);
     } else {
-      showToast('Bookmark removed', 'info');
+      const result = toggleBookmark(pageNumber, viewMode);
+      if (result.added) {
+        showToast('Bookmark added', 'success');
+      }
     }
+  }, [toggleBookmark, pageNumber, viewMode, showToast, bookmarked]);
+
+  const handleConfirmDelete = useCallback(() => {
+    toggleBookmark(pageNumber, viewMode);
+    showToast('Bookmark removed', 'info');
+    setShowConfirm(false);
   }, [toggleBookmark, pageNumber, viewMode, showToast]);
+
+  const handleCancelDelete = useCallback(() => {
+    setShowConfirm(false);
+  }, []);
 
   // Keyboard shortcut (Ctrl/Cmd + D)
   useEffect(() => {
@@ -50,19 +65,20 @@ export function BookmarkDropdown() {
   const currentMonth = now.toLocaleString('en-US', { month: 'short' });
 
   return (
-    <button
-      onClick={handleToggleBookmark}
-      className={`
-        relative rounded-lg transition-all duration-200 flex items-center justify-center p-2
-        ${bookmarked
-          ? 'bg-white shadow-md'
-          : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
-        }
-      `}
-      aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-      aria-pressed={bookmarked}
-      title={`${bookmarked ? 'Remove' : 'Add'} bookmark (Ctrl+D)`}
-    >
+    <>
+      <button
+        onClick={handleToggleBookmark}
+        className={`
+          relative rounded-lg transition-all duration-200 flex items-center justify-center p-2
+          ${bookmarked
+            ? 'bg-white shadow-md'
+            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
+          }
+        `}
+        aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+        aria-pressed={bookmarked}
+        title={`${bookmarked ? 'Remove' : 'Add'} bookmark (Ctrl+D)`}
+      >
       {bookmarked ? (
         <div className="relative w-5 h-6 flex flex-col items-center justify-start">
           {/* White filled bookmark with green border */}
@@ -100,6 +116,23 @@ export function BookmarkDropdown() {
           </svg>
         </div>
       )}
-    </button>
+      </button>
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title="Delete Bookmark"
+        message="Are you sure you want to delete this bookmark?"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        bookmarkDetails={bookmark ? {
+          surahName: bookmark.surahName,
+          pageNumber: bookmark.pageNumber,
+          viewMode: bookmark.viewMode,
+          createdAt: bookmark.createdAt,
+        } : undefined}
+      />
+    </>
   );
 }

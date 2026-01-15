@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { useToast } from './Toast';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface BookmarkButtonProps {
   pageNumber: number;
@@ -16,18 +18,32 @@ export function BookmarkButton({
   className = '',
   showLabel = false,
 }: BookmarkButtonProps) {
-  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { isBookmarked, toggleBookmark, getBookmark } = useBookmarks();
   const { showToast } = useToast();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const bookmarked = isBookmarked(pageNumber, viewMode);
+  const bookmark = getBookmark(pageNumber, viewMode);
 
   const handleClick = () => {
-    const result = toggleBookmark(pageNumber, viewMode);
-    if (result.added) {
-      showToast('Bookmark added', 'success');
+    if (bookmarked) {
+      setShowConfirm(true);
     } else {
-      showToast('Bookmark removed', 'info');
+      const result = toggleBookmark(pageNumber, viewMode);
+      if (result.added) {
+        showToast('Bookmark added', 'success');
+      }
     }
+  };
+
+  const handleConfirmDelete = () => {
+    toggleBookmark(pageNumber, viewMode);
+    showToast('Bookmark removed', 'info');
+    setShowConfirm(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirm(false);
   };
 
   const sizeClasses = {
@@ -43,6 +59,7 @@ export function BookmarkButton({
   }[size];
 
   return (
+  <>
     <button
       onClick={handleClick}
       className={`
@@ -87,6 +104,23 @@ export function BookmarkButton({
         </span>
       )}
     </button>
+    <ConfirmDialog
+      isOpen={showConfirm}
+      title="Delete Bookmark"
+      message="Are you sure you want to delete this bookmark?"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      variant="destructive"
+      onConfirm={handleConfirmDelete}
+      onCancel={handleCancelDelete}
+      bookmarkDetails={bookmark ? {
+        surahName: bookmark.surahName,
+        pageNumber: bookmark.pageNumber,
+        viewMode: bookmark.viewMode,
+        createdAt: bookmark.createdAt,
+      } : undefined}
+    />
+  </>
   );
 }
 
@@ -100,18 +134,32 @@ export function InlineBookmarkButton({
   pageNumber,
   viewMode,
 }: InlineBookmarkButtonProps) {
-  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { isBookmarked, toggleBookmark, getBookmark } = useBookmarks();
   const { showToast } = useToast();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const bookmarked = isBookmarked(pageNumber, viewMode);
+  const bookmark = getBookmark(pageNumber, viewMode);
 
   const handleClick = () => {
-    const result = toggleBookmark(pageNumber, viewMode);
-    if (result.added) {
-      showToast('Bookmark added', 'success');
+    if (bookmarked) {
+      setShowConfirm(true);
     } else {
-      showToast('Bookmark removed', 'info');
+      const result = toggleBookmark(pageNumber, viewMode);
+      if (result.added) {
+        showToast('Bookmark added', 'success');
+      }
     }
+  };
+
+  const handleConfirmDelete = () => {
+    toggleBookmark(pageNumber, viewMode);
+    showToast('Bookmark removed', 'info');
+    setShowConfirm(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirm(false);
   };
 
   // Get current date formatted as day and short month
@@ -120,6 +168,7 @@ export function InlineBookmarkButton({
   const currentMonth = now.toLocaleString('en-US', { month: 'short' });
 
   return (
+  <>
     <button
       onClick={handleClick}
       className={`
@@ -162,5 +211,22 @@ export function InlineBookmarkButton({
         </div>
       )}
     </button>
+    <ConfirmDialog
+      isOpen={showConfirm}
+      title="Delete Bookmark"
+      message="Are you sure you want to delete this bookmark?"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      variant="destructive"
+      onConfirm={handleConfirmDelete}
+      onCancel={handleCancelDelete}
+      bookmarkDetails={bookmark ? {
+        surahName: bookmark.surahName,
+        pageNumber: bookmark.pageNumber,
+        viewMode: bookmark.viewMode,
+        createdAt: bookmark.createdAt,
+      } : undefined}
+    />
+  </>
   );
 }

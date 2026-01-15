@@ -766,7 +766,8 @@ export function MobileChapterSelector({
             </div>
 
             {/* Content - account for header tabs (~100px) and potential audio player (~80px) */}
-            <div className="overflow-y-auto max-h-[calc(85vh-180px)] pb-4">
+            {/* Use fixed height to prevent menu from jumping when switching tabs */}
+            <div className="overflow-y-auto h-[calc(85vh-180px)] pb-4">
               {activeTab === 'chapters' && (
                 <div
                   id="chapters-panel"
@@ -824,6 +825,7 @@ export function MobileChapterSelector({
                   id="bookmarks-panel"
                   role="tabpanel"
                   aria-labelledby="bookmarks-tab"
+                  className="p-2"
                 >
                   <BookmarkList onNavigate={() => setIsOpen(false)} />
                 </div>
