@@ -69,6 +69,27 @@ function useIsMobile(layoutMode: 'auto' | 'desktop' | 'mobile' = 'auto') {
   return isMobile;
 }
 
+// Hook to track window dimensions for responsive layout
+function useWindowDimensions() {
+  const [dimensions, setDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return dimensions;
+}
+
 // ============================================
 // Inner Component (uses context)
 // ============================================
@@ -101,6 +122,16 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { isReady, getVerseMapping } = useDigitalKhatt();
+  const windowDimensions = useWindowDimensions();
+
+  // Calculate responsive page width for mobile
+  // Border adds ~106px width on each side for ornate pages (pages 1-2)
+  // and ~50px for standard pages, so we use 120px as safe margin
+  const mobilePageWidth = useMemo(() => {
+    const maxWidth = 320;
+    const availableWidth = windowDimensions.width - 120;
+    return Math.min(maxWidth, Math.max(200, availableWidth));
+  }, [windowDimensions.width]);
 
   // Page calculation
   const page = pageParam ? parseInt(pageParam) : 2;
@@ -237,42 +268,27 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
           className={`flex-1 min-h-0 overflow-hidden flex justify-center items-center ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
         >
           {isMobile ? (
-            /* Custom decorative border for mobile */
-            <div className="relative bg-[var(--mushaf-frame-bg)] p-1 rounded-sm shadow-xl mx-1 my-2">
-              {/* Olive/Green ornate border - outer */}
-              <div className="relative border-[3px] border-[var(--mushaf-border)] rounded-sm">
-                {/* Corner ornaments - outer */}
-                <div className="absolute -top-1 -left-1 w-4 h-4 border-t-[3px] border-l-[3px] border-[var(--mushaf-border)] rounded-tl-sm" />
-                <div className="absolute -top-1 -right-1 w-4 h-4 border-t-[3px] border-r-[3px] border-[var(--mushaf-border)] rounded-tr-sm" />
-                <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-[3px] border-l-[3px] border-[var(--mushaf-border)] rounded-bl-sm" />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-[3px] border-r-[3px] border-[var(--mushaf-border)] rounded-br-sm" />
-
-                {/* Inner gold/yellow accent border */}
-                <div className="border-2 border-[var(--mushaf-accent)] m-0.5">
-                  {/* Innermost content border */}
-                  <div className="border border-[var(--mushaf-border)] bg-[var(--mushaf-page-bg)]">
-                    <QuranViewer
-                      layoutType={layoutType}
-                      initialPage={quranPage}
-                      width={window.innerWidth - 32}
-                      height={window.innerHeight - 200}
-                      pageWidth={Math.min(350, window.innerWidth - 50)}
-                      scale={mushafZoom}
-                      onScaleChange={setMushafZoom}
-                      fontScale={mushafFontScale}
-                      tajweedEnabled={tajweedEnabled}
-                      verseNumberFormat={verseNumberFormat}
-                      backgroundColor="transparent"
-                      pageGap={0}
-                      highlightGroups={highlightGroups}
-                      onWordClick={handleWordClick}
-                      onVerseClick={handleVerseClick}
-                      onPageChange={handlePageChange}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            /* Mobile view - each page gets its own border via showBorder */
+            /* Page width is responsive and recalculates on window resize */
+            <QuranViewer
+              layoutType={layoutType}
+              initialPage={quranPage}
+              width="100%"
+              height="100%"
+              pageWidth={mobilePageWidth}
+              scale={mushafZoom}
+              onScaleChange={setMushafZoom}
+              fontScale={mushafFontScale}
+              tajweedEnabled={tajweedEnabled}
+              verseNumberFormat={verseNumberFormat}
+              backgroundColor={theme === 'dark' ? '#1a1a1a' : '#f5f5f0'}
+              pageGap={24}
+              showBorder={true}
+              highlightGroups={highlightGroups}
+              onWordClick={handleWordClick}
+              onVerseClick={handleVerseClick}
+              onPageChange={handlePageChange}
+            />
           ) : (
             <QuranViewer
               layoutType={layoutType}
