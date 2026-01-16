@@ -165,13 +165,13 @@ function VerseNumberToggle({
   onFormatChange: (format: VerseNumberFormat) => void;
 }) {
   return (
-    <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Verse number format">
+    <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 h-8 items-center" role="radiogroup" aria-label="Verse number format">
       <button
         onClick={() => onFormatChange('arabic')}
-        className={`px-2 py-1 text-sm rounded-md transition-colors ${
+        className={`px-2.5 h-7 text-xs font-medium rounded-md transition-colors ${
           format === 'arabic'
-            ? 'bg-white text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
         aria-checked={format === 'arabic'}
@@ -181,10 +181,10 @@ function VerseNumberToggle({
       </button>
       <button
         onClick={() => onFormatChange('english')}
-        className={`px-2 py-1 text-sm rounded-md transition-colors ${
+        className={`px-2.5 h-7 text-xs font-medium rounded-md transition-colors ${
           format === 'english'
-            ? 'bg-white text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
         aria-checked={format === 'english'}
@@ -230,13 +230,13 @@ function ViewModeToggle({
   };
 
   return (
-    <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="View mode">
+    <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 h-8 items-center" role="radiogroup" aria-label="View mode">
       <button
         onClick={() => handleChange('mushaf')}
-        className={`px-3 py-1 text-sm rounded-md transition-colors ${
+        className={`px-3 h-7 text-xs font-medium rounded-md transition-colors ${
           mode === 'mushaf'
-            ? 'bg-white text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
         aria-checked={mode === 'mushaf'}
@@ -245,10 +245,10 @@ function ViewModeToggle({
       </button>
       <button
         onClick={() => handleChange('wordforword')}
-        className={`px-3 py-1 text-sm rounded-md transition-colors ${
+        className={`px-3 h-7 text-xs font-medium rounded-md transition-colors ${
           mode === 'wordforword'
-            ? 'bg-white text-[var(--color-primary)] shadow-sm'
-            : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
         aria-checked={mode === 'wordforword'}
@@ -265,16 +265,16 @@ function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+      className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
       aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
       aria-pressed={theme === 'dark'}
     >
       {theme === 'light' ? (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
         </svg>
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
       )}
@@ -309,13 +309,13 @@ function ScriptSelector({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        className="flex items-center gap-1 px-3 h-8 text-xs font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span className="text-gray-700">{currentScript.name}</span>
+        <span className="text-gray-700 dark:text-gray-200">{currentScript.name}</span>
         <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -377,15 +377,15 @@ function TajweedToggle({
   return (
     <button
       onClick={() => onToggle(!enabled)}
-      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+      className={`flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-lg transition-colors ${
         enabled
           ? 'bg-[var(--color-primary)] text-white'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
       }`}
       aria-pressed={enabled}
       title={enabled ? 'Disable tajweed colors' : 'Enable tajweed colors'}
     >
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
       </svg>
       <span>Tajweed</span>
@@ -411,10 +411,10 @@ function ZoomControls({
   };
 
   return (
-    <div className="flex items-center bg-gray-100 rounded-lg">
+    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg px-1.5 h-8" title="Page zoom">
       <button
         onClick={handleZoomOut}
-        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-l-lg transition-colors"
+        className="p-1 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
         title="Zoom out"
         aria-label="Zoom out"
       >
@@ -422,12 +422,12 @@ function ZoomControls({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
         </svg>
       </button>
-      <span className="px-2 text-sm text-gray-700 min-w-[3rem] text-center">
+      <span className="text-xs text-gray-700 dark:text-gray-200 min-w-[2.5rem] text-center font-medium">
         {Math.round(zoom * 100)}%
       </span>
       <button
         onClick={handleZoomIn}
-        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-r-lg transition-colors"
+        className="p-1 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
         title="Zoom in"
         aria-label="Zoom in"
       >
@@ -457,28 +457,32 @@ function FontScaleControls({
   };
 
   return (
-    <div className="flex items-center bg-gray-100 rounded-lg">
+    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg px-1.5 h-8" title="Font size">
       <button
         onClick={handleDecrease}
-        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-l-lg transition-colors"
+        className="p-1 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
         title="Decrease font size"
         aria-label="Decrease font size"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {/* Small A icon for decrease */}
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <text x="4" y="18" fontSize="14" fontWeight="bold" fontFamily="Arial">A</text>
+          <path d="M18 14H22" stroke="currentColor" strokeWidth={2} strokeLinecap="round" fill="none" />
         </svg>
       </button>
-      <span className="px-1.5 text-sm text-gray-700 min-w-[2.5rem] text-center" title="Font size">
+      <span className="text-xs text-gray-700 dark:text-gray-200 min-w-[2.5rem] text-center font-medium">
         {Math.round(fontScale * 100)}%
       </span>
       <button
         onClick={handleIncrease}
-        className="p-1.5 text-gray-600 hover:bg-gray-200 rounded-r-lg transition-colors"
+        className="p-1 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
         title="Increase font size"
         aria-label="Increase font size"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {/* Large A icon for increase */}
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <text x="2" y="19" fontSize="18" fontWeight="bold" fontFamily="Arial">A</text>
+          <path d="M17 10V14M15 12H19" stroke="currentColor" strokeWidth={2} strokeLinecap="round" fill="none" />
         </svg>
       </button>
     </div>
@@ -488,7 +492,8 @@ function FontScaleControls({
 function AppContentInner() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const search = useSearch();
-  const { isNavVisible } = useMobileNav();
+  const location = useLocation();
+  const { isNavVisible: _isNavVisible } = useMobileNav();
   const {
     viewMode, setViewMode,
     verseNumberFormat, setVerseNumberFormat,
@@ -500,6 +505,20 @@ function AppContentInner() {
 
   const openMenu = () => setIsMenuOpen(true);
 
+  // Extract current page info from URL for mobile header bookmark
+  const getCurrentPageInfo = (): { page: number; mode: 'mushaf' | 'wordforword' } | null => {
+    const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
+    const pageMatch = location.pathname.match(/^\/page\/(\d+)/);
+    if (mushafMatch) {
+      // Convert app page to quran page (app page 2 = quran page 1)
+      const appPage = parseInt(mushafMatch[1]);
+      return { page: Math.max(appPage - 1, 1), mode: 'mushaf' };
+    }
+    if (pageMatch) return { page: parseInt(pageMatch[1]), mode: 'wordforword' };
+    return null;
+  };
+  const pageInfo = getCurrentPageInfo();
+
   return (
     <MenuContext.Provider value={{ openMenu, isMenuOpen }}>
       <div className="min-h-screen lg:h-screen lg:flex lg:flex-col lg:overflow-hidden bg-[var(--color-bg-light)]">
@@ -508,9 +527,13 @@ function AppContentInner() {
           Skip to main content
         </a>
 
-        {/* Header - hidden on mobile for word-for-word view */}
-        <div className={viewMode === 'wordforword' ? 'hidden lg:block' : ''}>
-          <Header isVisible={isNavVisible}>
+        {/* Header - always visible on mobile for both views */}
+        <Header
+          isVisible={true}
+          onOpenMenu={openMenu}
+          pageNumber={pageInfo?.page}
+          viewMode={pageInfo?.mode}
+        >
             <div className="flex items-center gap-2" role="group" aria-label="Display settings">
               <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
               {viewMode === 'mushaf' && (
@@ -526,7 +549,6 @@ function AppContentInner() {
               <ThemeToggle />
             </div>
           </Header>
-        </div>
 
         <div className="flex min-h-0 lg:flex-1 lg:overflow-hidden">
           <ChapterQuickLinks side="left" />

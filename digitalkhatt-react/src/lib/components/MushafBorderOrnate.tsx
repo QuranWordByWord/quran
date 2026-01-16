@@ -311,7 +311,7 @@ export function MushafBorderOrnate({
           alignItems: 'center',
           fontFamily: 'var(--font-arabic, "Amiri", "Traditional Arabic", serif)',
           fontSize: 18 * scale,
-          color: 'var(--mushaf-border, #3E9257)',
+          color: 'var(--mushaf-metadata-text, #3E9257)',
         }}
       >
         <span>{pageNumberArabic}</span>

@@ -53,6 +53,7 @@
   --mushaf-text-secondary: #3d3d3d;
   --mushaf-text-header: #1e3d12;
   --mushaf-accent: #7a5d0a;
+  --mushaf-metadata-text: #3d6b1e;
   --mushaf-arrow-bg: transparent;
   --mushaf-arrow-hover: #e8e4d8;
   --mushaf-arrow-color: #2d5016;
@@ -73,6 +74,7 @@
   --mushaf-text-secondary: #c8c8c8;
   --mushaf-text-header: #e8dcc8;
   --mushaf-accent: #f0c050;
+  --mushaf-metadata-text: #ffffff;
   --mushaf-arrow-bg: transparent;
   --mushaf-arrow-hover: #252525;
   --mushaf-arrow-color: #c0c0c0;

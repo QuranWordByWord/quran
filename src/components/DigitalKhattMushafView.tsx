@@ -19,7 +19,6 @@ import { useMobileNav } from '../contexts/MobileNavContext';
 import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
-import { InlineBookmarkButton } from './BookmarkButton';
 import { MUSHAF_PAGE_COUNTS } from '../config/constants';
 import type { MushafScript } from '../config/types';
 
@@ -384,9 +383,28 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
             </button>
           </div>
 
-          {/* Right side - Bookmark button */}
+          {/* Left side - Previous button (pill shape) */}
+          <div className="absolute left-2 bottom-0 pointer-events-auto">
+            <button
+              onClick={() => handlePageChange(quranPage - 1)}
+              disabled={quranPage <= 1}
+              className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+              aria-label={`Go to previous page ${quranPage - 1}`}
+            >
+              <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
+            </button>
+          </div>
+
+          {/* Right side - Next button (pill shape) */}
           <div className="absolute right-2 bottom-0 pointer-events-auto">
-            <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" />
+            <button
+              onClick={() => handlePageChange(quranPage + 1)}
+              disabled={quranPage >= totalPages}
+              className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+              aria-label={`Go to next page ${quranPage + 1}`}
+            >
+              <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
+            </button>
           </div>
         </div>
       )}

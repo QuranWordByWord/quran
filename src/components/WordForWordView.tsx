@@ -2,7 +2,6 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import type { Verse, Word } from '../types/quran';
 import { useFontClass, useVerseNumberFormat, useMenu } from '../App';
 import { useMobileNav } from '../contexts/MobileNavContext';
-import { InlineBookmarkButton } from './BookmarkButton';
 
 
 // Calculate proportional width weight based on word character count
@@ -198,7 +197,7 @@ export function WordForWordView({
 
   return (
     <div
-      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]"
+      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen pt-14 lg:pt-0 lg:h-[calc(100vh-64px)]"
       role="article"
       aria-label={`Quran page ${pageNumber} of ${totalPages}, Juz ${juzNumber}`}
     >
@@ -220,7 +219,7 @@ export function WordForWordView({
           ref={scrollContainerRef}
           className="flex-1 min-h-0 overflow-y-auto scrollbar-none lg:scrollbar-auto"
         >
-          <div className={`max-w-4xl mx-auto px-1 py-1 sm:p-4 md:p-6 lg:pb-6 ${isAudioActive ? 'pb-20' : 'pb-4'}`}>
+          <div className={`max-w-4xl mx-auto px-1 py-1 sm:p-4 md:p-6 lg:pb-6 ${isAudioActive ? 'pb-36' : 'pb-20'} lg:pb-6`}>
           {/* Outer decorative frame */}
           <div className="relative bg-[var(--mushaf-frame-bg)] p-1 sm:p-1.5 rounded-sm shadow-xl">
             {/* Olive/Green ornate border - outer */}
@@ -350,39 +349,39 @@ export function WordForWordView({
         className={`lg:hidden fixed left-0 right-0 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
       >
         {/* Center - Page number button (absolutely centered) */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-0">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-auto">
           <button
             onClick={onOpenMenu}
-            className="pointer-events-auto text-xs text-[var(--mushaf-text-secondary)] bg-[var(--mushaf-page-bg)]/90 px-3 py-1.5 rounded-full border border-[var(--mushaf-border)] shadow-md active:scale-95 transition-transform"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm rounded-full border border-[var(--mushaf-border)] shadow-lg active:scale-95 transition-transform"
             aria-label="Open menu"
           >
-            {pageNumber} / {totalPages}
+            <span className="text-sm text-[var(--mushaf-text-primary)]">
+              {pageNumber} / {totalPages}
+            </span>
+            <svg className="w-4 h-4 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
         </div>
 
-        {/* Left side - Previous button */}
-        <div className="absolute left-2 bottom-0">
+        {/* Left side - Previous button (pill shape) */}
+        <div className="absolute left-2 bottom-0 pointer-events-auto">
           <button
             onClick={() => onPageChange(pageNumber - 1)}
             disabled={pageNumber <= 1}
-            className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
             aria-label={`Go to previous page ${pageNumber - 1}`}
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
           </button>
         </div>
 
-        {/* Right side - Bookmark and Next button */}
-        <div className="absolute right-2 bottom-0 flex items-center gap-2">
-          {/* Bookmark button */}
-          <div className="pointer-events-auto">
-            <InlineBookmarkButton pageNumber={pageNumber} viewMode="wordforword" />
-          </div>
-          {/* Next button */}
+        {/* Right side - Next button (pill shape) */}
+        <div className="absolute right-2 bottom-0 pointer-events-auto">
           <button
             onClick={() => onPageChange(pageNumber + 1)}
             disabled={pageNumber >= totalPages}
-            className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
             aria-label={`Go to next page ${pageNumber + 1}`}
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>

@@ -172,6 +172,16 @@
   border-radius: 2px;
 }
 
+/* Default text color for SVG paths (light mode) */
+.quran-page svg path {
+  fill: var(--mushaf-text, #1a1a1a);
+}
+
+/* Dark mode text color for SVG paths */
+.dark .quran-page svg path {
+  fill: var(--mushaf-text, #f0f0f0);
+}
+
 /* Layout-specific font families */
 .quran-page.layout-newMadinah {
   font-family: digitalkhatt, serif;

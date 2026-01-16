@@ -139,6 +139,10 @@ export function QuranViewer({
   // Pan offset for single page mode when zoomed
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
+  // Gesture scale for responsive pinch-zoom (applied via CSS transform during gesture)
+  // null = not in gesture, use the committed scale value
+  const [gestureScale, setGestureScale] = useState<number | null>(null);
+
   // Use controlled scale if provided, otherwise use internal state
   const scale = controlledScale ?? internalScale;
   const setScale = (newScale: number) => {
@@ -414,17 +418,21 @@ export function QuranViewer({
     let touchStartY = 0;
     let isSingleTouch = false;
     let isPanning = false;
+    let isPinching = false;
     let panStartOffset = { x: 0, y: 0 };
+    let lastGestureScale = scaleRef.current;
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2 && enablePinchZoom) {
         // Pinch zoom start
         isSingleTouch = false;
         isPanning = false;
+        isPinching = true;
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         initialDistance = Math.sqrt(dx * dx + dy * dy);
         pinchInitialScale = scaleRef.current;
+        lastGestureScale = scaleRef.current;
       } else if (e.touches.length === 1) {
         // Single touch - could be swipe or pan
         isSingleTouch = true;
@@ -444,11 +452,16 @@ export function QuranViewer({
         e.preventDefault();
         isSingleTouch = false;
         isPanning = false;
+        isPinching = true;
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const newScale = pinchInitialScale * (distance / initialDistance);
-        handleZoom(newScale);
+        const rawScale = pinchInitialScale * (distance / initialDistance);
+        // Clamp to min/max bounds
+        const clampedScale = Math.max(minScale, Math.min(maxScale, rawScale));
+        lastGestureScale = clampedScale;
+        // Use gestureScale for instant visual feedback (CSS transform, no re-render)
+        setGestureScale(clampedScale);
       } else if (isSingleTouch && singlePageMode && scaleRef.current > 1 && e.touches.length === 1) {
         // Pan when zoomed in single page mode
         e.preventDefault();
@@ -463,6 +476,15 @@ export function QuranViewer({
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
+      // Commit pinch zoom scale on gesture end
+      if (isPinching) {
+        setGestureScale(null); // Clear gesture scale
+        handleZoom(lastGestureScale); // Commit final scale to state
+        isPinching = false;
+        initialDistance = 0;
+        return;
+      }
+
       // Handle swipe navigation only when not zoomed or not panning significantly
       if (isSingleTouch && singlePageMode && e.changedTouches.length === 1) {
         const touchEndX = e.changedTouches[0].clientX;
@@ -500,7 +522,7 @@ export function QuranViewer({
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [enablePinchZoom, handleZoom, singlePageMode, totalPages, onPageChange]);
+  }, [enablePinchZoom, handleZoom, singlePageMode, totalPages, onPageChange, minScale, maxScale]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -640,6 +662,11 @@ export function QuranViewer({
     const scaledPageHeight = pageHeight * scale;
     const scaledPageWidth = pageWidth * scale;
 
+    // During pinch gesture, apply additional scale via CSS transform for instant feedback
+    // gestureScale is the target scale, so we compute relative scale from current committed scale
+    const isGesturing = gestureScale !== null;
+    const gestureTransformScale = isGesturing ? gestureScale / scale : 1;
+
     const singlePageContent = (
       <QuranPage
         pageNumber={displayPage}
@@ -682,8 +709,11 @@ export function QuranViewer({
       >
         <div
           style={{
-            transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
-            transition: scale <= 1 ? 'transform 0.2s ease-out' : 'none',
+            // Apply gesture scale via CSS transform for instant visual feedback during pinch
+            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${gestureTransformScale})`,
+            // No transition during gesture for maximum responsiveness
+            transition: isGesturing ? 'none' : (scale <= 1 ? 'transform 0.2s ease-out' : 'none'),
+            willChange: isGesturing ? 'transform' : 'auto',
           }}
         >
           {showBorder ? (

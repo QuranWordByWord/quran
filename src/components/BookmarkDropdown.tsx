@@ -69,7 +69,7 @@ export function BookmarkDropdown() {
       <button
         onClick={handleToggleBookmark}
         className={`
-          relative rounded-lg transition-all duration-200 flex items-center justify-center p-2
+          relative rounded-lg transition-all duration-200 flex items-center justify-center h-8 px-1.5
           ${bookmarked
             ? 'bg-white shadow-md'
             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
@@ -97,7 +97,7 @@ export function BookmarkDropdown() {
           {/* Date inside bookmark */}
           <div className="relative z-10 flex flex-col items-center leading-none mt-1 text-[var(--color-primary)]">
             <span className="text-[5px] font-semibold uppercase">{currentMonth}</span>
-            <span className="text-[8px] font-bold">{currentDay}</span>
+            <span className="text-[9px] font-bold">{currentDay}</span>
           </div>
         </div>
       ) : (

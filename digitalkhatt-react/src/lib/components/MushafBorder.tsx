@@ -203,7 +203,7 @@ export function MushafBorder({
         direction: 'rtl',
         fontFamily: 'var(--font-arabic, "Amiri", "Traditional Arabic", serif)',
         fontSize: 12 * scale,
-        color: 'var(--mushaf-border, #3E9257)',
+        color: 'var(--mushaf-metadata-text, #3E9257)',
         padding: `0 ${borderX}px`,
       }}>
         <span>{juzName}</span>
@@ -248,7 +248,7 @@ export function MushafBorder({
         alignItems: 'center',
         fontFamily: 'var(--font-arabic, "Amiri", "Traditional Arabic", serif)',
         fontSize: 16 * scale,
-        color: 'var(--mushaf-border, #3E9257)',
+        color: 'var(--mushaf-metadata-text, #3E9257)',
       }}>
         <span>{pageNumberArabic}</span>
       </div>
