@@ -96,7 +96,7 @@ export function BookmarkDropdown() {
           </svg>
           {/* Date inside bookmark */}
           <div className="relative z-10 flex flex-col items-center leading-none mt-1 text-[var(--color-primary)]">
-            <span className="text-[5px] font-semibold uppercase">{currentMonth}</span>
+            <span className="text-[5px] font-extrabold uppercase">{currentMonth}</span>
             <span className="text-[9px] font-bold">{currentDay}</span>
           </div>
         </div>

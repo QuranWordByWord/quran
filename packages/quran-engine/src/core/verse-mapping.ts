@@ -160,11 +160,6 @@ export function buildVerseMapping(textService: QuranTextService): VerseWordMappi
       const lineInfo = textService.getLineInfo(pageIndex, lineIndex);
       const lineText = page[lineIndex];
 
-      // Debug: log first few lines of page 0
-      if (pageIndex === 0 && lineIndex < 5) {
-        console.log(`verse-mapping page 0 line ${lineIndex}: lineType=${lineInfo.lineType}, text="${lineText}", chars=${Array.from(lineText).map(c => c.charCodeAt(0).toString(16)).join(',')}`);
-      }
-
       // Skip surah headers (lineType 1)
       if (lineInfo.lineType === 1) {
         // New surah starting
@@ -249,12 +244,6 @@ export function buildVerseMapping(textService: QuranTextService): VerseWordMappi
             // For bismillah lines OR lines with bismillah marker pattern, map ALL words to ayah 0
             const isBismillahWord = isBismillahLine || lineHasBismillahMarker;
             const effectiveAyah = isBismillahWord && detectedAyah === 0 ? 0 : detectedAyah;
-
-            // Debug: log word mapping for page 0
-            if (pageIndex === 0 && lineIndex < 5) {
-              const wordText = lineText.substring(wordStart, i);
-              console.log(`verse-mapping word: page=${pageIndex} line=${lineIndex} word=${wordIndex} text="${wordText}" verseNum=${verseNum} detectedAyah=${detectedAyah} effectiveAyah=${effectiveAyah} isBismillahLine=${isBismillahLine} lineHasBismillahMarker=${lineHasBismillahMarker} willMap=${currentSurah > 0 && (effectiveAyah > 0 || (isBismillahWord && effectiveAyah === 0))}`);
-            }
 
             if (currentSurah > 0 && (effectiveAyah > 0 || (isBismillahWord && effectiveAyah === 0))) {
               const key = wordKey(pageIndex, lineIndex, wordIndex);

@@ -62,53 +62,77 @@
    Tajweed Color Classes
    ============================================ */
 
+/*
+ * Tajweed classes for SVG paths need higher specificity to override
+ * the generic .quran-page svg path rule. We use .quran-page svg path.class
+ * to ensure tajweed colors take precedence.
+ */
+
 /* Tafkheem (heavy letters) - Blue */
+.quran-page svg path.tafkim,
 .tafkim {
   fill: var(--tajweed-tafkim);
   color: var(--tajweed-tafkim);
 }
 
 /* Qalqalah - Cyan */
+.quran-page svg path.lkalkala,
 .lkalkala {
   fill: var(--tajweed-lkalkala);
   color: var(--tajweed-lkalkala);
 }
 
 /* Silent letters, Hamza Wasl inside words - Gray */
+.quran-page svg path.lgray,
 .lgray {
   fill: var(--tajweed-lgray);
   color: var(--tajweed-lgray);
 }
 
 /* Idgham/Ikhfa/Iqlab - Green */
+.quran-page svg path.green,
 .green {
   fill: var(--tajweed-green);
   color: var(--tajweed-green);
 }
 
 /* Madd 2 counts - Orange-brown */
+.quran-page svg path.red1,
 .red1 {
   fill: var(--tajweed-red1);
   color: var(--tajweed-red1);
 }
 
 /* Madd 4-5 counts (jaiz) - Orange */
+.quran-page svg path.red2,
 .red2 {
   fill: var(--tajweed-red2);
   color: var(--tajweed-red2);
 }
 
 /* Madd 4-5 counts (wajib) - Magenta-pink */
+.quran-page svg path.red3,
 .red3 {
   fill: var(--tajweed-red3);
   color: var(--tajweed-red3);
 }
 
 /* Madd 6 counts (lazim) - Dark red */
+.quran-page svg path.red4,
 .red4 {
   fill: var(--tajweed-red4);
   color: var(--tajweed-red4);
 }
+
+/* Dark mode: ensure tajweed colors override the dark mode default text color */
+.dark .quran-page svg path.tafkim { fill: var(--tajweed-tafkim); }
+.dark .quran-page svg path.lkalkala { fill: var(--tajweed-lkalkala); }
+.dark .quran-page svg path.lgray { fill: var(--tajweed-lgray); }
+.dark .quran-page svg path.green { fill: var(--tajweed-green); }
+.dark .quran-page svg path.red1 { fill: var(--tajweed-red1); }
+.dark .quran-page svg path.red2 { fill: var(--tajweed-red2); }
+.dark .quran-page svg path.red3 { fill: var(--tajweed-red3); }
+.dark .quran-page svg path.red4 { fill: var(--tajweed-red4); }
 
 /* ============================================
    Word Click Areas

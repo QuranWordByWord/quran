@@ -58,6 +58,12 @@ interface SettingsContextType {
   highlightedVerseKey: string | null;
   setHighlightedVerseKey: (verseKey: string | null) => void;
 
+  // Highlighted word (shared between views, session-only, not persisted)
+  // Uses verseKey + wordPosition as common identifier that both views can map to/from
+  // pageNumber is the API page (610-page system) for navigation when switching views
+  highlightedWordInfo: { verseKey: string; wordPosition: number; pageNumber?: number } | null;
+  setHighlightedWordInfo: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void;
+
   // Bulk update
   updateSettings: (partial: Partial<AppSettings>) => void;
 }
@@ -85,6 +91,8 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   // Session-only state for highlighted verse (shared between views, not persisted)
   const [highlightedVerseKey, setHighlightedVerseKey] = useState<string | null>(null);
+  // Session-only state for highlighted word (shared between views, not persisted)
+  const [highlightedWordInfo, setHighlightedWordInfo] = useState<{ verseKey: string; wordPosition: number; pageNumber?: number } | null>(null);
 
   // Persist settings whenever they change
   useEffect(() => {
@@ -240,6 +248,8 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setMushafFontScale,
     highlightedVerseKey,
     setHighlightedVerseKey,
+    highlightedWordInfo,
+    setHighlightedWordInfo,
     updateSettings,
   };
 

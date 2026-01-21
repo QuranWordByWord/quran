@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import type { MushafLayoutTypeString } from '@digitalkhatt/quran-engine';
 
 // Arabic surah names
 const SURAH_NAMES_ARABIC: Record<number, string> = {
@@ -47,15 +48,51 @@ const JUZ_NAMES_ARABIC: Record<number, string> = {
   30: 'الجزء الثلاثون',
 };
 
-// Page to Juz mapping (approximate - first page of each juz in Madani mushaf)
-const JUZ_START_PAGES = [
+// English surah names (transliterated)
+const SURAH_NAMES_ENGLISH: Record<number, string> = {
+  1: 'Al-Fatiha', 2: 'Al-Baqara', 3: "Al-i'Imran", 4: 'An-Nisaa', 5: 'Al-Maida',
+  6: "Al-An'am", 7: "Al-A'raf", 8: 'Al-Anfal', 9: 'At-Tauba', 10: 'Yunus',
+  11: 'Hud', 12: 'Yusuf', 13: "Ar-Ra'd", 14: 'Ibrahim', 15: 'Al-Hijr',
+  16: 'An-Nahl', 17: 'Al-Israa', 18: 'Al-Kahf', 19: 'Maryam', 20: 'Ta-ha',
+  21: 'Al-Anbiyaa', 22: 'Al-Hajj', 23: "Al-Mu'minun", 24: 'An-Nur', 25: 'Al-Furqan',
+  26: "Ash-Shu'ara", 27: 'An-Naml', 28: 'Al-Qasas', 29: 'Al-Ankabut', 30: 'Ar-Rum',
+  31: 'Luqman', 32: 'As-Sajda', 33: 'Al-Ahzab', 34: 'Saba', 35: 'Fatir',
+  36: 'Ya-Sin', 37: 'As-Saffat', 38: 'Sad', 39: 'Az-Zumar', 40: 'Ghafir',
+  41: 'Fussilat', 42: 'Ash-Shura', 43: 'Az-Zukhruf', 44: 'Ad-Dukhan', 45: 'Al-Jathiya',
+  46: 'Al-Ahqaf', 47: 'Muhammad', 48: 'Al-Fath', 49: 'Al-Hujurat', 50: 'Qaf',
+  51: 'Adh-Dhariyat', 52: 'At-Tur', 53: 'An-Najm', 54: 'Al-Qamar', 55: 'Ar-Rahman',
+  56: "Al-Waqi'a", 57: 'Al-Hadid', 58: 'Al-Mujadila', 59: 'Al-Hashr', 60: 'Al-Mumtahana',
+  61: 'As-Saff', 62: "Al-Jumu'a", 63: 'Al-Munafiqun', 64: 'At-Taghabun', 65: 'At-Talaq',
+  66: 'At-Tahrim', 67: 'Al-Mulk', 68: 'Al-Qalam', 69: 'Al-Haqqa', 70: "Al-Ma'arij",
+  71: 'Nuh', 72: 'Al-Jinn', 73: 'Al-Muzzammil', 74: 'Al-Muddaththir', 75: 'Al-Qiyama',
+  76: 'Al-Insan', 77: 'Al-Mursalat', 78: "An-Naba'", 79: "An-Nazi'at", 80: 'Abasa',
+  81: 'At-Takwir', 82: 'Al-Infitar', 83: 'Al-Mutaffifin', 84: 'Al-Inshiqaq', 85: 'Al-Buruj',
+  86: 'At-Tariq', 87: "Al-A'la", 88: 'Al-Ghashiya', 89: 'Al-Fajr', 90: 'Al-Balad',
+  91: 'Ash-Shams', 92: 'Al-Lail', 93: 'Ad-Duha', 94: 'Ash-Sharh', 95: 'At-Tin',
+  96: "Al-'Alaq", 97: 'Al-Qadr', 98: 'Al-Bayyina', 99: 'Az-Zalzala', 100: "Al-'Adiyat",
+  101: "Al-Qari'a", 102: 'At-Takathur', 103: "Al-'Asr", 104: 'Al-Humaza', 105: 'Al-Fil',
+  106: 'Quraish', 107: "Al-Ma'un", 108: 'Al-Kauthar', 109: 'Al-Kafirun', 110: 'An-Nasr',
+  111: 'Al-Masad', 112: 'Al-Ikhlas', 113: 'Al-Falaq', 114: 'An-Nas',
+};
+
+// Page to Juz mapping - Madani mushaf (604 pages)
+const JUZ_START_PAGES_MADANI = [
   1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
   201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
   402, 422, 442, 462, 482, 502, 522, 542, 562, 582
 ];
 
-// Page to Surah mapping (first page of each surah in Madani mushaf)
-const SURAH_START_PAGES = [
+// Page to Juz mapping - IndoPak 15-line mushaf (610 pages)
+// Calculated based on JUZ_POSITIONS verse data mapped to IndoPak page numbers
+// Juz 29 starts at Surah 67 (page 562), Juz 30 starts at Surah 78 (page 586)
+const JUZ_START_PAGES_INDOPAK = [
+  1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
+  201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+  402, 422, 442, 462, 482, 502, 522, 542, 562, 586
+];
+
+// Page to Surah mapping - Madani mushaf (604 pages)
+const SURAH_START_PAGES_MADANI = [
   1, 2, 50, 77, 106, 128, 151, 177, 187, 208,
   221, 235, 249, 255, 262, 267, 282, 293, 305, 312,
   322, 332, 342, 350, 359, 367, 377, 385, 396, 404,
@@ -70,18 +107,37 @@ const SURAH_START_PAGES = [
   603, 604, 604, 604
 ];
 
-function getJuzForPage(pageNumber: number): number {
-  for (let i = JUZ_START_PAGES.length - 1; i >= 0; i--) {
-    if (pageNumber >= JUZ_START_PAGES[i]) {
+// Page to Surah mapping - IndoPak 15-line mushaf (610 pages)
+// Based on apiPage values from pageToSurah.ts
+const SURAH_START_PAGES_INDOPAK = [
+  1, 2, 50, 77, 106, 128, 151, 177, 187, 208,
+  221, 235, 249, 255, 261, 267, 282, 293, 305, 312,
+  322, 331, 342, 350, 359, 366, 376, 385, 396, 404,
+  411, 415, 418, 428, 434, 440, 445, 452, 458, 467,
+  477, 483, 489, 495, 498, 502, 506, 511, 515, 518,
+  520, 523, 526, 528, 531, 534, 537, 542, 545, 549,
+  551, 553, 554, 556, 558, 560, 562, 564, 567, 569,
+  571, 573, 576, 578, 580, 582, 584, 586, 587, 589,
+  590, 591, 592, 594, 595, 596, 597, 597, 598, 600,
+  600, 601, 602, 602, 603, 603, 604, 604, 605, 605,
+  606, 606, 607, 607, 607, 608, 608, 608, 608, 609,
+  609, 609, 610, 610
+];
+
+function getJuzForPage(pageNumber: number, layoutType: MushafLayoutTypeString): number {
+  const juzStartPages = layoutType === 'indoPak15' ? JUZ_START_PAGES_INDOPAK : JUZ_START_PAGES_MADANI;
+  for (let i = juzStartPages.length - 1; i >= 0; i--) {
+    if (pageNumber >= juzStartPages[i]) {
       return i + 1;
     }
   }
   return 1;
 }
 
-function getSurahForPage(pageNumber: number): number {
-  for (let i = SURAH_START_PAGES.length - 1; i >= 0; i--) {
-    if (pageNumber >= SURAH_START_PAGES[i]) {
+function getSurahForPage(pageNumber: number, layoutType: MushafLayoutTypeString): number {
+  const surahStartPages = layoutType === 'indoPak15' ? SURAH_START_PAGES_INDOPAK : SURAH_START_PAGES_MADANI;
+  for (let i = surahStartPages.length - 1; i >= 0; i--) {
+    if (pageNumber >= surahStartPages[i]) {
       return i + 1;
     }
   }
@@ -105,6 +161,10 @@ export interface MushafBorderProps {
   scale: number;
   /** Border color */
   borderColor?: string;
+  /** Verse number format - when 'english', shows English names in brackets */
+  verseNumberFormat?: 'arabic' | 'english';
+  /** Mushaf layout type - determines page mappings */
+  layoutType?: MushafLayoutTypeString;
   /** Children (page content) */
   children: React.ReactNode;
 }
@@ -114,12 +174,15 @@ export function MushafBorder({
   contentWidth,
   contentHeight,
   scale,
+  verseNumberFormat = 'arabic',
+  layoutType = 'indoPak15',
   children,
 }: MushafBorderProps) {
-  const surahNumber = getSurahForPage(pageNumber);
-  const juzNumber = getJuzForPage(pageNumber);
+  const surahNumber = getSurahForPage(pageNumber, layoutType);
+  const juzNumber = getJuzForPage(pageNumber, layoutType);
   const surahName = SURAH_NAMES_ARABIC[surahNumber] || '';
   const juzName = JUZ_NAMES_ARABIC[juzNumber] || '';
+  const surahNameEnglish = SURAH_NAMES_ENGLISH[surahNumber] || '';
   const pageNumberArabic = toArabicNumerals(pageNumber);
 
   // SVG dimensions - the border SVG has a fixed aspect ratio that must be preserved
@@ -206,8 +269,8 @@ export function MushafBorder({
         color: 'var(--mushaf-metadata-text, #3E9257)',
         padding: `0 ${borderX}px`,
       }}>
-        <span>{juzName}</span>
-        <span>سورة {surahName}</span>
+        <span>{juzName}{verseNumberFormat === 'arabic' && <span style={{ fontSize: '1.2em' }}> {toArabicNumerals(juzNumber)}</span>}{verseNumberFormat === 'english' && <span style={{ fontSize: '0.8em' }}> [Juz <span style={{ fontSize: '1.1em' }}>{juzNumber}</span>]</span>}</span>
+        <span>سورة {surahName}{verseNumberFormat === 'english' && <span style={{ fontSize: '0.8em' }}> [{surahNameEnglish}]</span>}</span>
       </div>
 
       {/* Main border frame - using SVG as background image */}

@@ -204,8 +204,8 @@ export function InlineBookmarkButton({
         {/* Date inside bookmark - only shown when bookmarked */}
         {bookmarked && (
           <div className="absolute inset-0 flex flex-col items-center justify-start pt-2 text-[var(--color-primary)]">
-            <span className="text-[5.5px] font-medium uppercase leading-none">{currentMonth}</span>
-            <span className="text-[8px] font-bold leading-none">{currentDay}</span>
+            <span className="text-[8px] font-extrabold uppercase leading-none">{currentMonth}</span>
+            <span className="text-[10px] font-extrabold leading-none mt-px">{currentDay}</span>
           </div>
         )}
       </button>
@@ -252,7 +252,7 @@ export function InlineBookmarkButton({
       {/* Date inside bookmark - only shown when bookmarked */}
       {bookmarked && (
         <div className="relative z-10 flex flex-col items-center leading-none mt-1 text-white">
-          <span className="text-[9px] font-medium uppercase">{currentMonth}</span>
+          <span className="text-[9px] font-bold uppercase">{currentMonth}</span>
           <span className="text-xs font-bold">{currentDay}</span>
         </div>
       )}

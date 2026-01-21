@@ -105,6 +105,8 @@ export interface PageRenderResult {
   renderTime: number;
   /** Word elements for hit testing (keyed by "page:line:word") */
   wordElements?: Map<string, SVGElement>;
+  /** Word group elements for text highlighting (keyed by "page:line:word") */
+  wordGroupElements?: Map<string, SVGGElement>;
 }
 
 /**
@@ -148,6 +150,7 @@ export class SVGPageRenderer {
     const lineCount = quranText[pageIndex].length;
     const lineElements: HTMLElement[] = [];
     const wordElements = new Map<string, SVGElement>();
+    const wordGroupElements = new Map<string, SVGGElement>();
 
     const scale = viewport.width / PAGE_WIDTH;
     const defaultMargin = MARGIN * scale;
@@ -246,7 +249,8 @@ export class SVGPageRenderer {
           sajdaInfo,
           pageIndex,
           lineIndex,
-          wordElements
+          wordElements,
+          wordGroupElements
         );
       } else if (lineInfo.lineType === 1) {
         // Sura header line with decorative border
@@ -329,7 +333,8 @@ export class SVGPageRenderer {
           undefined,
           pageIndex,
           lineIndex,
-          wordElements
+          wordElements,
+          wordGroupElements
         );
       }
 
@@ -342,6 +347,7 @@ export class SVGPageRenderer {
       lineElements,
       renderTime: endTime - startTime,
       wordElements: wordElements.size > 0 ? wordElements : undefined,
+      wordGroupElements: wordGroupElements.size > 0 ? wordGroupElements : undefined,
     };
   }
 
@@ -393,7 +399,8 @@ export class SVGPageRenderer {
     sajdaInfo?: SajdaRenderInfo,
     pageIndex?: number,
     lineIndex?: number,
-    wordElements?: Map<string, SVGElement>
+    wordElements?: Map<string, SVGElement>,
+    wordGroupElements?: Map<string, SVGGElement>
   ): void {
     // Build features array
     const features: HBFeature[] = lineTextInfo.features ? [...lineTextInfo.features] : [];
@@ -502,7 +509,6 @@ export class SVGPageRenderer {
     result.svg.style.top = '0px';
 
     // Add word click overlays if enabled
-    console.log('SVG renderSVGLine:', { enableWordClick: options.enableWordClick, pageIndex, lineIndex, hasWordBounds: !!result.wordBounds, wordBoundsLength: result.wordBounds?.length });
     if (options.enableWordClick && pageIndex !== undefined && lineIndex !== undefined && result.wordBounds) {
       const wordOverlayGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       wordOverlayGroup.setAttribute('class', 'word-overlays');
@@ -522,6 +528,17 @@ export class SVGPageRenderer {
         wordRect.setAttribute('data-line', lineIndex.toString());
         wordRect.setAttribute('data-word', wordIndex.toString());
         wordRect.style.cursor = 'pointer';
+
+        // Add hover effects to show gold text color
+        const wordGroup = result.wordGroups?.get(wordIndex);
+        if (wordGroup) {
+          wordRect.addEventListener('mouseenter', () => {
+            wordGroup.classList.add('word-hover');
+          });
+          wordRect.addEventListener('mouseleave', () => {
+            wordGroup.classList.remove('word-hover');
+          });
+        }
 
         // Extract word text from lineTextInfo
         const wordInfo = lineTextInfo.wordInfos[wordIndex];
@@ -544,6 +561,12 @@ export class SVGPageRenderer {
         if (wordElements) {
           const key = `${pageIndex}:${lineIndex}:${wordIndex}`;
           wordElements.set(key, wordRect);
+        }
+
+        // Store word group for text highlighting
+        if (wordGroupElements && wordGroup) {
+          const key = `${pageIndex}:${lineIndex}:${wordIndex}`;
+          wordGroupElements.set(key, wordGroup);
         }
 
         wordOverlayGroup.appendChild(wordRect);
@@ -572,41 +595,39 @@ export class SVGPageRenderer {
   /**
    * Apply highlights to word elements
    * Uses differential update to avoid flickering - only changes elements that need updating
+   * Now highlights text color via word groups instead of background fill
    */
   applyHighlights(
-    wordElements: Map<string, Element>,
+    _wordElements: Map<string, Element>,
     highlightGroups: SVGHighlightGroup[],
-    pageIndex: number
+    pageIndex: number,
+    wordGroupElements?: Map<string, SVGGElement>
   ): void {
-    // Build a map of what each element's highlight should be
-    const targetHighlights = new Map<string, string>(); // key -> color (empty string = no highlight)
+    // Build a set of keys that should be highlighted
+    const highlightedKeys = new Set<string>();
 
-    // Determine target state for each element from highlight groups
+    // Determine which words should be highlighted
     for (const group of highlightGroups) {
       if (group.words) {
         for (const word of group.words) {
           if (word.page === pageIndex) {
             const key = `${word.page}:${word.line}:${word.word}`;
-            targetHighlights.set(key, group.color);
+            highlightedKeys.add(key);
           }
         }
       }
     }
 
-    // Apply only the changes needed
-    for (const [key, element] of wordElements) {
-      if (element instanceof SVGElement) {
-        const targetColor = targetHighlights.get(key) || '';
-        const currentColor = element.style.fill || '';
+    // Apply text highlighting via word groups (gold text color)
+    if (wordGroupElements) {
+      for (const [key, wordGroup] of wordGroupElements) {
+        const shouldHighlight = highlightedKeys.has(key);
+        const isHighlighted = wordGroup.classList.contains('word-highlighted');
 
-        // Only update if the color is different
-        if (currentColor !== targetColor) {
-          element.style.fill = targetColor;
-          if (targetColor) {
-            element.classList.add('highlighted');
-          } else {
-            element.classList.remove('highlighted');
-          }
+        if (shouldHighlight && !isHighlighted) {
+          wordGroup.classList.add('word-highlighted');
+        } else if (!shouldHighlight && isHighlighted) {
+          wordGroup.classList.remove('word-highlighted');
         }
       }
     }

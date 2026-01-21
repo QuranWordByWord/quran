@@ -45,20 +45,51 @@ const QURAN_TEXT = {
 // ============================================
 
 // Hook to detect if we're on mobile (respects layoutMode setting)
+// Uses zoom-compensated viewport width to prevent mode switching during browser zoom
 function useIsMobile(layoutMode: 'auto' | 'desktop' | 'mobile' = 'auto') {
-  const [isMobile, setIsMobile] = useState(false);
+  // Capture the base devicePixelRatio on initial load (before any zoom changes)
+  const baseDprRef = useRef<number | null>(null);
+
+  const [isMobile, setIsMobile] = useState(() => {
+    if (layoutMode === 'desktop') return false;
+    if (layoutMode === 'mobile') return true;
+    if (typeof window === 'undefined') return false;
+
+    // Initialize baseDpr
+    baseDprRef.current = window.devicePixelRatio;
+    return window.innerWidth < 1024;
+  });
 
   useEffect(() => {
+    if (layoutMode === 'desktop') {
+      setIsMobile(false);
+      return;
+    }
+    if (layoutMode === 'mobile') {
+      setIsMobile(true);
+      return;
+    }
+
+    // Initialize baseDpr if not set
+    if (baseDprRef.current === null) {
+      baseDprRef.current = window.devicePixelRatio;
+    }
+
     const checkMobile = () => {
-      if (layoutMode === 'desktop') {
-        setIsMobile(false);
-      } else if (layoutMode === 'mobile') {
-        setIsMobile(true);
-      } else {
-        // 'auto' - follow device width
-        setIsMobile(window.innerWidth < 1024);
-      }
+      const baseDpr = baseDprRef.current ?? 1;
+      const currentDpr = window.devicePixelRatio;
+
+      // Calculate zoom factor relative to initial page load
+      // If user zoomed in, currentDpr > baseDpr
+      const zoomFactor = currentDpr / baseDpr;
+
+      // Compensate for zoom: multiply innerWidth by zoom factor
+      // to get the "original" width before zoom was applied
+      const compensatedWidth = window.innerWidth * zoomFactor;
+
+      setIsMobile(compensatedWidth < 1024);
     };
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -138,6 +169,8 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     theme,
     highlightedVerseKey,
     setHighlightedVerseKey,
+    highlightedWordInfo,
+    setHighlightedWordInfo,
     tajweedEnabled,
     mushafZoom,
     setMushafZoom,
@@ -148,9 +181,6 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { isReady, getVerseMapping } = useDigitalKhatt();
   const windowDimensions = useWindowDimensions();
-
-  // Track highlighted word for word-by-word audio playback (session-only, not persisted)
-  const [highlightedWord, setHighlightedWord] = useState<{ page: number; line: number; word: number } | null>(null);
 
   // Calculate responsive page dimensions for mobile single-page mode
   // The page should fit entirely on screen without showing other pages
@@ -251,8 +281,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         const paddedPosition = String(wordPosition).padStart(3, '0');
         const wordAudioUrl = `wbw/${paddedChapter}_${paddedVerse}_${paddedPosition}.mp3`;
 
-        // Highlight the clicked word (page is 0-indexed in mapping, but pageNumber is 1-indexed)
-        setHighlightedWord({ page: info.pageNumber - 1, line: info.lineIndex, word: info.wordIndex });
+        // Highlight the clicked word using shared state (verseKey + wordPosition + pageNumber)
+        // pageNumber is stored as UI page (from URL) for consistent navigation when switching views
+        setHighlightedWordInfo({ verseKey, wordPosition, pageNumber: page });
         setHighlightedVerseKey(null); // Clear verse highlight for word playback
         audioRef.current.playWord(wordAudioUrl);
         return;
@@ -260,10 +291,10 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     }
 
     // Fallback: play verse audio if word mapping fails
-    setHighlightedWord(null); // Clear word highlight
+    setHighlightedWordInfo(null); // Clear word highlight
     setHighlightedVerseKey(verseKey);
     audioRef.current.playVerse(audioVerseKey);
-  }, [verseMapping, setHighlightedVerseKey]);
+  }, [verseMapping, setHighlightedVerseKey, setHighlightedWordInfo, page]);
 
   // Use refs for values needed in async callbacks to avoid stale closures
   const verseMappingRef = useRef(verseMapping);
@@ -274,7 +305,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   // Handle verse click (verse marker) - play full verse or surah
   // Uses audioRef to avoid recreating callback on audio state changes
   const handleVerseClick = useCallback((info: VerseClickInfo) => {
-    setHighlightedWord(null); // Clear word highlight
+    setHighlightedWordInfo(null); // Clear word highlight
 
     // Bismillah click (ayah === 0) - play entire surah
     if (info.ayah === 0) {
@@ -313,6 +344,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   }, [setHighlightedVerseKey]);
 
   // Build highlight groups for verse and word highlighting
+  // quranPage is 1-indexed (1-610), pageIndex is 0-indexed for DigitalKhatt coordinates
+  const pageIndex = quranPage - 1;
+
   const highlightGroups = useMemo(() => {
     const groups = [];
     const highlightColor = theme === 'dark' ? 'rgba(212, 168, 85, 0.3)' : 'rgba(201, 162, 39, 0.3)';
@@ -326,16 +360,37 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
       });
     }
 
-    // Add word highlight if active
-    if (highlightedWord) {
-      groups.push({
-        words: [highlightedWord],
-        color: highlightColor,
-      });
+    // Add word highlight if active - convert from verseKey+position to page/line/word coordinates
+    if (highlightedWordInfo) {
+      const [surah, ayah] = highlightedWordInfo.verseKey.split(':').map(Number);
+      let wordHighlighted = false;
+
+      // Try to find exact word coordinates in DigitalKhatt mapping
+      if (verseMapping) {
+        const verseWords = getWordsForVerse(verseMapping, surah, ayah);
+        const wordCoords = verseWords[highlightedWordInfo.wordPosition - 1]; // wordPosition is 1-indexed
+        // Only use word highlight if the word is on the current page
+        // API word positions may not match DigitalKhatt's mapping, which could point to wrong page
+        if (wordCoords && wordCoords.page === pageIndex) {
+          groups.push({
+            words: [wordCoords],
+            color: highlightColor,
+          });
+          wordHighlighted = true;
+        }
+      }
+
+      // Fall back to verse highlight if word not found or not on current page
+      if (!wordHighlighted) {
+        groups.push({
+          verses: [{ surah, ayah }],
+          color: highlightColor,
+        });
+      }
     }
 
     return groups;
-  }, [highlightedVerseKey, highlightedWord, theme]);
+  }, [highlightedVerseKey, highlightedWordInfo, verseMapping, theme, pageIndex]);
 
   if (!isReady) {
     return (
@@ -481,7 +536,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         onSeek={audio.seek}
         onToggleLoop={audio.toggleLoop}
         onDismiss={() => {
-          setHighlightedWord(null);
+          setHighlightedWordInfo(null);
           setHighlightedVerseKey(null);
         }}
       />

@@ -136,6 +136,10 @@ export function QuranViewer({
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 0 });
 
+  // Flag to suppress onPageChange during scale/resize transitions
+  // Must be declared early so it's available in calculateVisibleRange callback
+  const isTransitioningRef = useRef(false);
+
   // Pan offset for single page mode when zoomed
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
@@ -259,8 +263,12 @@ export function QuranViewer({
     const newCurrentPage = Math.max(1, Math.min(totalPages, centerPage + 1));
 
     if (newCurrentPage !== currentPage) {
-      setCurrentPage(newCurrentPage);
-      onPageChange?.(newCurrentPage);
+      // Only update page state and notify parent if not in the middle of a scale/resize transition
+      // This prevents unwanted navigation and state changes when zooming in/out or browser zoom changes
+      if (!isTransitioningRef.current) {
+        setCurrentPage(newCurrentPage);
+        onPageChange?.(newCurrentPage);
+      }
     }
   }, [singlePageMode, pageHeight, scale, pageGap, totalBorderOffset, overscanPages, totalPages, currentPage, onPageChange]);
 
@@ -281,18 +289,50 @@ export function QuranViewer({
     };
   }, [calculateVisibleRange]);
 
-  // Recalculate on resize
+  // Track the current page for maintaining position during resize
+  const currentPageRef = useRef(currentPage);
+  currentPageRef.current = currentPage;
+
+  // Recalculate on resize (e.g., browser zoom, window resize)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    // Skip resize handling for single page mode
+    if (singlePageMode) return;
+
     const resizeObserver = new ResizeObserver(() => {
+      // Suppress onPageChange during resize to prevent unwanted navigation
+      // (e.g., when browser zoom changes)
+      isTransitioningRef.current = true;
+
+      // Maintain scroll position to keep the same page centered after resize
+      // Browser zoom changes the container size but we want to stay on the same page
+      const targetPage = currentPageRef.current;
+      const scaledPageHeight = pageHeight * scale + totalBorderOffset + pageGap;
+      const pageTop = (targetPage - 1) * scaledPageHeight;
+
+      // Center the page vertically in the viewport
+      const viewportHeight = container.clientHeight;
+      const pageWithBorderHeight = pageHeight * scale + totalBorderOffset;
+      const scrollTop = Math.max(0, pageTop - (viewportHeight - pageWithBorderHeight) / 2);
+
+      container.scrollTop = scrollTop;
+
+      // Recalculate visible range after scroll adjustment
       calculateVisibleRange();
+
+      // Clear the flag after a short delay to allow the layout to settle
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          isTransitioningRef.current = false;
+        });
+      });
     });
 
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
-  }, [calculateVisibleRange]);
+  }, [calculateVisibleRange, singlePageMode, pageHeight, scale, totalBorderOffset, pageGap]);
 
   // Track previous values to detect external changes
   const prevInitialPageRef = useRef(initialPage);
@@ -310,16 +350,28 @@ export function QuranViewer({
       const prevScale = prevScaleRef.current;
       prevScaleRef.current = scale;
 
+      // Set flag to suppress onPageChange during scale transition
+      isTransitioningRef.current = true;
+
       // Reset pan offset when scale returns to 1 (or close to it)
       if (scale <= 1.05) {
         setPanOffset({ x: 0, y: 0 });
       }
 
       // In single page mode, nothing to do for scroll - page is controlled by initialPage prop
-      if (singlePageMode) return;
+      if (singlePageMode) {
+        // Clear the flag after a short delay
+        requestAnimationFrame(() => {
+          isTransitioningRef.current = false;
+        });
+        return;
+      }
 
       const container = containerRef.current;
-      if (!container) return;
+      if (!container) {
+        isTransitioningRef.current = false;
+        return;
+      }
 
       // Calculate scroll position to maintain the same page in view
       // Use the helper function to get correct border offset for both scales
@@ -334,8 +386,14 @@ export function QuranViewer({
       // Adjust scroll to maintain the same fractional page position
       container.scrollTop = pageAtTop * newScaledPageHeight;
 
-      // Recalculate visible range after scale change
-      requestAnimationFrame(calculateVisibleRange);
+      // Recalculate visible range after scale change, then clear the flag
+      requestAnimationFrame(() => {
+        calculateVisibleRange();
+        // Clear the flag after the visible range calculation is complete
+        requestAnimationFrame(() => {
+          isTransitioningRef.current = false;
+        });
+      });
     }
   }, [scale, pageHeight, pageGap, totalBorderOffset, singlePageMode, calculateVisibleRange, calculateBorderOffsetForScale]);
 
@@ -602,6 +660,8 @@ export function QuranViewer({
               contentHeight={scaledPageHeight}
               scale={scale}
               borderColor="var(--mushaf-border, #2d5a27)"
+              verseNumberFormat={verseNumberFormat}
+              layoutType={layoutType}
             >
               {pageContent}
             </MushafBorder>
@@ -723,6 +783,8 @@ export function QuranViewer({
               contentHeight={scaledPageHeight}
               scale={scale}
               borderColor="var(--mushaf-border, #2d5a27)"
+              verseNumberFormat={verseNumberFormat}
+              layoutType={layoutType}
             >
               {singlePageContent}
             </MushafBorder>

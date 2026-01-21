@@ -29,8 +29,8 @@ interface WordForWordViewProps {
   showTranslations?: boolean; // If false, shows traditional mushaf layout without word-by-word translations
   highlightedVerseKey?: string | null; // Verse key to highlight (e.g., "1:5")
   onHighlightVerse?: (verseKey: string | null) => void; // Callback to set highlighted verse
-  highlightedWordId?: number | null; // Word ID to highlight
-  onHighlightWord?: (wordId: number | null) => void; // Callback to set highlighted word
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number } | null; // Word to highlight (shared with Mushaf view)
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void; // Callback to set highlighted word
 }
 
 // Line content type - can be words, surah header, or bismillah
@@ -92,7 +92,7 @@ export function WordForWordView({
   showTranslations = true,
   highlightedVerseKey,
   onHighlightVerse,
-  highlightedWordId,
+  highlightedWordInfo,
   onHighlightWord,
 }: WordForWordViewProps) {
   const fontClass = useFontClass();
@@ -303,8 +303,9 @@ export function WordForWordView({
                             justified={pageNumber <= 3}
                             highlightedVerseKey={highlightedVerseKey}
                             onHighlightVerse={onHighlightVerse}
-                            highlightedWordId={highlightedWordId}
+                            highlightedWordInfo={highlightedWordInfo}
                             onHighlightWord={onHighlightWord}
+                            currentPageNumber={pageNumber}
                           />
                         ) : (
                           <TraditionalMushafLine
@@ -315,8 +316,9 @@ export function WordForWordView({
                             fontClass={fontClass}
                             highlightedVerseKey={highlightedVerseKey}
                             onHighlightVerse={onHighlightVerse}
-                            highlightedWordId={highlightedWordId}
+                            highlightedWordInfo={highlightedWordInfo}
                             onHighlightWord={onHighlightWord}
+                            currentPageNumber={pageNumber}
                           />
                         );
                       }
@@ -434,8 +436,9 @@ function MushafLine({
   justified = false,
   highlightedVerseKey,
   onHighlightVerse,
-  highlightedWordId,
+  highlightedWordInfo,
   onHighlightWord,
+  currentPageNumber,
 }: {
   words: { word: Word; verseNumber: number; surahNumber: number }[];
   lineNumber: number;
@@ -445,8 +448,9 @@ function MushafLine({
   justified?: boolean;
   highlightedVerseKey?: string | null;
   onHighlightVerse?: (verseKey: string | null) => void;
-  highlightedWordId?: number | null;
-  onHighlightWord?: (wordId: number | null) => void;
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number } | null;
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void;
+  currentPageNumber: number; // Current page being viewed, used as fallback for word.page_number
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -461,14 +465,21 @@ function MushafLine({
     setIsExpanded(prev => !prev);
   };
 
-  const handleWordClick = (wordId: number, audioUrl: string | null) => {
+  const handleWordClick = (verseKey: string, wordPosition: number, audioUrl: string | null, pageNumber?: number) => {
     // Single click on word: show translations, highlight the word, and play audio
     setIsExpanded(true);
     onHighlightVerse?.(null); // Clear verse highlight
-    onHighlightWord?.(wordId); // Highlight this word
+    // Use word's page_number if available, otherwise use current page being viewed
+    onHighlightWord?.({ verseKey, wordPosition, pageNumber: pageNumber ?? currentPageNumber });
     if (audioUrl) {
       onPlayWord?.(audioUrl);
     }
+  };
+
+  const handleVerseHighlight = (verseKey: string | null) => {
+    // When highlighting a verse, clear word highlight first
+    onHighlightWord?.(null);
+    onHighlightVerse?.(verseKey);
   };
 
   // Calculate total weight for percentage-based widths
@@ -493,7 +504,7 @@ function MushafLine({
           const widthPercent = (wordWeights[idx] / totalWeight) * 100;
           const verseKey = `${item.surahNumber}:${item.verseNumber}`;
           const isVerseHighlighted = highlightedVerseKey === verseKey;
-          const isWordHighlighted = highlightedWordId === item.word.id;
+          const isWordHighlighted = highlightedWordInfo?.verseKey === verseKey && highlightedWordInfo?.wordPosition === item.word.position;
           return (
             <div
               key={`${item.word.id}-${idx}`}
@@ -505,10 +516,9 @@ function MushafLine({
                 word={item.word}
                 verseNumber={item.verseNumber}
                 surahNumber={item.surahNumber}
-                onWordClick={handleWordClick}
+                onWordClick={(wordPosition, audioUrl, pageNumber) => handleWordClick(verseKey, wordPosition, audioUrl, pageNumber)}
                 onPlayVerse={onPlayVerse}
-                onHighlightVerse={onHighlightVerse}
-                onHighlightWord={onHighlightWord}
+                onHighlightVerse={handleVerseHighlight}
                 fontClass={fontClass}
                 isVerseHighlighted={isVerseHighlighted}
                 isWordHighlighted={isWordHighlighted}
@@ -550,8 +560,9 @@ function TraditionalMushafLine({
   fontClass,
   highlightedVerseKey,
   onHighlightVerse,
-  highlightedWordId,
+  highlightedWordInfo,
   onHighlightWord,
+  currentPageNumber,
 }: {
   words: { word: Word; verseNumber: number; surahNumber: number }[];
   onPlayWord?: (audioUrl: string | null) => void;
@@ -559,22 +570,24 @@ function TraditionalMushafLine({
   fontClass: string;
   highlightedVerseKey?: string | null;
   onHighlightVerse?: (verseKey: string | null) => void;
-  highlightedWordId?: number | null;
-  onHighlightWord?: (wordId: number | null) => void;
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number } | null;
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void;
+  currentPageNumber: number; // Current page being viewed, used as fallback for word.page_number
 }) {
   const { format: verseNumberFormat } = useVerseNumberFormat();
 
   const handleWordClick = (word: Word, surahNumber: number, verseNumber: number) => {
+    const verseKey = `${surahNumber}:${verseNumber}`;
     if (word.char_type_name === 'end') {
       // Click on verse marker plays the full verse and highlights it
-      const verseKey = `${surahNumber}:${verseNumber}`;
       onHighlightWord?.(null); // Clear word highlight
       onHighlightVerse?.(verseKey);
       onPlayVerse?.(verseKey);
     } else if (word.audio_url) {
       // Click on word plays the word audio and highlights the word
       onHighlightVerse?.(null); // Clear verse highlight
-      onHighlightWord?.(word.id); // Highlight this word
+      // Use word's page_number if available, otherwise use current page being viewed
+      onHighlightWord?.({ verseKey, wordPosition: word.position, pageNumber: word.page_number ?? currentPageNumber });
       onPlayWord?.(word.audio_url);
     }
   };
@@ -591,18 +604,18 @@ function TraditionalMushafLine({
           const text = item.word.text || item.word.text_uthmani || '';
           const verseKey = `${item.surahNumber}:${item.verseNumber}`;
           const isVerseHighlighted = highlightedVerseKey === verseKey;
-          const isWordHighlighted = highlightedWordId === item.word.id;
+          const isWordHighlighted = highlightedWordInfo?.verseKey === verseKey && highlightedWordInfo?.wordPosition === item.word.position;
           const isHighlighted = isWordHighlighted || isVerseHighlighted;
 
           return (
             <span
               key={`${item.word.id}-${idx}`}
               onClick={() => handleWordClick(item.word, item.surahNumber, item.verseNumber)}
-              className={`inline select-none transition-colors rounded ${
+              className={`group inline select-none transition-colors rounded ${
                 isHighlighted
                   ? 'bg-[var(--mushaf-highlight-bg)]'
                   : item.word.audio_url || isEndMarker
-                  ? 'cursor-pointer hover:text-[var(--mushaf-accent)]'
+                  ? 'cursor-pointer'
                   : ''
               }`}
             >
@@ -640,7 +653,7 @@ function TraditionalMushafLine({
               ) : (
                 // Regular word - no spacing between words
                 <span
-                  className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-text)]`}
+                  className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-text)] group-hover:text-[var(--mushaf-hover-gold)] transition-colors`}
                 >
                   {text}
                 </span>
@@ -661,7 +674,6 @@ function WordCell({
   onWordClick,
   onPlayVerse,
   onHighlightVerse,
-  onHighlightWord,
   fontClass,
   isVerseHighlighted = false,
   isWordHighlighted = false,
@@ -669,10 +681,9 @@ function WordCell({
   word: Word;
   verseNumber: number;
   surahNumber: number;
-  onWordClick?: (wordId: number, audioUrl: string | null) => void;
+  onWordClick?: (wordPosition: number, audioUrl: string | null, pageNumber?: number) => void;
   onPlayVerse?: (verseKey: string) => void;
   onHighlightVerse?: (verseKey: string | null) => void;
-  onHighlightWord?: (wordId: number | null) => void;
   fontClass: string;
   isVerseHighlighted?: boolean;
   isWordHighlighted?: boolean;
@@ -693,12 +704,11 @@ function WordCell({
     if (isEndMarker) {
       // Click on end marker plays the whole verse and highlights it
       const verseKey = `${surahNumber}:${verseNumber}`;
-      onHighlightWord?.(null); // Clear word highlight
       onHighlightVerse?.(verseKey);
       onPlayVerse?.(verseKey);
     } else {
       // Click on word: show translations and play audio, highlight the word
-      onWordClick?.(word.id, word.audio_url || null);
+      onWordClick?.(word.position, word.audio_url || null, word.page_number);
     }
   };
 
@@ -754,8 +764,8 @@ function WordCell({
             isHighlighted
               ? "bg-[var(--mushaf-highlight-bg)]"
               : word.audio_url
-              ? "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
-              : "hover:bg-[var(--mushaf-header-bg)]/50"
+              ? "hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-hover-gold)] active:bg-[var(--mushaf-arrow-hover)]"
+              : "hover:bg-[var(--mushaf-header-bg)]/50 hover:text-[var(--mushaf-hover-gold)]"
           }`}
         >
           {word.text || word.text_uthmani}

@@ -146,6 +146,11 @@ export function useAudio(): UseAudioResult {
   }, [currentUrl]);
 
   const playWord = useCallback((audioUrl: string | null) => {
+    // Clear any surah playback state when playing individual word
+    if (surahPlaybackRef.current) {
+      surahPlaybackRef.current = null;
+      setIsSurahPlaying(false);
+    }
     const fullUrl = buildAudioUrl(audioUrl);
     if (fullUrl) {
       playUrl(fullUrl);
@@ -154,6 +159,11 @@ export function useAudio(): UseAudioResult {
 
   const playVerse = useCallback(
     (verseKey: string) => {
+      // Clear any surah playback state when playing individual verse
+      if (surahPlaybackRef.current) {
+        surahPlaybackRef.current = null;
+        setIsSurahPlaying(false);
+      }
       // Use reciter from settings (or default)
       const url = getVerseAudioUrl(reciterId, verseKey);
       playUrl(url);

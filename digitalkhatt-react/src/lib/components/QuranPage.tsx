@@ -142,8 +142,10 @@ export function QuranPage({
 }: QuranPageProps) {
   // Container ref for DOM injection
   const containerRef = useRef<HTMLDivElement>(null);
-  // Store word elements for highlighting
+  // Store word elements for highlighting (click overlay rects)
   const wordElementsRef = useRef<Map<string, SVGElement | HTMLElement> | null>(null);
+  // Store word group elements for text highlighting
+  const wordGroupElementsRef = useRef<Map<string, SVGGElement> | null>(null);
   // Track previous highlight groups to prevent unnecessary re-renders during audio playback
   const prevSvgHighlightGroupsRef = useRef<SVGHighlightGroup[]>([]);
   // Track if aya glyph SVG is mounted
@@ -285,18 +287,14 @@ export function QuranPage({
 
       // Fire word click for regular words
       // Fire verse click only for verse markers (ayah numbers)
-      console.log('SVG click:', { text: info.text, isMarker: isAyahMarker(info.text), surah, ayah, key: `${info.pageIndex}:${info.lineIndex}:${info.wordIndex}` });
       if (isAyahMarker(info.text)) {
         // This is a verse marker - fire verse click
         if (onVerseClick && surah !== undefined && ayah !== undefined) {
-          console.log('Firing verse click:', { surah, ayah });
           onVerseClick({
             surah,
             ayah,
             pageNumber,
           });
-        } else {
-          console.log('Verse click NOT fired:', { onVerseClick: !!onVerseClick, surah, ayah });
         }
       } else {
         // This is a regular word - fire word click
@@ -382,6 +380,7 @@ export function QuranPage({
       container.removeChild(container.lastChild!);
     }
     wordElementsRef.current = null;
+    wordGroupElementsRef.current = null;
 
     if (usesSVGEngine && svgRenderer) {
       // SVG Engine rendering
@@ -404,6 +403,7 @@ export function QuranPage({
 
       // Store word elements for highlighting
       wordElementsRef.current = result.wordElements || null;
+      wordGroupElementsRef.current = result.wordGroupElements || null;
     } else if (useCSSEngine && cssRenderer) {
       // CSS Engine rendering
       const result = cssRenderer.renderPage(pageIndex, viewport, {
@@ -438,6 +438,7 @@ export function QuranPage({
         container.removeChild(container.lastChild!);
       }
       wordElementsRef.current = null;
+      wordGroupElementsRef.current = null;
     };
   }, [
     isReady,
@@ -470,7 +471,12 @@ export function QuranPage({
 
     // Use appropriate renderer to apply highlights
     if (usesSVGEngine && svgRenderer) {
-      svgRenderer.applyHighlights(wordElementsRef.current as Map<string, SVGElement>, svgHighlightGroups, pageIndex);
+      svgRenderer.applyHighlights(
+        wordElementsRef.current as Map<string, SVGElement>,
+        svgHighlightGroups,
+        pageIndex,
+        wordGroupElementsRef.current || undefined
+      );
     } else if (useCSSEngine && cssRenderer) {
       // CSS renderer uses the same highlight format
       cssRenderer.applyHighlights(wordElementsRef.current as Map<string, HTMLElement>, svgHighlightGroups as CSSHighlightGroup[], pageIndex);

@@ -181,6 +181,8 @@ export interface SVGLineRenderResult {
   wordBounds?: WordBounds[];
   /** Y bounds of all rendered glyphs in scaled coordinates */
   bounds?: LineBounds;
+  /** Word group elements for hover effects (keyed by word index) */
+  wordGroups?: Map<number, SVGGElement>;
 }
 
 
@@ -254,6 +256,10 @@ export class SVGLineRenderer {
     const wordBoundsMap = new Map<number, { startX: number; endX: number }>();
     let currentWordIndex = -1;
 
+    // Word group elements for hover effects
+    const wordGroups = new Map<number, SVGGElement>();
+    let currentWordGroup: SVGGElement | null = null;
+
     // Track line Y bounds (in glyph units, before scaling)
     let lineMinY = Infinity;
     let lineMaxY = -Infinity;
@@ -278,8 +284,17 @@ export class SVGLineRenderer {
           // Track start of word (first glyph we encounter for this word, which is the rightmost in RTL)
           if (!wordBoundsMap.has(wordIndex)) {
             wordBoundsMap.set(wordIndex, { startX: currentXPos, endX: currentXPos });
+            // Create a new word group for this word
+            const wordGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            wordGroup.setAttribute('class', 'word-group');
+            wordGroup.setAttribute('data-word', wordIndex.toString());
+            lineGroup.appendChild(wordGroup);
+            wordGroups.set(wordIndex, wordGroup);
           }
           currentWordIndex = wordIndex;
+          currentWordGroup = wordGroups.get(wordIndex) || null;
+        } else {
+          currentWordGroup = null;
         }
       }
 
@@ -352,20 +367,27 @@ export class SVGLineRenderer {
               'transform',
               `scale(1,-1) translate(${currentXPos + glyph.XOffset} ${ayaYOffset})`
             );
-            lineGroup.appendChild(ayaGroup);
+            // Add to word group if available (for hover effects), otherwise to lineGroup
+            if (currentWordGroup) {
+              currentWordGroup.appendChild(ayaGroup);
+            } else {
+              lineGroup.appendChild(ayaGroup);
+            }
           }
 
           // Render English verse numbers if requested
           if (verseNumberFormat === 'english') {
             // pathString might be a string or array depending on cache state
             const pathArray = typeof pathString === 'string' ? [pathString] : pathString;
+            // Use word group if available (for hover effects), otherwise lineGroup
+            const targetGroup = currentWordGroup || lineGroup;
             const englishElements = this.renderEnglishVerseNumber(
               lineText,
               glyph,
               currentXPos,
               mushafType,
               pathArray as string[],
-              lineGroup
+              targetGroup
             );
             if (englishElements.skipGlyphPath) {
               continue;
@@ -407,7 +429,12 @@ export class SVGLineRenderer {
           }
         }
 
-        lineGroup.appendChild(newPath);
+        // Add to word group if available, otherwise to lineGroup
+        if (currentWordGroup) {
+          currentWordGroup.appendChild(newPath);
+        } else {
+          lineGroup.appendChild(newPath);
+        }
       }
     }
 
@@ -466,6 +493,7 @@ export class SVGLineRenderer {
       sajdaEndPos,
       wordBounds,
       bounds,
+      wordGroups: wordGroups.size > 0 ? wordGroups : undefined,
     };
   }
 
@@ -528,10 +556,11 @@ export class SVGLineRenderer {
       }
 
       // Add white circle background to cover Arabic numbers
+      // Must include glyph.YOffset to align with the frame
       if (positioning.circleRadius > 0) {
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', xCenter.toString());
-        circle.setAttribute('cy', yCenter.toString());
+        circle.setAttribute('cy', (yCenter + glyph.YOffset).toString());
         circle.setAttribute('r', positioning.circleRadius.toString());
         circle.setAttribute('fill', 'white');
         lineGroup.appendChild(circle);
@@ -539,6 +568,7 @@ export class SVGLineRenderer {
     }
 
     // Create text element for English number
+    // Must include glyph.YOffset to align with the frame
     const textElem = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     textElem.textContent = englishNum;
     textElem.setAttribute('font-family', 'Arial, sans-serif');
@@ -546,7 +576,7 @@ export class SVGLineRenderer {
     textElem.setAttribute('text-anchor', 'middle');
     textElem.setAttribute('dominant-baseline', 'middle');
     textElem.setAttribute('font-size', fontSize.toString());
-    textElem.setAttribute('transform', `translate(${xCenter} ${yCenter}) scale(1, -1)`);
+    textElem.setAttribute('transform', `translate(${xCenter} ${yCenter + glyph.YOffset}) scale(1, -1)`);
 
     lineGroup.appendChild(textElem);
 

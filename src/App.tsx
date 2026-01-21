@@ -17,7 +17,7 @@ import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { BookmarkProvider } from './contexts/BookmarkContext';
 import { ToastProvider } from './components/Toast';
-import { convertPageBetweenViews } from './utils/pageToSurah';
+import { convertPageBetweenViews, getSurahStartPage } from './utils/pageToSurah';
 import { MUSHAF_SCRIPTS } from './config/constants';
 import type { MushafScript } from './config/types';
 
@@ -67,8 +67,7 @@ function WordForWordPageView() {
   const audio = useAudio();
   const { openMenu } = useMenu();
   // Use shared highlight state from context so it persists when switching views
-  const { highlightedVerseKey, setHighlightedVerseKey } = useSettings();
-  const [highlightedWordId, setHighlightedWordId] = useState<number | null>(null);
+  const { highlightedVerseKey, setHighlightedVerseKey, highlightedWordInfo, setHighlightedWordInfo } = useSettings();
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -80,13 +79,8 @@ function WordForWordPageView() {
     navigate('/page/2'); // Go to first Quran page (Al-Fatiha)
   };
 
-  // Note: We no longer clear verse highlight when audio stops
-  // The verse highlight should persist when switching views
-  // Only clear word highlight when audio stops (word highlights are more transient)
-  const audioStopped = !audio.isPlaying && audio.duration === 0;
-  if (audioStopped && highlightedWordId !== null) {
-    setHighlightedWordId(null);
-  }
+  // Note: We no longer clear verse/word highlights when audio stops
+  // The highlights should persist when switching views
 
   const isAudioActive = audio.isPlaying || audio.duration > 0;
 
@@ -110,8 +104,8 @@ function WordForWordPageView() {
         onOpenMenu={openMenu}
         highlightedVerseKey={highlightedVerseKey}
         onHighlightVerse={setHighlightedVerseKey}
-        highlightedWordId={highlightedWordId}
-        onHighlightWord={setHighlightedWordId}
+        highlightedWordInfo={highlightedWordInfo}
+        onHighlightWord={setHighlightedWordInfo}
       />
       <AudioPlayer
         isPlaying={audio.isPlaying}
@@ -124,7 +118,7 @@ function WordForWordPageView() {
         onSeek={audio.seek}
         onToggleLoop={audio.toggleLoop}
         onDismiss={() => {
-          setHighlightedWordId(null);
+          setHighlightedWordInfo(null);
           setHighlightedVerseKey(null);
         }}
       />
@@ -174,7 +168,7 @@ function VerseNumberToggle({
         onClick={() => onFormatChange('arabic')}
         className={`px-2.5 h-7 text-xs font-medium rounded-md transition-colors ${
           format === 'arabic'
-            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-header-toggle)] shadow-sm'
             : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
@@ -187,7 +181,7 @@ function VerseNumberToggle({
         onClick={() => onFormatChange('english')}
         className={`px-2.5 h-7 text-xs font-medium rounded-md transition-colors ${
           format === 'english'
-            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-header-toggle)] shadow-sm'
             : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
@@ -209,7 +203,7 @@ function ViewModeToggle({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { mushafScript } = useSettings();
+  const { mushafScript, highlightedVerseKey, highlightedWordInfo } = useSettings();
 
   // Extract current page number and view mode from URL
   const getCurrentPageAndMode = (): { page: number; currentMode: ViewMode } => {
@@ -222,10 +216,28 @@ function ViewModeToggle({
 
   const handleChange = (newMode: ViewMode) => {
     onModeChange(newMode);
-    const { page: currentPage, currentMode } = getCurrentPageAndMode();
-    // Convert page number between the two different page numbering systems
-    // Pass mushaf script for accurate conversion (IndoPak has same pages as word-for-word)
-    const targetPage = convertPageBetweenViews(currentPage, currentMode, newMode, mushafScript);
+
+    let targetPage: number;
+
+    // If we have a highlighted word with a stored page number, use that for precise navigation
+    if (highlightedWordInfo?.pageNumber) {
+      // pageNumber is stored as UI page (consistent from both views)
+      if (newMode === 'wordforword') {
+        targetPage = highlightedWordInfo.pageNumber;
+      } else {
+        // Mushaf view: convert from Word-by-Word page if using different script
+        targetPage = convertPageBetweenViews(highlightedWordInfo.pageNumber, 'wordforword', 'mushaf', mushafScript);
+      }
+    } else if (highlightedVerseKey) {
+      // If there's only a verse highlight (no word), go to surah start page
+      const [surah] = highlightedVerseKey.split(':').map(Number);
+      targetPage = getSurahStartPage(surah, newMode, mushafScript);
+    } else {
+      // No highlight - convert current page
+      const { page: currentPage, currentMode } = getCurrentPageAndMode();
+      targetPage = convertPageBetweenViews(currentPage, currentMode, newMode, mushafScript);
+    }
+
     if (newMode === 'mushaf') {
       navigate(`/mushaf/${targetPage}`);
     } else {
@@ -239,7 +251,7 @@ function ViewModeToggle({
         onClick={() => handleChange('mushaf')}
         className={`px-3 h-7 text-xs font-medium rounded-md transition-colors ${
           mode === 'mushaf'
-            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-header-toggle)] shadow-sm'
             : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
@@ -251,7 +263,7 @@ function ViewModeToggle({
         onClick={() => handleChange('wordforword')}
         className={`px-3 h-7 text-xs font-medium rounded-md transition-colors ${
           mode === 'wordforword'
-            ? 'bg-white dark:bg-gray-600 text-[var(--color-primary)] shadow-sm'
+            ? 'bg-white dark:bg-gray-600 text-[var(--color-header-toggle)] shadow-sm'
             : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
         role="radio"
@@ -383,7 +395,7 @@ function TajweedToggle({
       onClick={() => onToggle(!enabled)}
       className={`flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-lg transition-colors ${
         enabled
-          ? 'bg-[var(--color-primary)] text-white'
+          ? 'bg-white dark:bg-gray-600 text-[var(--color-header-toggle)] shadow-sm'
           : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
       }`}
       aria-pressed={enabled}

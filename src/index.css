@@ -32,6 +32,8 @@
   /* Primary colors adjusted for WCAG AAA (7:1 contrast ratio on white) */
   --color-primary: #2d5016;
   --color-primary-light: #3d6b1e;
+  /* Header toggle active text - lighter green for better visibility */
+  --color-header-toggle: #3d6b1e;
   --color-accent: #7a5d0a;
   --color-bg-light: #f8f6f0;
   --color-bg-card: #ffffff;
@@ -53,6 +55,7 @@
   --mushaf-text-secondary: #3d3d3d;
   --mushaf-text-header: #1e3d12;
   --mushaf-accent: #7a5d0a;
+  --mushaf-hover-gold: #c9a227;
   --mushaf-metadata-text: #3d6b1e;
   --mushaf-arrow-bg: transparent;
   --mushaf-arrow-hover: #e8e4d8;
@@ -74,6 +77,7 @@
   --mushaf-text-secondary: #c8c8c8;
   --mushaf-text-header: #e8dcc8;
   --mushaf-accent: #f0c050;
+  --mushaf-hover-gold: #f5d878;
   --mushaf-metadata-text: #ffffff;
   --mushaf-arrow-bg: transparent;
   --mushaf-arrow-hover: #252525;
@@ -86,6 +90,7 @@
   /* Override global colors for dark mode */
   --color-primary: #90c070;
   --color-primary-light: #a8d888;
+  --color-header-toggle: #90c070;
   --color-bg-light: #121212;
   --color-bg-card: #1a1a1a;
   --color-text-primary: #f0f0f0;
@@ -350,6 +355,26 @@ textarea:focus-visible,
 /* Uses a bright gold color matching the verse marker highlight for visibility */
 .custom-verse-highlight {
   color: #d4a000 !important;
+}
+
+/* SVG Mushaf word hover effects */
+/* The word-click-area rects are transparent overlays for click detection */
+/* On hover, we add a subtle gold tint background and change text to gold */
+.word-click-area:hover {
+  fill: var(--mushaf-hover-gold);
+  fill-opacity: 0.2;
+}
+
+/* Word group text color on hover (path for Arabic glyphs, text for English numbers) */
+.word-group.word-hover path,
+.word-group.word-hover text {
+  fill: var(--mushaf-hover-gold) !important;
+}
+
+/* Word group text color when highlighted (during audio playback) */
+.word-group.word-highlighted path,
+.word-group.word-highlighted text {
+  fill: var(--mushaf-hover-gold) !important;
 }
 
 .dark .custom-verse-highlight {
