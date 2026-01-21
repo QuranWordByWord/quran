@@ -160,6 +160,11 @@ export function buildVerseMapping(textService: QuranTextService): VerseWordMappi
       const lineInfo = textService.getLineInfo(pageIndex, lineIndex);
       const lineText = page[lineIndex];
 
+      // Debug: log first few lines of page 0
+      if (pageIndex === 0 && lineIndex < 5) {
+        console.log(`verse-mapping page 0 line ${lineIndex}: lineType=${lineInfo.lineType}, text="${lineText}", chars=${Array.from(lineText).map(c => c.charCodeAt(0).toString(16)).join(',')}`);
+      }
+
       // Skip surah headers (lineType 1)
       if (lineInfo.lineType === 1) {
         // New surah starting
@@ -169,11 +174,30 @@ export function buildVerseMapping(textService: QuranTextService): VerseWordMappi
       }
 
       // Handle basmala lines (lineType 2)
-      // Basmala is either verse 1 of a surah or not counted (for Al-Fatiha and At-Tawbah)
-      if (lineInfo.lineType === 2) {
-        // For surahs that start with basmala as verse 1 (Al-Fatiha)
-        // or surahs where basmala is separate (most surahs)
-        // We'll detect the verse number from the text
+      // For most surahs, basmala is separate from verse numbering (not counted as a verse)
+      // We map these to ayah 0 to allow special handling (e.g., play entire surah)
+      // Al-Fatiha's basmala IS verse 1, but we handle that via the verse marker detection below
+      const isBismillahLine = lineInfo.lineType === 2;
+
+      // Pre-scan line for bismillah marker pattern:
+      // A line with a verse marker (۝) but no Arabic-Indic digits at the start of a surah
+      // This detects Al-Fatiha's bismillah which has lineType=0 but should map to ayah 0
+      let lineHasBismillahMarker = false;
+      if (currentAyah === 0 && !isBismillahLine) {
+        const endOfAyahIndex = lineText.indexOf(String.fromCharCode(END_OF_AYAH));
+        if (endOfAyahIndex !== -1) {
+          // Check if there are any Arabic-Indic digits in the line
+          let hasDigits = false;
+          for (let j = 0; j < lineText.length; j++) {
+            if (isArabicIndicDigit(lineText.charCodeAt(j))) {
+              hasDigits = true;
+              break;
+            }
+          }
+          if (!hasDigits) {
+            lineHasBismillahMarker = true;
+          }
+        }
       }
 
       // Split line into words and track verse markers
@@ -214,21 +238,31 @@ export function buildVerseMapping(textService: QuranTextService): VerseWordMappi
               }
             }
 
-            // If this word contains a verse marker, update current ayah
             if (verseNum !== null) {
               detectedAyah = verseNum;
               currentAyah = verseNum;
             }
+            // Note: for bismillahMarker case, we keep detectedAyah at 0 so it maps to ayah 0
 
             // Map this word to current verse
             // Use detectedAyah which may have just been updated
-            if (currentSurah > 0 && detectedAyah > 0) {
+            // For bismillah lines OR lines with bismillah marker pattern, map ALL words to ayah 0
+            const isBismillahWord = isBismillahLine || lineHasBismillahMarker;
+            const effectiveAyah = isBismillahWord && detectedAyah === 0 ? 0 : detectedAyah;
+
+            // Debug: log word mapping for page 0
+            if (pageIndex === 0 && lineIndex < 5) {
+              const wordText = lineText.substring(wordStart, i);
+              console.log(`verse-mapping word: page=${pageIndex} line=${lineIndex} word=${wordIndex} text="${wordText}" verseNum=${verseNum} detectedAyah=${detectedAyah} effectiveAyah=${effectiveAyah} isBismillahLine=${isBismillahLine} lineHasBismillahMarker=${lineHasBismillahMarker} willMap=${currentSurah > 0 && (effectiveAyah > 0 || (isBismillahWord && effectiveAyah === 0))}`);
+            }
+
+            if (currentSurah > 0 && (effectiveAyah > 0 || (isBismillahWord && effectiveAyah === 0))) {
               const key = wordKey(pageIndex, lineIndex, wordIndex);
-              const verse: VerseRef = { surah: currentSurah, ayah: detectedAyah };
+              const verse: VerseRef = { surah: currentSurah, ayah: effectiveAyah };
               wordToVerse.set(key, verse);
 
               // Add to reverse map
-              const vKey = verseKey(currentSurah, detectedAyah);
+              const vKey = verseKey(currentSurah, effectiveAyah);
               let wordList = verseToWords.get(vKey);
               if (!wordList) {
                 wordList = [];

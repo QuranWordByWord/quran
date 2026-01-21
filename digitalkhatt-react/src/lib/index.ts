@@ -133,7 +133,7 @@ export {
 export { QuranProvider } from './components/QuranProvider';
 export type { QuranProviderConfig, QuranProviderProps, DigitalKhattContextValue } from './components/QuranProvider';
 
-export { QuranPage } from './components/QuranPage';
+export { QuranPage, MemoizedQuranPage } from './components/QuranPage';
 export type { QuranPageProps } from './components/QuranPage';
 
 export { QuranViewer } from './components/QuranViewer';

@@ -149,6 +149,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const { isReady, getVerseMapping } = useDigitalKhatt();
   const windowDimensions = useWindowDimensions();
 
+  // Track highlighted word for word-by-word audio playback (session-only, not persisted)
+  const [highlightedWord, setHighlightedWord] = useState<{ page: number; line: number; word: number } | null>(null);
+
   // Calculate responsive page dimensions for mobile single-page mode
   // The page should fit entirely on screen without showing other pages
   // Page aspect ratio: height/width = 410/255 ≈ 1.608
@@ -193,6 +196,10 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     [getVerseMapping, layoutTypeNum]
   );
 
+  // Use refs for audio methods to avoid recreating callbacks on audio state changes
+  const audioRef = useRef(audio);
+  audioRef.current = audio;
+
   // Register scroll container with mobile nav context
   useEffect(() => {
     registerScrollContainer(scrollContainerRef.current);
@@ -213,6 +220,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   }, [navigate, totalPages]);
 
   // Handle word click - play word audio
+  // Uses audioRef to avoid recreating callback on audio state changes
   const handleWordClick = useCallback((info: WordClickInfo) => {
     if (!info.surah || !info.ayah) return;
 
@@ -243,19 +251,57 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         const paddedPosition = String(wordPosition).padStart(3, '0');
         const wordAudioUrl = `wbw/${paddedChapter}_${paddedVerse}_${paddedPosition}.mp3`;
 
+        // Highlight the clicked word (page is 0-indexed in mapping, but pageNumber is 1-indexed)
+        setHighlightedWord({ page: info.pageNumber - 1, line: info.lineIndex, word: info.wordIndex });
         setHighlightedVerseKey(null); // Clear verse highlight for word playback
-        audio.playWord(wordAudioUrl);
+        audioRef.current.playWord(wordAudioUrl);
         return;
       }
     }
 
     // Fallback: play verse audio if word mapping fails
+    setHighlightedWord(null); // Clear word highlight
     setHighlightedVerseKey(verseKey);
-    audio.playVerse(audioVerseKey);
-  }, [verseMapping, setHighlightedVerseKey, audio]);
+    audioRef.current.playVerse(audioVerseKey);
+  }, [verseMapping, setHighlightedVerseKey]);
 
-  // Handle verse click (verse marker) - play full verse
+  // Use refs for values needed in async callbacks to avoid stale closures
+  const verseMappingRef = useRef(verseMapping);
+  verseMappingRef.current = verseMapping;
+  const handlePageChangeRef = useRef(handlePageChange);
+  handlePageChangeRef.current = handlePageChange;
+
+  // Handle verse click (verse marker) - play full verse or surah
+  // Uses audioRef to avoid recreating callback on audio state changes
   const handleVerseClick = useCallback((info: VerseClickInfo) => {
+    setHighlightedWord(null); // Clear word highlight
+
+    // Bismillah click (ayah === 0) - play entire surah
+    if (info.ayah === 0) {
+      // Start surah playback with verse highlighting callback
+      audioRef.current.playSurah(info.surah, (audioVerseKey: string) => {
+        // For Al-Fatiha, audio verse numbers are offset by 1 from text verse numbers
+        // Audio verse 1 = Bismillah = Text ayah 0
+        // Audio verse 2 = Al-hamdu lillah = Text ayah 1, etc.
+        const [surah, audioAyah] = audioVerseKey.split(':').map(Number);
+        const textAyah = surah === 1 ? audioAyah - 1 : audioAyah;
+        setHighlightedVerseKey(`${surah}:${textAyah}`);
+
+        // Auto-navigate to the page containing this verse
+        const mapping = verseMappingRef.current;
+        if (mapping) {
+          const words = getWordsForVerse(mapping, surah, textAyah);
+          if (words.length > 0) {
+            // words[0].page is 0-indexed, handlePageChange expects 1-indexed quran page
+            const versePage = words[0].page + 1;
+            handlePageChangeRef.current(versePage);
+          }
+        }
+      });
+      return;
+    }
+
+    // Regular verse click - play single verse
     // For Al-Fatiha (surah 1), the audio files treat Bismillah as verse 1,
     // but the IndoPak mushaf text has Bismillah unnumbered and starts numbering from "الحمد لله".
     // So we need to add 1 to the ayah number for audio playback in Al-Fatiha.
@@ -263,19 +309,33 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     const verseKey = `${info.surah}:${info.ayah}`;
     const audioVerseKey = `${info.surah}:${audioAyah}`;
     setHighlightedVerseKey(verseKey);
-    audio.playVerse(audioVerseKey);
-  }, [setHighlightedVerseKey, audio]);
+    audioRef.current.playVerse(audioVerseKey);
+  }, [setHighlightedVerseKey]);
 
-  // Build highlight groups for verse highlighting
+  // Build highlight groups for verse and word highlighting
   const highlightGroups = useMemo(() => {
-    if (!highlightedVerseKey) return [];
+    const groups = [];
+    const highlightColor = theme === 'dark' ? 'rgba(212, 168, 85, 0.3)' : 'rgba(201, 162, 39, 0.3)';
 
-    const [surah, ayah] = highlightedVerseKey.split(':').map(Number);
-    return [{
-      verses: [{ surah, ayah }],
-      color: theme === 'dark' ? 'rgba(212, 168, 85, 0.3)' : 'rgba(201, 162, 39, 0.3)',
-    }];
-  }, [highlightedVerseKey, theme]);
+    // Add verse highlight if active
+    if (highlightedVerseKey) {
+      const [surah, ayah] = highlightedVerseKey.split(':').map(Number);
+      groups.push({
+        verses: [{ surah, ayah }],
+        color: highlightColor,
+      });
+    }
+
+    // Add word highlight if active
+    if (highlightedWord) {
+      groups.push({
+        words: [highlightedWord],
+        color: highlightColor,
+      });
+    }
+
+    return groups;
+  }, [highlightedVerseKey, highlightedWord, theme]);
 
   if (!isReady) {
     return (
@@ -420,6 +480,10 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         onStop={audio.stop}
         onSeek={audio.seek}
         onToggleLoop={audio.toggleLoop}
+        onDismiss={() => {
+          setHighlightedWord(null);
+          setHighlightedVerseKey(null);
+        }}
       />
     </div>
   );

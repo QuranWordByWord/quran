@@ -540,33 +540,42 @@ export class CSSPageRenderer {
 
   /**
    * Apply highlights to word elements
+   * Uses differential update to avoid flickering - only changes elements that need updating
    */
   applyHighlights(
     wordElements: Map<string, Element>,
     highlightGroups: CSSHighlightGroup[],
     pageIndex: number
   ): void {
-    // Clear existing highlights
-    for (const [, element] of wordElements) {
-      if (element instanceof HTMLElement) {
-        element.style.backgroundColor = '';
-      }
-      element.classList.remove('highlighted');
-    }
+    // Build a map of what each element's highlight should be
+    const targetHighlights = new Map<string, string>(); // key -> color (empty string = no highlight)
 
-    // Apply each highlight group
+    // Determine target state for each element from highlight groups
     for (const group of highlightGroups) {
       if (group.words) {
         for (const word of group.words) {
           if (word.page === pageIndex) {
             const key = `${word.page}:${word.line}:${word.word}`;
-            const element = wordElements.get(key);
-            if (element) {
-              if (element instanceof HTMLElement) {
-                element.style.backgroundColor = group.color;
-              }
-              element.classList.add('highlighted');
-            }
+            targetHighlights.set(key, group.color);
+          }
+        }
+      }
+    }
+
+    // Apply only the changes needed
+    for (const [key, element] of wordElements) {
+      const targetColor = targetHighlights.get(key) || '';
+
+      if (element instanceof HTMLElement) {
+        const currentColor = element.style.backgroundColor || '';
+
+        // Only update if the color is different
+        if (currentColor !== targetColor) {
+          element.style.backgroundColor = targetColor;
+          if (targetColor) {
+            element.classList.add('highlighted');
+          } else {
+            element.classList.remove('highlighted');
           }
         }
       }

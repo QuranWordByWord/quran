@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { MushafLayoutTypeString, WordClickInfo, VerseClickInfo, HighlightGroup } from '../core/types';
 import type { VerseNumberFormat } from '@digitalkhatt/quran-engine';
-import { QuranPage } from './QuranPage';
+import { MemoizedQuranPage } from './QuranPage';
 import { useDigitalKhatt } from './QuranProvider';
 import { MushafBorder } from './MushafBorder';
 
@@ -566,7 +566,7 @@ export function QuranViewer({
       const scaledPageWidth = pageWidth * scale;
 
       const pageContent = (
-        <QuranPage
+        <MemoizedQuranPage
           pageNumber={pageNumber}
           layoutType={layoutType}
           width={pageWidth}
@@ -668,7 +668,7 @@ export function QuranViewer({
     const gestureTransformScale = isGesturing ? gestureScale / scale : 1;
 
     const singlePageContent = (
-      <QuranPage
+      <MemoizedQuranPage
         pageNumber={displayPage}
         layoutType={layoutType}
         width={pageWidth}

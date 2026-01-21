@@ -123,6 +123,10 @@ function WordForWordPageView() {
         onStop={audio.stop}
         onSeek={audio.seek}
         onToggleLoop={audio.toggleLoop}
+        onDismiss={() => {
+          setHighlightedWordId(null);
+          setHighlightedVerseKey(null);
+        }}
       />
     </>
   );

@@ -249,10 +249,10 @@ export class SVGPageRenderer {
           wordElements
         );
       } else if (lineInfo.lineType === 1) {
-        // Sura header line
-        lineElem.style.textAlign = 'center';
-        lineElem.style.marginLeft = margin + 'px';
-        lineElem.style.marginRight = lineElem.style.marginLeft;
+        // Sura header line with decorative border
+        // Remove margins so border spans full width
+        lineElem.style.marginLeft = '0';
+        lineElem.style.marginRight = '0';
         lineElem.style.height = INTERLINE * scale + 'px';
         lineElem.classList.add('linesuran');
 
@@ -260,12 +260,40 @@ export class SVGPageRenderer {
           lineElem.style.paddingBottom = 2 * scale * INTERLINE + 'px';
         }
 
+        // Create container for the decorative surah header
+        const surahContainer = document.createElement('div');
+        surahContainer.classList.add('surah-header-container');
+        surahContainer.style.position = 'relative';
+        surahContainer.style.width = '100%';
+        surahContainer.style.height = '100%';
+        surahContainer.style.display = 'flex';
+        surahContainer.style.alignItems = 'center';
+        surahContainer.style.justifyContent = 'center';
+
+        // Decorative border background - spans full width
+        const borderImg = document.createElement('img');
+        borderImg.src = '/quran/assets/borders/green/surah-name-border.svg';
+        borderImg.classList.add('surah-name-border');
+        borderImg.style.position = 'absolute';
+        borderImg.style.top = '50%';
+        borderImg.style.left = '50%';
+        borderImg.style.transform = 'translate(-50%, -50%)';
+        borderImg.style.height = '100%';
+        borderImg.style.width = '100%';
+        borderImg.alt = '';
+        surahContainer.appendChild(borderImg);
+
+        // Surah name text overlay - black text (white in dark mode via CSS)
         const innerSpan = document.createElement('span');
         innerSpan.textContent = lineText;
         innerSpan.classList.add('innersura');
+        innerSpan.style.position = 'relative';
+        innerSpan.style.zIndex = '1';
         innerSpan.style.lineHeight = lineElem.style.height;
-        innerSpan.style.fontSize = viewport.fontSize * 0.9 + 'px';
-        lineElem.appendChild(innerSpan);
+        innerSpan.style.fontSize = viewport.fontSize * 0.7 + 'px';
+        surahContainer.appendChild(innerSpan);
+
+        lineElem.appendChild(surahContainer);
       } else if (lineInfo.lineType === 2) {
         // Basmala line (not on first two pages - those are handled above)
         lineElem.style.marginLeft = margin + 'px';
@@ -543,32 +571,41 @@ export class SVGPageRenderer {
 
   /**
    * Apply highlights to word elements
+   * Uses differential update to avoid flickering - only changes elements that need updating
    */
   applyHighlights(
     wordElements: Map<string, Element>,
     highlightGroups: SVGHighlightGroup[],
     pageIndex: number
   ): void {
-    // Clear existing highlights
-    for (const [, element] of wordElements) {
-      // For SVG rect elements, reset fill
-      if (element instanceof SVGElement) {
-        element.style.fill = '';
-        element.classList.remove('highlighted');
-      }
-    }
+    // Build a map of what each element's highlight should be
+    const targetHighlights = new Map<string, string>(); // key -> color (empty string = no highlight)
 
-    // Apply each highlight group
+    // Determine target state for each element from highlight groups
     for (const group of highlightGroups) {
       if (group.words) {
         for (const word of group.words) {
           if (word.page === pageIndex) {
             const key = `${word.page}:${word.line}:${word.word}`;
-            const element = wordElements.get(key);
-            if (element && element instanceof SVGElement) {
-              element.style.fill = group.color;
-              element.classList.add('highlighted');
-            }
+            targetHighlights.set(key, group.color);
+          }
+        }
+      }
+    }
+
+    // Apply only the changes needed
+    for (const [key, element] of wordElements) {
+      if (element instanceof SVGElement) {
+        const targetColor = targetHighlights.get(key) || '';
+        const currentColor = element.style.fill || '';
+
+        // Only update if the color is different
+        if (currentColor !== targetColor) {
+          element.style.fill = targetColor;
+          if (targetColor) {
+            element.classList.add('highlighted');
+          } else {
+            element.classList.remove('highlighted');
           }
         }
       }

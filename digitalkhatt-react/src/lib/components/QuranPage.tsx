@@ -26,6 +26,37 @@ import { AyaGlyph, getAyaSvgGroup } from './AyaGlyph';
 // Note: CSS styles are imported in lib/index.ts from @digitalkhatt/quran-engine/styles/quran-renderer.css
 
 // ============================================
+// Helper Functions
+// ============================================
+
+/**
+ * Compare two SVGHighlightGroup arrays for deep equality.
+ * Used to prevent unnecessary re-renders during audio playback.
+ */
+function areSvgHighlightGroupsEqual(
+  prev: SVGHighlightGroup[],
+  next: SVGHighlightGroup[]
+): boolean {
+  if (prev.length !== next.length) return false;
+  for (let i = 0; i < prev.length; i++) {
+    if (prev[i].color !== next[i].color) return false;
+    if (!prev[i].words || !next[i].words) {
+      if (prev[i].words !== next[i].words) return false;
+    } else {
+      if (prev[i].words!.length !== next[i].words!.length) return false;
+      for (let j = 0; j < prev[i].words!.length; j++) {
+        const pw = prev[i].words![j];
+        const nw = next[i].words![j];
+        if (pw.page !== nw.page || pw.line !== nw.line || pw.word !== nw.word) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+// ============================================
 // Types
 // ============================================
 
@@ -113,6 +144,8 @@ export function QuranPage({
   const containerRef = useRef<HTMLDivElement>(null);
   // Store word elements for highlighting
   const wordElementsRef = useRef<Map<string, SVGElement | HTMLElement> | null>(null);
+  // Track previous highlight groups to prevent unnecessary re-renders during audio playback
+  const prevSvgHighlightGroupsRef = useRef<SVGHighlightGroup[]>([]);
   // Track if aya glyph SVG is mounted
   const [ayaGlyphMounted, setAyaGlyphMounted] = useState(false);
 
@@ -215,6 +248,12 @@ export function QuranPage({
       groups.push({ words, color: highlightColor });
     }
 
+    // Return stable reference if content hasn't changed
+    // This prevents unnecessary re-renders during audio playback
+    if (areSvgHighlightGroupsEqual(prevSvgHighlightGroupsRef.current, groups)) {
+      return prevSvgHighlightGroupsRef.current;
+    }
+    prevSvgHighlightGroupsRef.current = groups;
     return groups;
   }, [pageNumber, highlightGroups, highlightedVerses, highlightedWords, highlightColor, verseMapping]);
 
@@ -246,14 +285,18 @@ export function QuranPage({
 
       // Fire word click for regular words
       // Fire verse click only for verse markers (ayah numbers)
+      console.log('SVG click:', { text: info.text, isMarker: isAyahMarker(info.text), surah, ayah, key: `${info.pageIndex}:${info.lineIndex}:${info.wordIndex}` });
       if (isAyahMarker(info.text)) {
         // This is a verse marker - fire verse click
         if (onVerseClick && surah !== undefined && ayah !== undefined) {
+          console.log('Firing verse click:', { surah, ayah });
           onVerseClick({
             surah,
             ayah,
             pageNumber,
           });
+        } else {
+          console.log('Verse click NOT fired:', { onVerseClick: !!onVerseClick, surah, ayah });
         }
       } else {
         // This is a regular word - fire word click
@@ -543,5 +586,95 @@ export function QuranPage({
     </div>
   );
 }
+
+// Helper to compare highlight groups for memoization
+function areHighlightGroupsEqual(
+  prev: HighlightGroup[] | undefined,
+  next: HighlightGroup[] | undefined
+): boolean {
+  if (prev === next) return true;
+  if (!prev || !next) return prev === next;
+  if (prev.length !== next.length) return false;
+
+  for (let i = 0; i < prev.length; i++) {
+    const p = prev[i];
+    const n = next[i];
+    if (p.color !== n.color) return false;
+
+    // Compare verses
+    if (p.verses !== n.verses) {
+      if (!p.verses || !n.verses) return false;
+      if (p.verses.length !== n.verses.length) return false;
+      for (let j = 0; j < p.verses.length; j++) {
+        if (p.verses[j].surah !== n.verses[j].surah || p.verses[j].ayah !== n.verses[j].ayah) {
+          return false;
+        }
+      }
+    }
+
+    // Compare words
+    if (p.words !== n.words) {
+      if (!p.words || !n.words) return false;
+      if (p.words.length !== n.words.length) return false;
+      for (let j = 0; j < p.words.length; j++) {
+        if (p.words[j].page !== n.words[j].page ||
+            p.words[j].line !== n.words[j].line ||
+            p.words[j].word !== n.words[j].word) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+// Memoized QuranPage to prevent unnecessary re-renders during audio playback
+export const MemoizedQuranPage = React.memo(QuranPage, (prevProps, nextProps) => {
+  // Check all props except highlightGroups with shallow comparison
+  if (prevProps.pageNumber !== nextProps.pageNumber) return false;
+  if (prevProps.layoutType !== nextProps.layoutType) return false;
+  if (prevProps.width !== nextProps.width) return false;
+  if (prevProps.scale !== nextProps.scale) return false;
+  if (prevProps.tajweedEnabled !== nextProps.tajweedEnabled) return false;
+  if (prevProps.backgroundColor !== nextProps.backgroundColor) return false;
+  if (prevProps.verseNumberFormat !== nextProps.verseNumberFormat) return false;
+  if (prevProps.fontScale !== nextProps.fontScale) return false;
+  if (prevProps.highlightColor !== nextProps.highlightColor) return false;
+  if (prevProps.onWordClick !== nextProps.onWordClick) return false;
+  if (prevProps.onVerseClick !== nextProps.onVerseClick) return false;
+  if (prevProps.onRenderComplete !== nextProps.onRenderComplete) return false;
+  if (prevProps.enableAccessibility !== nextProps.enableAccessibility) return false;
+  if (prevProps.ariaLabel !== nextProps.ariaLabel) return false;
+  if (prevProps.className !== nextProps.className) return false;
+
+  // Deep compare highlightGroups
+  if (!areHighlightGroupsEqual(prevProps.highlightGroups, nextProps.highlightGroups)) return false;
+
+  // Compare highlightedVerses array
+  if (prevProps.highlightedVerses !== nextProps.highlightedVerses) {
+    if (!prevProps.highlightedVerses || !nextProps.highlightedVerses) return false;
+    if (prevProps.highlightedVerses.length !== nextProps.highlightedVerses.length) return false;
+    for (let i = 0; i < prevProps.highlightedVerses.length; i++) {
+      if (prevProps.highlightedVerses[i].surah !== nextProps.highlightedVerses[i].surah ||
+          prevProps.highlightedVerses[i].ayah !== nextProps.highlightedVerses[i].ayah) {
+        return false;
+      }
+    }
+  }
+
+  // Compare highlightedWords array
+  if (prevProps.highlightedWords !== nextProps.highlightedWords) {
+    if (!prevProps.highlightedWords || !nextProps.highlightedWords) return false;
+    if (prevProps.highlightedWords.length !== nextProps.highlightedWords.length) return false;
+    for (let i = 0; i < prevProps.highlightedWords.length; i++) {
+      if (prevProps.highlightedWords[i].line !== nextProps.highlightedWords[i].line ||
+          prevProps.highlightedWords[i].word !== nextProps.highlightedWords[i].word) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+});
 
 export default QuranPage;
