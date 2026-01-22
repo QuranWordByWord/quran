@@ -147,6 +147,10 @@ export function QuranViewer({
   // null = not in gesture, use the committed scale value
   const [gestureScale, setGestureScale] = useState<number | null>(null);
 
+  // Swipe navigation state for single page mode
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipePhase, setSwipePhase] = useState<'idle' | 'dragging' | 'animating'>('idle');
+
   // Use controlled scale if provided, otherwise use internal state
   const scale = controlledScale ?? internalScale;
   const setScale = (newScale: number) => {
@@ -176,6 +180,11 @@ export function QuranViewer({
   const SVG_HEIGHT = 740;
   const SVG_INNER_WIDTH = 387;
   const SVG_INNER_HEIGHT = 690;
+
+  // Swipe navigation configuration
+  const SWIPE_THRESHOLD = 80; // Min distance to trigger page change (px)
+  const SWIPE_RESISTANCE = 0.3; // Resistance factor at boundaries
+  const ANIMATION_DURATION = 250; // Transition duration in ms
 
   // Helper to calculate border offset for any scale value
   const calculateBorderOffsetForScale = useCallback((s: number): number => {
@@ -404,13 +413,20 @@ export function QuranViewer({
       prevInitialPageRef.current = initialPage;
 
       const targetPage = Math.max(1, Math.min(totalPages, initialPage));
+
+      // In single page mode during swipe animation, currentPage is already updated
+      // Only sync if not already on the target page (external navigation like toolbar)
+      if (singlePageMode) {
+        // Only update if this is a different page (external nav, not our own swipe)
+        setCurrentPage(prev => prev !== targetPage ? targetPage : prev);
+        setPanOffset({ x: 0, y: 0 });
+        return;
+      }
+
       setCurrentPage(targetPage);
 
       // Reset pan offset when page changes
       setPanOffset({ x: 0, y: 0 });
-
-      // In single page mode, we just update the current page state - no scrolling needed
-      if (singlePageMode) return;
 
       const container = containerRef.current;
       if (!container) return;
@@ -530,6 +546,28 @@ export function QuranViewer({
           x: panStartOffset.x + deltaX,
           y: panStartOffset.y + deltaY,
         });
+      } else if (isSingleTouch && singlePageMode && scaleRef.current <= 1 && e.touches.length === 1) {
+        // Swipe navigation with visual feedback when not zoomed
+        const deltaX = e.touches[0].clientX - touchStartX;
+        const deltaY = e.touches[0].clientY - touchStartY;
+
+        // Only start dragging if vertical movement exceeds horizontal
+        if (Math.abs(deltaY) > 10 && Math.abs(deltaY) > Math.abs(deltaX)) {
+          e.preventDefault();
+          setSwipePhase('dragging');
+
+          const currentPage = initialPageRef.current;
+          const atFirstPage = currentPage <= 1;
+          const atLastPage = currentPage >= totalPages;
+
+          // Apply rubber-band resistance at boundaries
+          let adjustedDelta = deltaY;
+          if ((deltaY > 0 && atFirstPage) || (deltaY < 0 && atLastPage)) {
+            adjustedDelta = deltaY * SWIPE_RESISTANCE;
+          }
+
+          setSwipeOffset(adjustedDelta);
+        }
       }
     };
 
@@ -543,25 +581,54 @@ export function QuranViewer({
         return;
       }
 
-      // Handle swipe navigation only when not zoomed or not panning significantly
+      // Handle swipe navigation with animated transitions
       if (isSingleTouch && singlePageMode && e.changedTouches.length === 1) {
-        const touchEndX = e.changedTouches[0].clientX;
         const touchEndY = e.changedTouches[0].clientY;
-        const deltaX = touchEndX - touchStartX;
         const deltaY = touchEndY - touchStartY;
         const currentPage = initialPageRef.current;
 
         // If zoomed in and was panning, don't navigate
-        // If not zoomed (scale <= 1), use swipe for navigation
-        const minSwipeDistance = 50;
-        if (scaleRef.current <= 1 && !isPanning && Math.abs(deltaY) > minSwipeDistance && Math.abs(deltaY) > Math.abs(deltaX)) {
-          if (deltaY > 0) {
-            // Swipe down - go to previous page
-            onPageChange?.(Math.max(1, currentPage - 1));
-          } else {
-            // Swipe up - go to next page
-            onPageChange?.(Math.min(totalPages, currentPage + 1));
-          }
+        if (scaleRef.current > 1 || isPanning) {
+          initialDistance = 0;
+          isSingleTouch = false;
+          isPanning = false;
+          return;
+        }
+
+        const shouldChangePage = Math.abs(deltaY) > SWIPE_THRESHOLD;
+        const atFirstPage = currentPage <= 1;
+        const atLastPage = currentPage >= totalPages;
+
+        if (shouldChangePage && deltaY > 0 && !atFirstPage) {
+          // Swipe down - update page immediately for seamless transition
+          const newPage = currentPage - 1;
+          setCurrentPage(newPage);
+          setSwipePhase('animating');
+          setSwipeOffset(container.clientHeight);
+          // Notify parent (URL update) after animation starts
+          onPageChange?.(newPage);
+          setTimeout(() => {
+            setSwipeOffset(0);
+            setSwipePhase('idle');
+          }, ANIMATION_DURATION);
+
+        } else if (shouldChangePage && deltaY < 0 && !atLastPage) {
+          // Swipe up - update page immediately for seamless transition
+          const newPage = currentPage + 1;
+          setCurrentPage(newPage);
+          setSwipePhase('animating');
+          setSwipeOffset(-container.clientHeight);
+          // Notify parent (URL update) after animation starts
+          onPageChange?.(newPage);
+          setTimeout(() => {
+            setSwipeOffset(0);
+            setSwipePhase('idle');
+          }, ANIMATION_DURATION);
+
+        } else {
+          // Snap back to center instantly (no animation)
+          setSwipeOffset(0);
+          setSwipePhase('idle');
         }
       }
 
@@ -581,6 +648,14 @@ export function QuranViewer({
       container.removeEventListener('touchend', handleTouchEnd);
     };
   }, [enablePinchZoom, handleZoom, singlePageMode, totalPages, onPageChange, minScale, maxScale]);
+
+  // Reset swipe state when page changes externally (button nav)
+  // Skip if we're already animating (our own swipe triggered the page change)
+  useEffect(() => {
+    if (singlePageMode && swipePhase === 'idle') {
+      setSwipeOffset(0);
+    }
+  }, [initialPage, singlePageMode, swipePhase]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -715,10 +790,10 @@ export function QuranViewer({
   }
 
   // Single page mode - display only the current page centered, fitting to container
-  // In single page mode, we use initialPage directly as the source of truth
-  // since navigation is controlled externally via URL/props
+  // In single page mode, use internal currentPage for immediate updates during swipe
+  // The currentPage is synced with initialPage via the effect above
   if (singlePageMode) {
-    const displayPage = Math.max(1, Math.min(totalPages, initialPage));
+    const displayPage = Math.max(1, Math.min(totalPages, currentPage));
     const scaledPageHeight = pageHeight * scale;
     const scaledPageWidth = pageWidth * scale;
 
@@ -727,25 +802,61 @@ export function QuranViewer({
     const isGesturing = gestureScale !== null;
     const gestureTransformScale = isGesturing ? gestureScale / scale : 1;
 
-    const singlePageContent = (
-      <MemoizedQuranPage
-        pageNumber={displayPage}
-        layoutType={layoutType}
-        width={pageWidth}
-        scale={scale}
-        tajweedEnabled={tajweedEnabled}
-        backgroundColor={backgroundColor}
-        verseNumberFormat={verseNumberFormat}
-        fontScale={fontScale}
-        highlightedVerses={highlightedVerses}
-        highlightedWords={getHighlightedWordsForPage(displayPage)}
-        highlightColor={highlightColor}
-        highlightGroups={highlightGroups}
-        onWordClick={onWordClick}
-        onVerseClick={onVerseClick}
-        onWordHover={onWordHover}
-      />
-    );
+    // Determine swipe animation state
+    const isAnimating = swipePhase === 'animating';
+    const isDragging = swipePhase === 'dragging';
+    const isSwipeActive = isDragging || isAnimating;
+
+    // Calculate total page height including border for positioning adjacent pages
+    const borderOffset = calculateBorderOffsetForScale(scale);
+    const totalPageHeight = scaledPageHeight + borderOffset;
+    const PAGE_GAP = 16; // Gap between pages during swipe
+
+    // Determine which adjacent pages to render during swipe
+    const hasPrevPage = displayPage > 1;
+    const hasNextPage = displayPage < totalPages;
+    const showPrevPage = isSwipeActive && hasPrevPage && swipeOffset > 0;
+    const showNextPage = isSwipeActive && hasNextPage && swipeOffset < 0;
+
+    // Helper to render a page with optional border
+    const renderPage = (pageNum: number) => {
+      const pageContent = (
+        <MemoizedQuranPage
+          pageNumber={pageNum}
+          layoutType={layoutType}
+          width={pageWidth}
+          scale={scale}
+          tajweedEnabled={tajweedEnabled}
+          backgroundColor={backgroundColor}
+          verseNumberFormat={verseNumberFormat}
+          fontScale={fontScale}
+          highlightedVerses={highlightedVerses}
+          highlightedWords={getHighlightedWordsForPage(pageNum)}
+          highlightColor={highlightColor}
+          highlightGroups={highlightGroups}
+          onWordClick={onWordClick}
+          onVerseClick={onVerseClick}
+          onWordHover={onWordHover}
+        />
+      );
+
+      if (showBorder) {
+        return (
+          <MushafBorder
+            pageNumber={pageNum}
+            contentWidth={scaledPageWidth}
+            contentHeight={scaledPageHeight}
+            scale={scale}
+            borderColor="var(--mushaf-border, #2d5a27)"
+            verseNumberFormat={verseNumberFormat}
+            layoutType={layoutType}
+          >
+            {pageContent}
+          </MushafBorder>
+        );
+      }
+      return pageContent;
+    };
 
     return (
       <div
@@ -767,31 +878,52 @@ export function QuranViewer({
         role="document"
         aria-label={`Quran viewer - Page ${displayPage} of ${totalPages}`}
       >
+        {/* Previous page - positioned above current page */}
+        {showPrevPage && (
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(${panOffset.x}px, ${panOffset.y + swipeOffset - totalPageHeight - PAGE_GAP}px) scale(${gestureTransformScale})`,
+              transition: isAnimating
+                ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+                : 'none',
+              willChange: 'transform',
+            }}
+          >
+            {renderPage(displayPage - 1)}
+          </div>
+        )}
+
+        {/* Current page */}
         <div
           style={{
-            // Apply gesture scale via CSS transform for instant visual feedback during pinch
-            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${gestureTransformScale})`,
-            // No transition during gesture for maximum responsiveness
-            transition: isGesturing ? 'none' : (scale <= 1 ? 'transform 0.2s ease-out' : 'none'),
-            willChange: isGesturing ? 'transform' : 'auto',
+            // Apply gesture scale and swipe offset via CSS transform
+            transform: `translate(${panOffset.x}px, ${panOffset.y + swipeOffset}px) scale(${gestureTransformScale})`,
+            // Transition only during page change animation, none otherwise
+            transition: isAnimating
+              ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+              : 'none',
+            willChange: (isGesturing || swipePhase !== 'idle') ? 'transform' : 'auto',
           }}
         >
-          {showBorder ? (
-            <MushafBorder
-              pageNumber={displayPage}
-              contentWidth={scaledPageWidth}
-              contentHeight={scaledPageHeight}
-              scale={scale}
-              borderColor="var(--mushaf-border, #2d5a27)"
-              verseNumberFormat={verseNumberFormat}
-              layoutType={layoutType}
-            >
-              {singlePageContent}
-            </MushafBorder>
-          ) : (
-            singlePageContent
-          )}
+          {renderPage(displayPage)}
         </div>
+
+        {/* Next page - positioned below current page */}
+        {showNextPage && (
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(${panOffset.x}px, ${panOffset.y + swipeOffset + totalPageHeight + PAGE_GAP}px) scale(${gestureTransformScale})`,
+              transition: isAnimating
+                ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+                : 'none',
+              willChange: 'transform',
+            }}
+          >
+            {renderPage(displayPage + 1)}
+          </div>
+        )}
       </div>
     );
   }

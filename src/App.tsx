@@ -63,7 +63,7 @@ function WordForWordPageView() {
   const { pageNumber } = useParams();
   const navigate = useNavigate();
   const page = pageNumber ? parseInt(pageNumber) : 1;
-  const { verses, loading, error, totalPages, isIntroPage } = usePage(page);
+  const { verses, loading, error, totalPages, isIntroPage, prevPageVerses, nextPageVerses } = usePage(page);
   const audio = useAudio();
   const { openMenu } = useMenu();
   // Use shared highlight state from context so it persists when switching views
@@ -106,6 +106,8 @@ function WordForWordPageView() {
         onHighlightVerse={setHighlightedVerseKey}
         highlightedWordInfo={highlightedWordInfo}
         onHighlightWord={setHighlightedWordInfo}
+        prevPageVerses={prevPageVerses}
+        nextPageVerses={nextPageVerses}
       />
       <AudioPlayer
         isPlaying={audio.isPlaying}

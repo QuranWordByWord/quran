@@ -23,6 +23,7 @@ export default defineConfig({
         theme_color: '#047857',
         background_color: '#ffffff',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         orientation: 'portrait-primary',
         scope: '/quran/',
         start_url: '/quran/',

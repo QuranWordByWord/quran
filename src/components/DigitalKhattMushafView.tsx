@@ -19,6 +19,7 @@ import { useMobileNav } from '../contexts/MobileNavContext';
 import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
+import { TajweedGuide } from './TajweedGuide';
 import { MUSHAF_PAGE_COUNTS } from '../config/constants';
 import type { MushafScript } from '../config/types';
 
@@ -181,6 +182,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { isReady, getVerseMapping } = useDigitalKhatt();
   const windowDimensions = useWindowDimensions();
+  const [tajweedGuideOpen, setTajweedGuideOpen] = useState(false);
 
   // Calculate responsive page dimensions for mobile single-page mode
   // The page should fit entirely on screen without showing other pages
@@ -498,8 +500,8 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
             </button>
           </div>
 
-          {/* Left side - Previous button (pill shape) */}
-          <div className="absolute left-2 bottom-0 pointer-events-auto">
+          {/* Left side - Previous button + Tajweed info button (when enabled) */}
+          <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
             <button
               onClick={() => handlePageChange(quranPage - 1)}
               disabled={quranPage <= 1}
@@ -508,6 +510,18 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
             >
               <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
             </button>
+            {/* Tajweed info button - only shown when tajweed is enabled */}
+            {tajweedEnabled && (
+              <button
+                onClick={() => setTajweedGuideOpen(true)}
+                className="h-11 w-11 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+                aria-label="Open Tajweed color guide"
+              >
+                <svg className="w-5 h-5 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Right side - Next button (pill shape) */}
@@ -523,6 +537,14 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
           </div>
         </div>
       )}
+
+      {/* Tajweed Color Guide - floating button hidden on mobile (rendered in nav above) */}
+      <TajweedGuide
+        isAudioActive={isAudioActive}
+        hideFloatingButton={isMobile}
+        isOpen={tajweedGuideOpen}
+        onOpenChange={setTajweedGuideOpen}
+      />
 
       {/* Audio Player */}
       <AudioPlayer
