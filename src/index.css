@@ -366,13 +366,15 @@ textarea:focus-visible,
 }
 
 /* Word group text color on hover (path for Arabic glyphs, text for English numbers) */
-.word-group.word-hover path,
+/* Exclude .aya-fill paths (Madinah SVG background fills) from hover color change */
+.word-group.word-hover path:not(.aya-fill),
 .word-group.word-hover text {
   fill: var(--mushaf-hover-gold) !important;
 }
 
 /* Word group text color when highlighted (during audio playback) */
-.word-group.word-highlighted path,
+/* Exclude .aya-fill paths (Madinah SVG background fills) from highlight color change */
+.word-group.word-highlighted path:not(.aya-fill),
 .word-group.word-highlighted text {
   fill: var(--mushaf-hover-gold) !important;
 }

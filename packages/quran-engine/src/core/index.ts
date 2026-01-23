@@ -74,6 +74,7 @@ export {
   isHarfBuzzReady,
   getArabScript,
   getArabLanguage,
+  clearFontCache,
 } from './harfbuzz';
 
 // Quran Text Service

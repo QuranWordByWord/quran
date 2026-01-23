@@ -101,6 +101,8 @@ interface SubWordsMatch {
 
 export interface QuranTextServiceLike {
   quranText: string[][];
+  mushafType: MushafLayoutType;
+  outline?: Array<{ name: string; page: number }>;
   getLineInfo(pageIndex: number, lineIndex: number): {
     lineType: number;
     lineWidthRatio: number;
@@ -116,6 +118,8 @@ export interface QuranTextServiceLike {
 // Cache
 // ============================================
 
+// Cache keyed by: mushafType * 10000 + pageIndex * 15 + lineIndex
+// This ensures different mushafs don't share cached justification data
 const lineTextInfoCache: Map<number, LineTextInfo> = new Map();
 
 // ============================================
@@ -944,7 +948,8 @@ export function analyzeLineForJust(
   pageIndex: number,
   lineIndex: number
 ): LineTextInfo {
-  const key = pageIndex * 15 + lineIndex;
+  // Include mushafType in key to prevent cross-mushaf cache pollution
+  const key = quranTextService.mushafType * 10000 + pageIndex * 15 + lineIndex;
   let lineTextInfo = lineTextInfoCache.get(key);
 
   if (lineTextInfo) return lineTextInfo;

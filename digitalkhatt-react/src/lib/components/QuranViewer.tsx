@@ -136,9 +136,10 @@ export function QuranViewer({
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 0 });
 
-  // Flag to suppress onPageChange during scale/resize transitions
+  // Flag to suppress onPageChange during scale/resize transitions and initial mount
   // Must be declared early so it's available in calculateVisibleRange callback
-  const isTransitioningRef = useRef(false);
+  // Start as true to prevent spurious onPageChange during initial render before scroll is set
+  const isTransitioningRef = useRef(true);
 
   // Pan offset for single page mode when zoomed
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -281,6 +282,38 @@ export function QuranViewer({
     }
   }, [singlePageMode, pageHeight, scale, pageGap, totalBorderOffset, overscanPages, totalPages, currentPage, onPageChange]);
 
+  // Set initial scroll position on mount (multi-page mode only)
+  // This must run before we allow onPageChange to fire
+  useEffect(() => {
+    if (singlePageMode) {
+      // In single page mode, no scrolling needed - clear the flag immediately
+      requestAnimationFrame(() => {
+        isTransitioningRef.current = false;
+      });
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Set initial scroll position to center the initial page
+    const scaledPageHeight = pageHeight * scale + totalBorderOffset + pageGap;
+    const pageTop = (initialPage - 1) * scaledPageHeight;
+    const viewportHeight = container.clientHeight;
+    const pageWithBorderHeight = pageHeight * scale + totalBorderOffset;
+    const scrollTop = Math.max(0, pageTop - (viewportHeight - pageWithBorderHeight) / 2);
+
+    container.scrollTop = scrollTop;
+
+    // Clear the transition flag after scroll is set, allowing onPageChange to work
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        isTransitioningRef.current = false;
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
   // Handle scroll events
   useEffect(() => {
     const container = containerRef.current;
@@ -291,7 +324,7 @@ export function QuranViewer({
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
-    calculateVisibleRange(); // Initial calculation
+    calculateVisibleRange(); // Initial calculation (won't trigger onPageChange due to isTransitioningRef)
 
     return () => {
       container.removeEventListener('scroll', handleScroll);
@@ -301,6 +334,10 @@ export function QuranViewer({
   // Track the current page for maintaining position during resize
   const currentPageRef = useRef(currentPage);
   currentPageRef.current = currentPage;
+
+  // Also track initialPage for resize handling - this is the source of truth from the URL
+  const initialPageForResizeRef = useRef(initialPage);
+  initialPageForResizeRef.current = initialPage;
 
   // Recalculate on resize (e.g., browser zoom, window resize)
   useEffect(() => {
@@ -316,8 +353,9 @@ export function QuranViewer({
       isTransitioningRef.current = true;
 
       // Maintain scroll position to keep the same page centered after resize
-      // Browser zoom changes the container size but we want to stay on the same page
-      const targetPage = currentPageRef.current;
+      // Use initialPage (from URL) as the source of truth, not internal currentPage state
+      // This prevents navigation drift when resize events occur
+      const targetPage = initialPageForResizeRef.current;
       const scaledPageHeight = pageHeight * scale + totalBorderOffset + pageGap;
       const pageTop = (targetPage - 1) * scaledPageHeight;
 

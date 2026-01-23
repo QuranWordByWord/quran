@@ -261,3 +261,61 @@ export function getSurahStartPage(
   // Convert to UI page (add 1 for intro page)
   return surah[pageField] + 1;
 }
+
+/**
+ * Convert a UI page number from one mushaf script to another
+ * Uses surah boundaries to find the equivalent position
+ *
+ * @param uiPageNumber - The UI page number (1-indexed, where 1 is intro page)
+ * @param fromScript - The source mushaf script
+ * @param toScript - The target mushaf script
+ * @returns The equivalent UI page number in the target script
+ */
+export function convertPageBetweenMushafScripts(
+  uiPageNumber: number,
+  fromScript: MushafScript,
+  toScript: MushafScript
+): number {
+  // If same script, no conversion needed
+  if (fromScript === toScript) {
+    return uiPageNumber;
+  }
+
+  // Handle intro page
+  if (uiPageNumber === 1) {
+    return 1;
+  }
+
+  const fromField = getPageFieldForScript(fromScript);
+  const toField = getPageFieldForScript(toScript);
+
+  // If both use same page system (e.g., both Madinah variants), return as-is
+  if (fromField === toField) {
+    return uiPageNumber;
+  }
+
+  // Convert UI page to Quran page (subtract 1 for intro page)
+  const quranPage = uiPageNumber - 1;
+
+  // Find the surah that contains this page in the source script
+  let surahIndex = 0;
+  for (let i = chapterData.length - 1; i >= 0; i--) {
+    if (chapterData[i][fromField] <= quranPage) {
+      surahIndex = i;
+      break;
+    }
+  }
+
+  // Calculate the offset within the surah
+  const surahStartInSource = chapterData[surahIndex][fromField];
+  const pageOffsetInSurah = quranPage - surahStartInSource;
+
+  // Get the equivalent page in the target script
+  const surahStartInTarget = chapterData[surahIndex][toField];
+  const targetQuranPage = surahStartInTarget + pageOffsetInSurah;
+
+  // Convert back to UI page (add 1 for intro page)
+  // Also clamp to valid range for target script
+  const maxPage = toScript === 'indoPak15' ? 610 : 604;
+  return Math.min(targetQuranPage + 1, maxPage + 1);
+}

@@ -6,7 +6,6 @@
  */
 
 import type {
-  MushafLayoutType,
   PageFormat,
   LineTextInfo,
   JustResultByLine,
@@ -14,6 +13,7 @@ import type {
   HBFeature,
 } from '../core/types';
 import {
+  MushafLayoutType,
   JustStyle as JustStyleEnum,
   FONTSIZE,
   INTERLINE,
@@ -176,6 +176,21 @@ export class SVGPageRenderer {
     // Get aya positioning for this mushaf type
     const ayaPositioning = getAyaPositioningForMushaf(this.mushafType);
 
+    // Track current surah number for Bismillah verse marker
+    // Use outline to determine which surah we're in at the START of this page
+    // (before any surah headers on this page)
+    // outline[i] = surah (i+1), so find the last surah that starts BEFORE this page
+    let currentSurah = 0;
+    if (this.textService.outline) {
+      for (let i = 0; i < this.textService.outline.length; i++) {
+        if (this.textService.outline[i].page < pageIndex) {
+          currentSurah = i + 1; // surah number is index + 1
+        } else {
+          break;
+        }
+      }
+    }
+
     // Render each line
     for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
       const lineInfo = this.textService.getLineInfo(pageIndex, lineIndex);
@@ -233,7 +248,7 @@ export class SVGPageRenderer {
         const containerHeight = INTERLINE * scale;
 
         // Render the line as SVG
-        this.renderSVGLine(
+        const lineResult = this.renderSVGLine(
           lineElem,
           lineText,
           lineTextInfo,
@@ -252,8 +267,85 @@ export class SVGPageRenderer {
           wordElements,
           wordGroupElements
         );
+
+        // Add verse marker for Bismillah lines on first two pages (Madinah scripts only)
+        // This handles Al-Baqara's Bismillah on page 2
+        if (lineInfo.lineType === 2 && isFirstTwoPages) {
+          const isMadinah =
+            this.mushafType === MushafLayoutType.OldMadinah ||
+            this.mushafType === MushafLayoutType.NewMadinah;
+
+          if (isMadinah && currentSurah !== 1 && options.ayaSvgGroup) {
+            // Create positioned container for the verse marker
+            const markerWrapper = document.createElement('div');
+            markerWrapper.style.position = 'absolute';
+            markerWrapper.style.top = '0';
+            markerWrapper.style.height = '100%';
+            markerWrapper.style.display = 'flex';
+            markerWrapper.style.alignItems = 'center';
+
+            // Create SVG element for the verse frame
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const frameHeight = containerHeight * 0.55;
+            const isNewMadinah = this.mushafType === MushafLayoutType.NewMadinah;
+            const aspectRatio = isNewMadinah ? 869 / 1136 : 1172 / 1507;
+            const frameWidth = frameHeight * aspectRatio;
+
+            svg.setAttribute('width', frameWidth.toString());
+            svg.setAttribute('height', frameHeight.toString());
+            svg.setAttribute(
+              'viewBox',
+              isNewMadinah ? '0 0 869.47 1135.781' : '0 0 1172.304 1507.248'
+            );
+            svg.style.cursor = 'pointer';
+
+            // Position marker at left end of text (RTL - text is right-aligned)
+            // From the right edge: lineWidth + small padding
+            const rightOffset = lineResult.lineWidth + frameWidth * 0.2;
+            markerWrapper.style.right = rightOffset + 'px';
+
+            // Clone the verse frame group
+            const frameGroup = options.ayaSvgGroup.cloneNode(true) as SVGGElement;
+            svg.appendChild(frameGroup);
+
+            // Add click data attributes
+            svg.setAttribute('data-page', pageIndex.toString());
+            svg.setAttribute('data-line', lineIndex.toString());
+            svg.setAttribute('data-word', '-1');
+            svg.setAttribute('data-surah', currentSurah.toString());
+            svg.setAttribute('data-ayah', '0');
+            svg.classList.add('word-group', 'bismillah-verse-marker');
+
+            // Add click handler
+            if (options.onWordClick) {
+              svg.addEventListener('click', (e) => {
+                e.stopPropagation();
+                options.onWordClick!({
+                  pageIndex,
+                  lineIndex,
+                  wordIndex: -1,
+                  text: '\u06DD',
+                  element: svg as unknown as SVGElement,
+                });
+              });
+            }
+
+            // Add hover effects
+            svg.addEventListener('mouseenter', () => {
+              svg.classList.add('word-hover');
+            });
+            svg.addEventListener('mouseleave', () => {
+              svg.classList.remove('word-hover');
+            });
+
+            markerWrapper.appendChild(svg);
+            lineElem.style.position = 'relative';
+            lineElem.appendChild(markerWrapper);
+          }
+        }
       } else if (lineInfo.lineType === 1) {
         // Sura header line with decorative border
+        currentSurah++;
         // Remove margins so border spans full width
         lineElem.style.marginLeft = '0';
         lineElem.style.marginRight = '0';
@@ -317,7 +409,7 @@ export class SVGPageRenderer {
         const containerWidth = viewport.width - 2 * margin;
         const containerHeight = INTERLINE * scale;
 
-        this.renderSVGLine(
+        const basmalaResult = this.renderSVGLine(
           lineElem,
           lineText,
           lineTextInfo,
@@ -336,6 +428,83 @@ export class SVGPageRenderer {
           wordElements,
           wordGroupElements
         );
+
+        // Add verse marker icon for Madinah scripts (not IndoPak, not Al-Fatiha)
+        const isMadinah =
+          this.mushafType === MushafLayoutType.OldMadinah ||
+          this.mushafType === MushafLayoutType.NewMadinah;
+
+        if (isMadinah && currentSurah !== 1 && options.ayaSvgGroup) {
+          // Create positioned container for the verse marker
+          // Position at the left edge of the centered Bismillah text (end in RTL)
+          const markerWrapper = document.createElement('div');
+          markerWrapper.style.position = 'absolute';
+          markerWrapper.style.top = '0';
+          markerWrapper.style.height = '100%';
+          markerWrapper.style.display = 'flex';
+          markerWrapper.style.alignItems = 'center';
+
+          // Create SVG element for the verse frame
+          // Match size with regular verse markers (use same scaling as text)
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          const frameHeight = containerHeight * 0.55; // Match regular verse marker size
+          const isNewMadinah = this.mushafType === MushafLayoutType.NewMadinah;
+          const aspectRatio = isNewMadinah ? 869 / 1136 : 1172 / 1507;
+          const frameWidth = frameHeight * aspectRatio;
+
+          svg.setAttribute('width', frameWidth.toString());
+          svg.setAttribute('height', frameHeight.toString());
+          svg.setAttribute(
+            'viewBox',
+            isNewMadinah ? '0 0 869.47 1135.781' : '0 0 1172.304 1507.248'
+          );
+          svg.style.cursor = 'pointer';
+
+          // Position marker at left edge of centered text (end in RTL)
+          // From right edge: (containerWidth + lineWidth) / 2
+          const rightOffset = (containerWidth + basmalaResult.lineWidth) / 2 + frameWidth * 0.2;
+          markerWrapper.style.right = rightOffset + 'px';
+
+          // Clone the verse frame group
+          const frameGroup = options.ayaSvgGroup.cloneNode(true) as SVGGElement;
+          svg.appendChild(frameGroup);
+
+          // Add click data attributes for event handling
+          svg.setAttribute('data-page', pageIndex.toString());
+          svg.setAttribute('data-line', lineIndex.toString());
+          svg.setAttribute('data-word', '-1'); // Special marker for bismillah verse icon
+          svg.setAttribute('data-surah', currentSurah.toString());
+          svg.setAttribute('data-ayah', '0');
+          svg.classList.add('word-group', 'bismillah-verse-marker');
+
+          // Add click handler for verse marker
+          if (options.onWordClick) {
+            svg.addEventListener('click', (e) => {
+              e.stopPropagation();
+              // Use END_OF_AYAH character (۝) to indicate this is a verse marker
+              // This will be detected by isAyahMarker() in the click handler
+              options.onWordClick!({
+                pageIndex,
+                lineIndex,
+                wordIndex: -1,
+                text: '\u06DD', // END_OF_AYAH marker character
+                element: svg as unknown as SVGElement,
+              });
+            });
+          }
+
+          // Add hover effects to match regular verse markers
+          svg.addEventListener('mouseenter', () => {
+            svg.classList.add('word-hover');
+          });
+          svg.addEventListener('mouseleave', () => {
+            svg.classList.remove('word-hover');
+          });
+
+          markerWrapper.appendChild(svg);
+          lineElem.style.position = 'relative';
+          lineElem.appendChild(markerWrapper);
+        }
       }
 
       lineElements.push(lineElem);
@@ -382,6 +551,7 @@ export class SVGPageRenderer {
 
   /**
    * Render a line as SVG
+   * @returns Object containing lineWidth for positioning elements after the text
    */
   private renderSVGLine(
     lineElem: HTMLDivElement,
@@ -401,7 +571,7 @@ export class SVGPageRenderer {
     lineIndex?: number,
     wordElements?: Map<string, SVGElement>,
     wordGroupElements?: Map<string, SVGGElement>
-  ): void {
+  ): { lineWidth: number } {
     // Build features array
     const features: HBFeature[] = lineTextInfo.features ? [...lineTextInfo.features] : [];
 
@@ -576,6 +746,9 @@ export class SVGPageRenderer {
     }
 
     lineElem.appendChild(result.svg);
+
+    // Return line width for positioning verse markers
+    return { lineWidth: result.lineWidth };
   }
 
   /**

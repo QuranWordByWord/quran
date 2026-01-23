@@ -17,7 +17,7 @@ import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { BookmarkProvider } from './contexts/BookmarkContext';
 import { ToastProvider } from './components/Toast';
-import { convertPageBetweenViews, getSurahStartPage } from './utils/pageToSurah';
+import { convertPageBetweenViews, getSurahStartPage, convertPageBetweenMushafScripts } from './utils/pageToSurah';
 import { MUSHAF_SCRIPTS } from './config/constants';
 import type { MushafScript } from './config/types';
 
@@ -511,6 +511,7 @@ function AppContentInner() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const search = useSearch();
   const location = useLocation();
+  const navigate = useNavigate();
   const { isNavVisible: _isNavVisible } = useMobileNav();
   const {
     viewMode, setViewMode,
@@ -537,6 +538,21 @@ function AppContentInner() {
   };
   const pageInfo = getCurrentPageInfo();
 
+  // Handle mushaf script change with page conversion
+  const handleMushafScriptChange = (newScript: MushafScript) => {
+    const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
+    if (mushafMatch) {
+      const currentPage = parseInt(mushafMatch[1]);
+      // Convert page from current script to new script
+      const targetPage = convertPageBetweenMushafScripts(currentPage, mushafScript, newScript);
+      setMushafScript(newScript);
+      navigate(`/mushaf/${targetPage}`);
+    } else {
+      // Not in mushaf view, just update the setting
+      setMushafScript(newScript);
+    }
+  };
+
   return (
     <MenuContext.Provider value={{ openMenu, isMenuOpen }}>
       <div className="min-h-screen lg:h-screen lg:flex lg:flex-col lg:overflow-hidden bg-[var(--color-bg-light)]">
@@ -556,7 +572,7 @@ function AppContentInner() {
               <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
               {viewMode === 'mushaf' && (
                 <>
-                  <ScriptSelector script={mushafScript} onScriptChange={setMushafScript} />
+                  <ScriptSelector script={mushafScript} onScriptChange={handleMushafScriptChange} />
                   <TajweedToggle enabled={tajweedEnabled} onToggle={setTajweedEnabled} />
                   <ZoomControls zoom={mushafZoom} onZoomChange={setMushafZoom} />
                   <FontScaleControls fontScale={mushafFontScale} onFontScaleChange={setMushafFontScale} />

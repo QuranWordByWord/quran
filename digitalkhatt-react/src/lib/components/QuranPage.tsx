@@ -266,7 +266,14 @@ export function QuranPage({
       let surah: number | undefined;
       let ayah: number | undefined;
 
-      if (verseMapping) {
+      // Special case: Bismillah verse marker (wordIndex === -1)
+      // Read surah/ayah from data attributes on the element
+      if (info.wordIndex === -1 && info.element) {
+        const surahAttr = info.element.getAttribute('data-surah');
+        const ayahAttr = info.element.getAttribute('data-ayah');
+        if (surahAttr) surah = parseInt(surahAttr, 10);
+        if (ayahAttr) ayah = parseInt(ayahAttr, 10);
+      } else if (verseMapping) {
         const key = `${info.pageIndex}:${info.lineIndex}:${info.wordIndex}`;
         const verseRef = verseMapping.wordToVerse.get(key);
         if (verseRef) {

@@ -24,6 +24,9 @@ import {
   isEngineCompatibleWithLayout,
   getAvailableEnginesForLayout,
   ENGINE_DISPLAY_NAMES,
+  clearFontCache,
+  clearJustificationCache,
+  glyphCache,
 } from '@digitalkhatt/quran-engine';
 import type { VerseWordMapping, TajweedClass } from '@digitalkhatt/quran-engine';
 
@@ -198,6 +201,11 @@ export function QuranProvider({ wasmUrl, fonts: fontUrls, quranText, tajweedColo
     async function initialize() {
       setStatus('loading');
       setError(null);
+
+      // Clear global caches to ensure clean state when switching mushaf types
+      clearFontCache();
+      clearJustificationCache();
+      glyphCache.clear();
 
       try {
         // 1. Load HarfBuzz WASM

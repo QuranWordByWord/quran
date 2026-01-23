@@ -138,7 +138,8 @@ export class QuranTextService {
     sajdapatterns = adjustText(sajdapatterns);
 
     const sajdaRegExpr = new RegExp(sajdapatterns, 'du');
-    const regexpr = new RegExp(surabismpattern, 'u');
+    // Normalize regex pattern to NFC form to match data files with different Unicode ordering
+    const regexpr = new RegExp(surabismpattern.normalize('NFC'), 'u');
 
     // Select line width map based on mushaf type
     const madinaLineWidths =
@@ -204,7 +205,8 @@ export class QuranTextService {
         };
         pageInfo.push(lineInfo);
 
-        const match = line.match(regexpr);
+        // Normalize line to NFC form to match regex pattern
+        const match = line.normalize('NFC').match(regexpr);
         if (match?.groups?.sura) {
           lineInfo.lineType = 1; // Sura
           this._outline.push({

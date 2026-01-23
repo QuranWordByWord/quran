@@ -6,7 +6,8 @@ import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { BookmarkList } from './BookmarkList';
 import { loadSidebarExpanded, saveSidebarExpanded } from '../utils/bookmarkStorage';
-import { convertPageBetweenViews, getSurahStartPage } from '../utils/pageToSurah';
+import { convertPageBetweenViews, getSurahStartPage, convertPageBetweenMushafScripts } from '../utils/pageToSurah';
+import type { MushafScript } from '../config/types';
 import { MUSHAF_SCRIPTS, MUSHAF_PAGE_COUNTS } from '../config/constants';
 
 // Chapter data with verse counts and starting page numbers
@@ -280,6 +281,25 @@ function SettingsTab({
     onClose?.();
   };
 
+  const handleMushafScriptChange = (newScript: MushafScript) => {
+    const { page: currentPage, currentMode } = getCurrentPageAndMode();
+
+    // Only convert pages if we're in mushaf mode
+    if (currentMode === 'mushaf') {
+      // Convert page from current script to new script
+      const targetPage = convertPageBetweenMushafScripts(currentPage, mushafScript, newScript);
+
+      // Update the script setting
+      setMushafScript(newScript);
+
+      // Navigate to the equivalent page in the new script
+      navigate(`/mushaf/${targetPage}`);
+    } else {
+      // Not in mushaf mode, just update the setting
+      setMushafScript(newScript);
+    }
+  };
+
   return (
     <div className="p-4 space-y-4" role="group" aria-label="Settings">
       {/* View mode toggle */}
@@ -446,7 +466,7 @@ function SettingsTab({
               {MUSHAF_SCRIPTS.map((script) => (
                 <button
                   key={script.id}
-                  onClick={() => setMushafScript(script.id)}
+                  onClick={() => handleMushafScriptChange(script.id)}
                   className={`w-full px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-between ${
                     mushafScript === script.id
                       ? 'bg-[var(--color-primary)] text-white'

@@ -549,6 +549,13 @@ export function hb_tag(s: string): number {
 // Font cache
 export const harfbuzzFonts = new Map<string, HarfBuzzFont>();
 
+/**
+ * Clear the font cache - use when switching between mushaf types
+ */
+export function clearFontCache(): void {
+  harfbuzzFonts.clear();
+}
+
 // Loading state
 let loadingPromise: Promise<HarfBuzzExports> | null = null;
 
