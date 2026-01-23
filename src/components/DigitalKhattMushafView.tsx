@@ -256,10 +256,13 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const handleWordClick = useCallback((info: WordClickInfo) => {
     if (!info.surah || !info.ayah) return;
 
-    // For Al-Fatiha (surah 1), the audio files treat Bismillah as verse 1,
-    // but the IndoPak mushaf text has Bismillah unnumbered and starts numbering from "الحمد لله".
-    // So we need to add 1 to the ayah number for audio playback in Al-Fatiha.
-    const audioAyah = info.surah === 1 ? info.ayah + 1 : info.ayah;
+    const isIndoPak = mushafScript === 'indoPak15';
+
+    // For Al-Fatiha (surah 1) word-by-word audio:
+    // - IndoPak: Bismillah is unnumbered (ayah 0), text ayah 1 = audio verse 2 (needs +1)
+    // - Madinah: Bismillah IS verse 1 with word audio, text ayah = audio ayah (no offset)
+    const audioAyah = (info.surah === 1 && isIndoPak) ? info.ayah + 1 : info.ayah;
+
     const verseKey = `${info.surah}:${info.ayah}`;
     const audioVerseKey = `${info.surah}:${audioAyah}`;
 
@@ -296,7 +299,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     setHighlightedWordInfo(null); // Clear word highlight
     setHighlightedVerseKey(verseKey);
     audioRef.current.playVerse(audioVerseKey);
-  }, [verseMapping, setHighlightedVerseKey, setHighlightedWordInfo, page]);
+  }, [verseMapping, setHighlightedVerseKey, setHighlightedWordInfo, page, mushafScript]);
 
   // Use refs for values needed in async callbacks to avoid stale closures
   const verseMappingRef = useRef(verseMapping);
@@ -309,15 +312,23 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const handleVerseClick = useCallback((info: VerseClickInfo) => {
     setHighlightedWordInfo(null); // Clear word highlight
 
-    // Bismillah click (ayah === 0) - play entire surah
-    if (info.ayah === 0) {
+    // Check if this is IndoPak mushaf - only IndoPak needs audio offset for Al-Fatiha
+    // In IndoPak: Bismillah is unnumbered (ayah 0), so text ayah 1 = audio verse 2
+    // In Madinah: Bismillah IS verse 1, so text ayah = audio ayah (no offset needed)
+    const isIndoPak = mushafScript === 'indoPak15';
+
+    // Bismillah click (ayah === 0) OR Madinah Fatiha verse 1 - play entire surah
+    // In Madinah script, Fatiha's bismillah IS verse 1 (not unnumbered like IndoPak)
+    const isMadinahFatihaBismillah = !isIndoPak && info.surah === 1 && info.ayah === 1;
+    if (info.ayah === 0 || isMadinahFatihaBismillah) {
       // Start surah playback with verse highlighting callback
       audioRef.current.playSurah(info.surah, (audioVerseKey: string) => {
-        // For Al-Fatiha, audio verse numbers are offset by 1 from text verse numbers
+        // For Al-Fatiha with IndoPak, audio verse numbers are offset by 1 from text verse numbers
         // Audio verse 1 = Bismillah = Text ayah 0
         // Audio verse 2 = Al-hamdu lillah = Text ayah 1, etc.
+        // For Madinah, no offset needed as Bismillah is verse 1
         const [surah, audioAyah] = audioVerseKey.split(':').map(Number);
-        const textAyah = surah === 1 ? audioAyah - 1 : audioAyah;
+        const textAyah = (surah === 1 && isIndoPak) ? audioAyah - 1 : audioAyah;
         setHighlightedVerseKey(`${surah}:${textAyah}`);
 
         // Auto-navigate to the page containing this verse
@@ -335,15 +346,16 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     }
 
     // Regular verse click - play single verse
-    // For Al-Fatiha (surah 1), the audio files treat Bismillah as verse 1,
-    // but the IndoPak mushaf text has Bismillah unnumbered and starts numbering from "الحمد لله".
+    // For Al-Fatiha (surah 1) with IndoPak, the audio files treat Bismillah as verse 1,
+    // but IndoPak text has Bismillah unnumbered and starts numbering from "الحمد لله".
     // So we need to add 1 to the ayah number for audio playback in Al-Fatiha.
-    const audioAyah = info.surah === 1 ? info.ayah + 1 : info.ayah;
+    // For Madinah mushafs, no offset needed as verse numbers match audio.
+    const audioAyah = (info.surah === 1 && isIndoPak) ? info.ayah + 1 : info.ayah;
     const verseKey = `${info.surah}:${info.ayah}`;
     const audioVerseKey = `${info.surah}:${audioAyah}`;
     setHighlightedVerseKey(verseKey);
     audioRef.current.playVerse(audioVerseKey);
-  }, [setHighlightedVerseKey]);
+  }, [setHighlightedVerseKey, mushafScript]);
 
   // Build highlight groups for verse and word highlighting
   // quranPage is 1-indexed (1-610), pageIndex is 0-indexed for DigitalKhatt coordinates

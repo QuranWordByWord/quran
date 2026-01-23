@@ -224,6 +224,14 @@
   fill: var(--mushaf-text, #f0f0f0);
 }
 
+/* Arabic verse numerals for Madinah layouts - always black to be visible against light frame background */
+/* Only applies to Madinah scripts which have light-colored frame interiors */
+/* No !important so hover/highlight gold color can override */
+.quran-page.layout-newMadinah svg path.aya-number,
+.quran-page.layout-oldMadinah svg path.aya-number {
+  fill: #000000;
+}
+
 /* Layout-specific font families */
 .quran-page.layout-newMadinah {
   font-family: digitalkhatt, serif;

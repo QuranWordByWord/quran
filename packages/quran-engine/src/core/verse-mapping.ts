@@ -201,6 +201,25 @@ export function buildVerseMapping(textService: QuranTextService): VerseWordMappi
       let pendingVerseEnd = false;
       let detectedAyah = currentAyah;
 
+      // Pre-scan for first verse number if at start of surah (currentAyah === 0)
+      // This ensures words BEFORE the verse marker are mapped to the correct ayah
+      if (currentAyah === 0 && !isBismillahLine && lineInfo.lineType === 0) {
+        for (let j = 0; j < lineText.length; j++) {
+          if (isArabicIndicDigit(lineText.charCodeAt(j))) {
+            // Find the end of this digit sequence
+            let endIdx = j;
+            while (endIdx < lineText.length - 1 && isArabicIndicDigit(lineText.charCodeAt(endIdx + 1))) {
+              endIdx++;
+            }
+            const firstVerseNum = extractVerseNumber(lineText, endIdx);
+            if (firstVerseNum !== null) {
+              detectedAyah = firstVerseNum;
+            }
+            break;
+          }
+        }
+      }
+
       for (let i = 0; i <= lineText.length; i++) {
         const char = i < lineText.length ? lineText.charAt(i) : ' ';
         const charCode = i < lineText.length ? lineText.charCodeAt(i) : 0;

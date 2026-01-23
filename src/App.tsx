@@ -84,6 +84,21 @@ function WordForWordPageView() {
 
   const isAudioActive = audio.isPlaying || audio.duration > 0;
 
+  // Handle full surah playback with verse highlighting and page navigation
+  const handlePlaySurah = (surah: number) => {
+    audio.playSurah(surah, (verseKey: string) => {
+      setHighlightedVerseKey(verseKey);
+      setHighlightedWordInfo(null);
+
+      // Navigate to page containing verse if not on current page
+      const currentVerseMatch = verses.find(v => v.verse_key === verseKey);
+      if (!currentVerseMatch) {
+        const surahStartPage = getSurahStartPage(surah, 'wordforword');
+        handlePageChange(surahStartPage);
+      }
+    });
+  };
+
   // Show intro page for page 1
   if (isIntroPage) {
     return <IntroPage onStartReading={handleStartReading} />;
@@ -100,6 +115,7 @@ function WordForWordPageView() {
         onPageChange={handlePageChange}
         onPlayWord={audio.playWord}
         onPlayVerse={audio.playVerse}
+        onPlaySurah={handlePlaySurah}
         isAudioActive={isAudioActive}
         onOpenMenu={openMenu}
         highlightedVerseKey={highlightedVerseKey}

@@ -8,8 +8,8 @@ export function IntroPage({ onStartReading }: IntroPageProps) {
   const fontClass = useFontClass();
 
   return (
-    <div className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]">
-      <div className="flex-1 flex items-center justify-center p-4">
+    <div className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)] overflow-y-auto">
+      <div className="flex-1 flex items-center justify-center p-4 min-h-min">
         <div className="max-w-2xl mx-auto">
           {/* Outer decorative frame */}
           <div className="relative bg-[var(--mushaf-frame-bg)] p-1 sm:p-1.5 rounded-sm shadow-xl">

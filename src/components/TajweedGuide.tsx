@@ -126,9 +126,20 @@ export function TajweedGuide({
   isOpen: externalIsOpen,
   onOpenChange,
 }: TajweedGuideProps) {
-  const { tajweedEnabled } = useSettings();
+  const { tajweedEnabled, theme } = useSettings();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<typeof TAJWEED_RULES[0] | null>(null);
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+  );
+
+  // Track desktop breakpoint for styling
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
 
   // Use external control if provided, otherwise internal state
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
@@ -329,13 +340,20 @@ export function TajweedGuide({
       {!hideFloatingButton && (
         <button
           onClick={() => setIsOpen(true)}
-          className={`fixed right-4 z-[56] w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform ${
+          className={`fixed right-4 z-[56] w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform lg:border-2 ${
             isAudioActive ? 'bottom-[5.5rem] lg:bottom-4' : 'bottom-16 lg:bottom-4'
           }`}
+          style={isDesktop && theme === 'dark' ? { borderColor: '#90c070' } : undefined}
           aria-label="Open Tajweed color guide"
           title="Tajweed Color Guide"
         >
-          <svg className="w-5 h-5 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-5 h-5 text-[var(--mushaf-text-secondary)] lg:text-[var(--mushaf-border)]"
+            style={isDesktop && theme === 'dark' ? { color: '#90c070' } : undefined}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </button>

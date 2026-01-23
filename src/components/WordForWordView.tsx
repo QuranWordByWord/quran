@@ -29,6 +29,7 @@ interface WordForWordViewProps {
   onPageChange: (page: number) => void;
   onPlayWord?: (audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
+  onPlaySurah?: (surah: number) => void;
   isAudioActive?: boolean;
   onOpenMenu?: () => void;
   showTranslations?: boolean; // If false, shows traditional mushaf layout without word-by-word translations
@@ -91,6 +92,7 @@ function processVersesToLines(verses: Verse[]): LineContent[] {
         lines.push({
           type: 'bismillah',
           lineNumber: lineNum,
+          surahNumber: surahNum,
         });
       }
     }
@@ -151,6 +153,7 @@ export function WordForWordView({
   onPageChange,
   onPlayWord,
   onPlayVerse,
+  onPlaySurah,
   isAudioActive = false,
   onOpenMenu,
   showTranslations = true,
@@ -182,6 +185,34 @@ export function WordForWordView({
     setSwipeOffset(0);
     setSwipePhase('idle');
   }, [pageNumber]);
+
+  // Keyboard navigation (arrows for page navigation and scrolling)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' && pageNumber > 1) {
+        onPageChange(pageNumber - 1);
+      } else if (e.key === 'ArrowRight' && pageNumber < totalPages) {
+        onPageChange(pageNumber + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        // Scroll the content area
+        const scrollAmount = 100;
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollBy({
+            top: e.key === 'ArrowUp' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth',
+          });
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pageNumber, totalPages, onPageChange]);
 
   // Touch handling for swipe navigation (mobile only)
   useEffect(() => {
@@ -403,10 +434,26 @@ export function WordForWordView({
 
                   if (line.type === 'bismillah') {
                     return (
-                      <div key={`bismillah-${index}`} className="text-center py-2 sm:py-3">
+                      <div
+                        key={`bismillah-${index}`}
+                        className="flex items-center justify-center gap-2 py-2 sm:py-3"
+                        dir="rtl"
+                      >
                         <span className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl text-[var(--mushaf-text-header)]`}>
                           بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                         </span>
+                        {/* Verse marker for playing surah audio */}
+                        {!isPreview && line.surahNumber && (
+                          <button
+                            onClick={() => onPlaySurah?.(line.surahNumber!)}
+                            className="inline-flex items-center justify-center rounded transition-colors hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)] cursor-pointer"
+                            aria-label={`Play Surah ${line.surahNumber}`}
+                          >
+                            <span className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl text-[var(--mushaf-accent)] px-0.5`}>
+                              ۝
+                            </span>
+                          </button>
+                        )}
                       </div>
                     );
                   }

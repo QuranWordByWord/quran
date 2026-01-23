@@ -429,6 +429,11 @@ export class SVGLineRenderer {
           }
         }
 
+        // Mark aya number paths for styling (ensures visibility in dark mode)
+        if (isAyaNumber) {
+          newPath.classList.add('aya-number');
+        }
+
         // Add to word group if available, otherwise to lineGroup
         if (currentWordGroup) {
           currentWordGroup.appendChild(newPath);
