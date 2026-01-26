@@ -151,6 +151,7 @@ export function QuranViewer({
   // Swipe navigation state for single page mode
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipePhase, setSwipePhase] = useState<'idle' | 'dragging' | 'animating'>('idle');
+  const totalPageHeightRef = useRef(0);
 
   // Use controlled scale if provided, otherwise use internal state
   const scale = controlledScale ?? internalScale;
@@ -186,6 +187,7 @@ export function QuranViewer({
   const SWIPE_THRESHOLD = 80; // Min distance to trigger page change (px)
   const SWIPE_RESISTANCE = 0.3; // Resistance factor at boundaries
   const ANIMATION_DURATION = 250; // Transition duration in ms
+  const PAGE_GAP = 16; // Gap between pages during swipe
 
   // Helper to calculate border offset for any scale value
   const calculateBorderOffsetForScale = useCallback((s: number): number => {
@@ -638,29 +640,37 @@ export function QuranViewer({
         const atLastPage = currentPage >= totalPages;
 
         if (shouldChangePage && deltaY > 0 && !atFirstPage) {
-          // Swipe down - update page immediately for seamless transition
+          // Swipe down - go to previous page
           const newPage = currentPage - 1;
-          setCurrentPage(newPage);
+          const targetOffset = totalPageHeightRef.current + PAGE_GAP;
+
+          // Animate swipe to completion (slide previous page into view)
           setSwipePhase('animating');
-          setSwipeOffset(container.clientHeight);
-          // Notify parent (URL update) after animation starts
-          onPageChange?.(newPage);
+          setSwipeOffset(targetOffset);
+
+          // After animation: change page and reset offset instantly
           setTimeout(() => {
-            setSwipeOffset(0);
             setSwipePhase('idle');
+            setCurrentPage(newPage);
+            setSwipeOffset(0);
+            onPageChange?.(newPage);
           }, ANIMATION_DURATION);
 
         } else if (shouldChangePage && deltaY < 0 && !atLastPage) {
-          // Swipe up - update page immediately for seamless transition
+          // Swipe up - go to next page
           const newPage = currentPage + 1;
-          setCurrentPage(newPage);
+          const targetOffset = -(totalPageHeightRef.current + PAGE_GAP);
+
+          // Animate swipe to completion (slide next page into view)
           setSwipePhase('animating');
-          setSwipeOffset(-container.clientHeight);
-          // Notify parent (URL update) after animation starts
-          onPageChange?.(newPage);
+          setSwipeOffset(targetOffset);
+
+          // After animation: change page and reset offset instantly
           setTimeout(() => {
-            setSwipeOffset(0);
             setSwipePhase('idle');
+            setCurrentPage(newPage);
+            setSwipeOffset(0);
+            onPageChange?.(newPage);
           }, ANIMATION_DURATION);
 
         } else {
@@ -848,7 +858,7 @@ export function QuranViewer({
     // Calculate total page height including border for positioning adjacent pages
     const borderOffset = calculateBorderOffsetForScale(scale);
     const totalPageHeight = scaledPageHeight + borderOffset;
-    const PAGE_GAP = 16; // Gap between pages during swipe
+    totalPageHeightRef.current = totalPageHeight;
 
     // Determine which adjacent pages to render during swipe
     const hasPrevPage = displayPage > 1;
@@ -923,7 +933,7 @@ export function QuranViewer({
               position: 'absolute',
               transform: `translate(${panOffset.x}px, ${panOffset.y + swipeOffset - totalPageHeight - PAGE_GAP}px) scale(${gestureTransformScale})`,
               transition: isAnimating
-                ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+                ? `transform ${ANIMATION_DURATION}ms ease-out`
                 : 'none',
               willChange: 'transform',
             }}
@@ -939,7 +949,7 @@ export function QuranViewer({
             transform: `translate(${panOffset.x}px, ${panOffset.y + swipeOffset}px) scale(${gestureTransformScale})`,
             // Transition only during page change animation, none otherwise
             transition: isAnimating
-              ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+              ? `transform ${ANIMATION_DURATION}ms ease-out`
               : 'none',
             willChange: (isGesturing || swipePhase !== 'idle') ? 'transform' : 'auto',
           }}
@@ -954,7 +964,7 @@ export function QuranViewer({
               position: 'absolute',
               transform: `translate(${panOffset.x}px, ${panOffset.y + swipeOffset + totalPageHeight + PAGE_GAP}px) scale(${gestureTransformScale})`,
               transition: isAnimating
-                ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`
+                ? `transform ${ANIMATION_DURATION}ms ease-out`
                 : 'none',
               willChange: 'transform',
             }}

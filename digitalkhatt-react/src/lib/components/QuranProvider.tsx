@@ -24,7 +24,6 @@ import {
   isEngineCompatibleWithLayout,
   getAvailableEnginesForLayout,
   ENGINE_DISPLAY_NAMES,
-  clearFontCache,
   clearJustificationCache,
   glyphCache,
 } from '@digitalkhatt/quran-engine';
@@ -194,6 +193,10 @@ export function QuranProvider({ wasmUrl, fonts: fontUrls, quranText, tajweedColo
     setCustomTajweedColors(prev => ({ ...prev, ...colors }));
   }, []);
 
+  // Track previous font URLs to detect actual script changes
+  const prevFontUrlsRef = React.useRef<string | null>(null);
+  const currentFontUrlsKey = JSON.stringify(fontUrls);
+
   // Initialize engine
   useEffect(() => {
     let cancelled = false;
@@ -202,10 +205,16 @@ export function QuranProvider({ wasmUrl, fonts: fontUrls, quranText, tajweedColo
       setStatus('loading');
       setError(null);
 
-      // Clear global caches to ensure clean state when switching mushaf types
-      clearFontCache();
-      clearJustificationCache();
-      glyphCache.clear();
+      // Only clear justification and glyph caches when mushaf script actually changes
+      // (detected by fontUrls change). Font cache is NOT cleared because loadAndCacheFont
+      // already handles caching by font name, and re-downloading fonts on every mount
+      // caused loading issues when navigating between views.
+      const fontUrlsChanged = prevFontUrlsRef.current !== null && prevFontUrlsRef.current !== currentFontUrlsKey;
+      if (fontUrlsChanged) {
+        clearJustificationCache();
+        glyphCache.clear();
+      }
+      prevFontUrlsRef.current = currentFontUrlsKey;
 
       try {
         // 1. Load HarfBuzz WASM
