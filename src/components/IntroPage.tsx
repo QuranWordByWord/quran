@@ -49,8 +49,10 @@ export function IntroPage({ onStartReading }: IntroPageProps) {
                   <div className="text-center space-y-4 mb-8">
                     <p className="text-[var(--mushaf-text)] leading-relaxed">
                       Word-by-word Quran with translations and audio recitation.
-                      Click on any line to reveal word meanings. <br/>
-                      Double-click words to hear pronunciation, or click on the verse number to hear the verse. 
+                      Click on any line to reveal word meanings.
+                    </p>
+                    <p className="text-[var(--mushaf-text)] leading-relaxed">
+                      Bookmark any page to continue where you left off.
                     </p>
 
                     <div className="flex flex-wrap justify-center gap-4 text-sm text-[var(--mushaf-text-secondary)]">

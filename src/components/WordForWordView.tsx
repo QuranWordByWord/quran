@@ -35,8 +35,8 @@ interface WordForWordViewProps {
   showTranslations?: boolean; // If false, shows traditional mushaf layout without word-by-word translations
   highlightedVerseKey?: string | null; // Verse key to highlight (e.g., "1:5")
   onHighlightVerse?: (verseKey: string | null) => void; // Callback to set highlighted verse
-  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number } | null; // Word to highlight (shared with Mushaf view)
-  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void; // Callback to set highlighted word
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null; // Word to highlight (shared with Mushaf view)
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null) => void; // Callback to set highlighted word
   // Adjacent page data for swipe preview
   prevPageVerses?: Verse[] | null;
   nextPageVerses?: Verse[] | null;
@@ -676,8 +676,8 @@ function MushafLine({
   justified?: boolean;
   highlightedVerseKey?: string | null;
   onHighlightVerse?: (verseKey: string | null) => void;
-  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number } | null;
-  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void;
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null;
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null) => void;
   currentPageNumber: number; // Current page being viewed, used as fallback for word.page_number
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -698,7 +698,8 @@ function MushafLine({
     setIsExpanded(true);
     onHighlightVerse?.(null); // Clear verse highlight
     // Use word's page_number if available, otherwise use current page being viewed
-    onHighlightWord?.({ verseKey, wordPosition, pageNumber: pageNumber ?? currentPageNumber });
+    // Include sourceView to enable proper page conversion when switching views
+    onHighlightWord?.({ verseKey, wordPosition, pageNumber: pageNumber ?? currentPageNumber, sourceView: 'wordforword' });
     if (audioUrl) {
       onPlayWord?.(audioUrl);
     }
@@ -798,8 +799,8 @@ function TraditionalMushafLine({
   fontClass: string;
   highlightedVerseKey?: string | null;
   onHighlightVerse?: (verseKey: string | null) => void;
-  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number } | null;
-  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void;
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null;
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null) => void;
   currentPageNumber: number; // Current page being viewed, used as fallback for word.page_number
 }) {
   const { format: verseNumberFormat } = useVerseNumberFormat();
@@ -815,7 +816,8 @@ function TraditionalMushafLine({
       // Click on word plays the word audio and highlights the word
       onHighlightVerse?.(null); // Clear verse highlight
       // Use word's page_number if available, otherwise use current page being viewed
-      onHighlightWord?.({ verseKey, wordPosition: word.position, pageNumber: word.page_number ?? currentPageNumber });
+      // Include sourceView to enable proper page conversion when switching views
+      onHighlightWord?.({ verseKey, wordPosition: word.position, pageNumber: word.page_number ?? currentPageNumber, sourceView: 'wordforword' });
       onPlayWord?.(word.audio_url);
     }
   };

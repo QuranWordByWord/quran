@@ -150,6 +150,8 @@ export function QuranPage({
   const prevSvgHighlightGroupsRef = useRef<SVGHighlightGroup[]>([]);
   // Track if aya glyph SVG is mounted
   const [ayaGlyphMounted, setAyaGlyphMounted] = useState(false);
+  // Track render completion to trigger highlight re-application after DOM is ready
+  const [renderVersion, setRenderVersion] = useState(0);
 
   const { status, isReady, getTextService, getVerseMapping, getSVGPageRenderer, getCSSPageRenderer, applyTajweed, engineType, fontScale: contextFontScale } = useDigitalKhatt();
 
@@ -411,6 +413,9 @@ export function QuranPage({
       // Store word elements for highlighting
       wordElementsRef.current = result.wordElements || null;
       wordGroupElementsRef.current = result.wordGroupElements || null;
+
+      // Trigger highlight re-application after render completes
+      setRenderVersion(v => v + 1);
     } else if (useCSSEngine && cssRenderer) {
       // CSS Engine rendering
       const result = cssRenderer.renderPage(pageIndex, viewport, {
@@ -434,6 +439,9 @@ export function QuranPage({
 
       // Store word elements for highlighting
       wordElementsRef.current = result.wordElements || null;
+
+      // Trigger highlight re-application after render completes
+      setRenderVersion(v => v + 1);
     }
 
     // Notify completion
@@ -468,9 +476,10 @@ export function QuranPage({
     ayaGlyphMounted,
   ]);
 
-  // Apply highlights when highlightGroups change
+  // Apply highlights when highlightGroups change or after render completes
   useEffect(() => {
-    if (!wordElementsRef.current) {
+    // Skip if refs haven't been populated yet
+    if (!wordElementsRef.current || wordElementsRef.current.size === 0) {
       return;
     }
 
@@ -488,7 +497,7 @@ export function QuranPage({
       // CSS renderer uses the same highlight format
       cssRenderer.applyHighlights(wordElementsRef.current as Map<string, HTMLElement>, svgHighlightGroups as CSSHighlightGroup[], pageIndex);
     }
-  }, [svgHighlightGroups, svgRenderer, cssRenderer, usesSVGEngine, useCSSEngine, pageNumber]);
+  }, [svgHighlightGroups, svgRenderer, cssRenderer, usesSVGEngine, useCSSEngine, pageNumber, renderVersion]);
 
   // Loading state
   if (status === 'loading') {

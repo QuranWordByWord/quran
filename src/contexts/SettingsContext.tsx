@@ -60,9 +60,11 @@ interface SettingsContextType {
 
   // Highlighted word (shared between views, session-only, not persisted)
   // Uses verseKey + wordPosition as common identifier that both views can map to/from
-  // pageNumber is the API page (610-page system) for navigation when switching views
-  highlightedWordInfo: { verseKey: string; wordPosition: number; pageNumber?: number } | null;
-  setHighlightedWordInfo: (info: { verseKey: string; wordPosition: number; pageNumber?: number } | null) => void;
+  // pageNumber is the UI page number from the source view (varies by view/script)
+  // sourceView tracks which view set the highlight for proper page conversion
+  // sourceScript tracks the mushaf script if sourceView is 'mushaf'
+  highlightedWordInfo: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null;
+  setHighlightedWordInfo: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null) => void;
 
   // Bulk update
   updateSettings: (partial: Partial<AppSettings>) => void;
@@ -92,7 +94,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   // Session-only state for highlighted verse (shared between views, not persisted)
   const [highlightedVerseKey, setHighlightedVerseKey] = useState<string | null>(null);
   // Session-only state for highlighted word (shared between views, not persisted)
-  const [highlightedWordInfo, setHighlightedWordInfo] = useState<{ verseKey: string; wordPosition: number; pageNumber?: number } | null>(null);
+  const [highlightedWordInfo, setHighlightedWordInfo] = useState<{ verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null>(null);
 
   // Persist settings whenever they change
   useEffect(() => {

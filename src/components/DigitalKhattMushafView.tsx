@@ -287,8 +287,8 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         const wordAudioUrl = `wbw/${paddedChapter}_${paddedVerse}_${paddedPosition}.mp3`;
 
         // Highlight the clicked word using shared state (verseKey + wordPosition + pageNumber)
-        // pageNumber is stored as UI page (from URL) for consistent navigation when switching views
-        setHighlightedWordInfo({ verseKey, wordPosition, pageNumber: page });
+        // pageNumber is stored as UI page (from URL), sourceView/sourceScript enable proper conversion
+        setHighlightedWordInfo({ verseKey, wordPosition, pageNumber: page, sourceView: 'mushaf', sourceScript: mushafScript });
         setHighlightedVerseKey(null); // Clear verse highlight for word playback
         audioRef.current.playWord(wordAudioUrl);
         return;
@@ -434,7 +434,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         {/* Mushaf content */}
         <div
           ref={scrollContainerRef}
-          className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-start pt-1 overflow-visible' : 'h-full'} ${isAudioActive ? 'pb-20 lg:pb-24' : ''}`}
+          className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-start pt-1 overflow-visible' : 'h-full'}`}
         >
           {isMobile ? (
             /* Mobile view - single page mode, page fits exactly on screen */
@@ -472,6 +472,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               backgroundColor={theme === 'dark' ? '#1a1a1a' : '#f5f5f0'}
               pageGap={30}
               showBorder={true}
+              freeScroll={true}
               highlightGroups={highlightGroups}
               onWordClick={handleWordClick}
               onVerseClick={handleVerseClick}

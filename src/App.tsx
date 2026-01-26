@@ -221,7 +221,7 @@ function ViewModeToggle({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { mushafScript, highlightedVerseKey, highlightedWordInfo } = useSettings();
+  const { mushafScript } = useSettings();
 
   // Extract current page number and view mode from URL
   const getCurrentPageAndMode = (): { page: number; currentMode: ViewMode } => {
@@ -233,28 +233,18 @@ function ViewModeToggle({
   };
 
   const handleChange = (newMode: ViewMode) => {
+    // If already in the requested mode, do nothing (don't navigate/jump)
+    if (newMode === mode) {
+      return;
+    }
+
     onModeChange(newMode);
 
-    let targetPage: number;
-
-    // If we have a highlighted word with a stored page number, use that for precise navigation
-    if (highlightedWordInfo?.pageNumber) {
-      // pageNumber is stored as UI page (consistent from both views)
-      if (newMode === 'wordforword') {
-        targetPage = highlightedWordInfo.pageNumber;
-      } else {
-        // Mushaf view: convert from Word-by-Word page if using different script
-        targetPage = convertPageBetweenViews(highlightedWordInfo.pageNumber, 'wordforword', 'mushaf', mushafScript);
-      }
-    } else if (highlightedVerseKey) {
-      // If there's only a verse highlight (no word), go to surah start page
-      const [surah] = highlightedVerseKey.split(':').map(Number);
-      targetPage = getSurahStartPage(surah, newMode, mushafScript);
-    } else {
-      // No highlight - convert current page
-      const { page: currentPage, currentMode } = getCurrentPageAndMode();
-      targetPage = convertPageBetweenViews(currentPage, currentMode, newMode, mushafScript);
-    }
+    // Always use current page from URL for navigation
+    // This ensures the user stays on the equivalent page when switching views
+    // (Highlight info is only used for displaying highlights, not for navigation)
+    const { page: currentPage, currentMode } = getCurrentPageAndMode();
+    const targetPage = convertPageBetweenViews(currentPage, currentMode, newMode, mushafScript);
 
     if (newMode === 'mushaf') {
       navigate(`/mushaf/${targetPage}`);

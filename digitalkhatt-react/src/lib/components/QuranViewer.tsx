@@ -90,6 +90,10 @@ export interface QuranViewerProps {
   /** Display only one page at a time, fitting to container (for mobile) */
   singlePageMode?: boolean;
 
+  // Free scroll mode
+  /** Disable onPageChange during scroll (for desktop free scrolling) */
+  freeScroll?: boolean;
+
   /** Custom class name */
   className?: string;
   /** Custom style */
@@ -128,6 +132,7 @@ export function QuranViewer({
   overscanPages = 2,
   showBorder = false,
   singlePageMode = false,
+  freeScroll = false,
   className,
   style,
 }: QuranViewerProps) {
@@ -279,14 +284,23 @@ export function QuranViewer({
       // This prevents unwanted navigation and state changes when zooming in/out or browser zoom changes
       if (!isTransitioningRef.current) {
         setCurrentPage(newCurrentPage);
-        onPageChange?.(newCurrentPage);
+        // Only fire onPageChange if not in freeScroll mode (allows desktop free scrolling)
+        if (!freeScroll) {
+          onPageChange?.(newCurrentPage);
+        }
       }
     }
-  }, [singlePageMode, pageHeight, scale, pageGap, totalBorderOffset, overscanPages, totalPages, currentPage, onPageChange]);
+  }, [singlePageMode, pageHeight, scale, pageGap, totalBorderOffset, overscanPages, totalPages, currentPage, onPageChange, freeScroll]);
 
-  // Set initial scroll position on mount (multi-page mode only)
+  // Track previous singlePageMode to detect mode transitions
+  const prevSinglePageModeRef = useRef(singlePageMode);
+
+  // Set initial scroll position on mount AND when transitioning from single-page to scroll mode
   // This must run before we allow onPageChange to fire
   useEffect(() => {
+    const wasInSinglePageMode = prevSinglePageModeRef.current;
+    prevSinglePageModeRef.current = singlePageMode;
+
     if (singlePageMode) {
       // In single page mode, no scrolling needed - clear the flag immediately
       requestAnimationFrame(() => {
@@ -298,12 +312,19 @@ export function QuranViewer({
     const container = containerRef.current;
     if (!container) return;
 
-    // Set initial scroll position to center the initial page
+    // Set scroll position to center the current page
+    // Use initialPage (from URL) as the source of truth
+    const targetPage = initialPage;
     const scaledPageHeight = pageHeight * scale + totalBorderOffset + pageGap;
-    const pageTop = (initialPage - 1) * scaledPageHeight;
+    const pageTop = (targetPage - 1) * scaledPageHeight;
     const viewportHeight = container.clientHeight;
     const pageWithBorderHeight = pageHeight * scale + totalBorderOffset;
     const scrollTop = Math.max(0, pageTop - (viewportHeight - pageWithBorderHeight) / 2);
+
+    // When transitioning from single-page mode to scroll mode, suppress onPageChange during scroll adjustment
+    if (wasInSinglePageMode) {
+      isTransitioningRef.current = true;
+    }
 
     container.scrollTop = scrollTop;
 
@@ -313,8 +334,7 @@ export function QuranViewer({
         isTransitioningRef.current = false;
       });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+  }, [singlePageMode, initialPage, pageHeight, scale, totalBorderOffset, pageGap]);
 
   // Handle scroll events
   useEffect(() => {
@@ -350,6 +370,12 @@ export function QuranViewer({
     if (singlePageMode) return;
 
     const resizeObserver = new ResizeObserver(() => {
+      // In freeScroll mode, don't snap to initialPage - just recalculate visible range
+      if (freeScroll) {
+        calculateVisibleRange();
+        return;
+      }
+
       // Suppress onPageChange during resize to prevent unwanted navigation
       // (e.g., when browser zoom changes)
       isTransitioningRef.current = true;
@@ -381,7 +407,7 @@ export function QuranViewer({
 
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
-  }, [calculateVisibleRange, singlePageMode, pageHeight, scale, totalBorderOffset, pageGap]);
+  }, [calculateVisibleRange, singlePageMode, freeScroll, pageHeight, scale, totalBorderOffset, pageGap]);
 
   // Track previous values to detect external changes
   const prevInitialPageRef = useRef(initialPage);
