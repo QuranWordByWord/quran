@@ -601,6 +601,7 @@ export function DigitalKhattMushafView({ onOpenMenu }: DigitalKhattMushafViewPro
     return (
       <IntroPage
         onStartReading={() => navigate('/mushaf/2')}
+        variant="mushaf"
       />
     );
   }
