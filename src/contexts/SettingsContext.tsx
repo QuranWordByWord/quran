@@ -63,8 +63,8 @@ interface SettingsContextType {
   // pageNumber is the UI page number from the source view (varies by view/script)
   // sourceView tracks which view set the highlight for proper page conversion
   // sourceScript tracks the mushaf script if sourceView is 'mushaf'
-  highlightedWordInfo: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null;
-  setHighlightedWordInfo: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null) => void;
+  highlightedWordInfo: { verseKey: string; wordPosition: number; wordCoords?: { page: number; line: number; word: number }; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null;
+  setHighlightedWordInfo: (info: { verseKey: string; wordPosition: number; wordCoords?: { page: number; line: number; word: number }; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null) => void;
 
   // Bulk update
   updateSettings: (partial: Partial<AppSettings>) => void;
@@ -94,7 +94,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   // Session-only state for highlighted verse (shared between views, not persisted)
   const [highlightedVerseKey, setHighlightedVerseKey] = useState<string | null>(null);
   // Session-only state for highlighted word (shared between views, not persisted)
-  const [highlightedWordInfo, setHighlightedWordInfo] = useState<{ verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null>(null);
+  const [highlightedWordInfo, setHighlightedWordInfo] = useState<{ verseKey: string; wordPosition: number; wordCoords?: { page: number; line: number; word: number }; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null>(null);
 
   // Persist settings whenever they change
   useEffect(() => {

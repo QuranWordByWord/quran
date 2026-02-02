@@ -233,9 +233,10 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         const paddedPosition = String(wordPosition).padStart(3, '0');
         const wordAudioUrl = `wbw/${paddedChapter}_${paddedVerse}_${paddedPosition}.mp3`;
 
-        // Highlight the clicked word using shared state (verseKey + wordPosition + pageNumber)
-        // pageNumber is stored as UI page (from URL), sourceView/sourceScript enable proper conversion
-        setHighlightedWordInfo({ verseKey, wordPosition, pageNumber: page, sourceView: 'mushaf', sourceScript: mushafScript });
+        // Store word coordinates directly for reliable highlighting
+        // This avoids issues with re-lookup when page/verse spans multiple pages
+        const wordCoords = verseWords[wordPosition - 1];
+        setHighlightedWordInfo({ verseKey, wordPosition, wordCoords, pageNumber: page, sourceView: 'mushaf', sourceScript: mushafScript });
         setHighlightedVerseKey(null); // Clear verse highlight for word playback
         audioRef.current.playWord(wordAudioUrl);
         return;
@@ -326,12 +327,25 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
       const [surah, ayah] = highlightedWordInfo.verseKey.split(':').map(Number);
       let wordHighlighted = false;
 
-      // Try to find exact word coordinates in DigitalKhatt mapping
-      if (verseMapping) {
+      // Use stored coords only if from same mushaf script (coords are layout-specific)
+      const storedCoords = highlightedWordInfo.wordCoords;
+      const canUseStoredCoords =
+        storedCoords &&
+        highlightedWordInfo.sourceView === 'mushaf' &&
+        highlightedWordInfo.sourceScript === mushafScript;
+
+      if (canUseStoredCoords && storedCoords) {
+        // Use stored coordinates directly (same script, no re-lookup needed)
+        groups.push({
+          words: [storedCoords],
+          color: highlightColor,
+        });
+        wordHighlighted = true;
+      } else if (verseMapping) {
+        // Re-lookup for: different script, word-for-word view, or missing wordCoords
         const verseWords = getWordsForVerse(verseMapping, surah, ayah);
         const wordCoords = verseWords[highlightedWordInfo.wordPosition - 1]; // wordPosition is 1-indexed
         // Only use word highlight if the word is on the current page
-        // API word positions may not match DigitalKhatt's mapping, which could point to wrong page
         if (wordCoords && wordCoords.page === pageIndex) {
           groups.push({
             words: [wordCoords],
@@ -351,7 +365,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     }
 
     return groups;
-  }, [highlightedVerseKey, highlightedWordInfo, verseMapping, theme, pageIndex]);
+  }, [highlightedVerseKey, highlightedWordInfo, verseMapping, theme, pageIndex, mushafScript]);
 
   if (!isReady) {
     return (

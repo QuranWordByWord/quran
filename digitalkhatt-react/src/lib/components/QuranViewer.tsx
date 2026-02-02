@@ -466,18 +466,6 @@ export function QuranViewer({
       // Get viewport dimensions for center-based calculation
       const viewportHeight = container.clientHeight;
       const scrollTop = container.scrollTop;
-      const scrollHeight = container.scrollHeight;
-
-      // DEBUG: Log values to understand the jump
-      console.log('[QuranViewer] Scale change:', {
-        prevScale,
-        newScale: scale,
-        scrollTop,
-        scrollHeight,
-        viewportHeight,
-        prevScaledPageHeight,
-        newScaledPageHeight,
-      });
 
       // Calculate the center point of the viewport in document coordinates
       const centerY = scrollTop + viewportHeight / 2;
@@ -488,16 +476,8 @@ export function QuranViewer({
       // Calculate where that same fractional page position should be after zoom
       const newCenterY = pageAtCenter * newScaledPageHeight;
 
-      // Calculate new scroll position
+      // Calculate new scroll position to keep content centered
       const newScrollTop = newCenterY - viewportHeight / 2;
-
-      console.log('[QuranViewer] Scroll adjustment:', {
-        centerY,
-        pageAtCenter,
-        newCenterY,
-        newScrollTop,
-        currentPage: Math.floor(pageAtCenter) + 1,
-      });
 
       // Adjust scroll so the same content remains at the center of the viewport
       container.scrollTop = newScrollTop;
