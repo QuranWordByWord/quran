@@ -139,10 +139,12 @@ export const chapters = chapterData.map(ch => ({
 
 interface ChapterQuickLinksProps {
   side: 'left' | 'right';
+  /** When true, sidebar is hidden. Uses zoom-compensated detection to prevent layout jumps during zoom. */
+  isMobile?: boolean;
 }
 
 // Desktop sidebar component - hidden on mobile
-export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
+export function ChapterQuickLinks({ side, isMobile }: ChapterQuickLinksProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { bookmarks } = useBookmarks();
@@ -173,9 +175,20 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
     }
   };
 
+  // If isMobile is explicitly passed and true, hide the sidebar
+  // If isMobile is false (desktop), always show regardless of CSS breakpoint
+  // If isMobile is undefined, fall back to CSS breakpoint behavior (hidden lg:block)
+  if (isMobile === true) {
+    return null;
+  }
+
+  // When isMobile is explicitly false, use 'block' to override CSS breakpoint
+  // When isMobile is undefined, use 'hidden lg:block' for CSS-based responsiveness
+  const visibilityClass = isMobile === false ? 'block' : 'hidden lg:block';
+
   return (
     <nav
-      className="hidden lg:block w-44 xl:w-48 bg-[var(--color-bg-card)] border-x border-[var(--color-border)] h-[calc(100vh-64px)] overflow-y-auto text-sm shrink-0"
+      className={`${visibilityClass} w-44 xl:w-48 bg-[var(--color-bg-card)] border-x border-[var(--color-border)] h-[calc(100vh-64px)] overflow-y-auto text-sm shrink-0`}
       aria-label={`Chapters ${side === 'left' ? '1 to 57' : '58 to 114'}`}
       role="navigation"
     >

@@ -5,7 +5,7 @@
  * Uses SVG rendering via QuranPage components.
  */
 
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
 import type { MushafLayoutTypeString, WordClickInfo, VerseClickInfo, HighlightGroup } from '../core/types';
 import type { VerseNumberFormat } from '@digitalkhatt/quran-engine';
 import { MemoizedQuranPage } from './QuranPage';
@@ -362,6 +362,8 @@ export function QuranViewer({
   initialPageForResizeRef.current = initialPage;
 
   // Recalculate on resize (e.g., browser zoom, window resize)
+  // Note: We skip resize handling during scale transitions (isTransitioningRef is true)
+  // because the scale change effect already handles scroll position adjustment
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -370,7 +372,13 @@ export function QuranViewer({
     if (singlePageMode) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      // In freeScroll mode, don't snap to initialPage - just recalculate visible range
+      // Skip if we're already in a scale transition - the scale change effect handles this
+      if (isTransitioningRef.current) {
+        return;
+      }
+
+      // In freeScroll mode, just recalculate visible range
+      // Scroll position is maintained by the scale change effect
       if (freeScroll) {
         calculateVisibleRange();
         return;
@@ -420,7 +428,8 @@ export function QuranViewer({
   scaleRef.current = scale;
 
   // Maintain current page position when scale changes externally
-  useEffect(() => {
+  // Use useLayoutEffect to adjust scroll BEFORE browser paints, preventing visual jump
+  useLayoutEffect(() => {
     if (scale !== prevScaleRef.current) {
       const prevScale = prevScaleRef.current;
       prevScaleRef.current = scale;
@@ -454,12 +463,44 @@ export function QuranViewer({
       const prevScaledPageHeight = pageHeight * prevScale + prevBorderOffset + pageGap;
       const newScaledPageHeight = pageHeight * scale + totalBorderOffset + pageGap;
 
-      // Get the current fractional page position from scroll
+      // Get viewport dimensions for center-based calculation
+      const viewportHeight = container.clientHeight;
       const scrollTop = container.scrollTop;
-      const pageAtTop = scrollTop / prevScaledPageHeight;
+      const scrollHeight = container.scrollHeight;
 
-      // Adjust scroll to maintain the same fractional page position
-      container.scrollTop = pageAtTop * newScaledPageHeight;
+      // DEBUG: Log values to understand the jump
+      console.log('[QuranViewer] Scale change:', {
+        prevScale,
+        newScale: scale,
+        scrollTop,
+        scrollHeight,
+        viewportHeight,
+        prevScaledPageHeight,
+        newScaledPageHeight,
+      });
+
+      // Calculate the center point of the viewport in document coordinates
+      const centerY = scrollTop + viewportHeight / 2;
+
+      // Convert to fractional page position at the center
+      const pageAtCenter = centerY / prevScaledPageHeight;
+
+      // Calculate where that same fractional page position should be after zoom
+      const newCenterY = pageAtCenter * newScaledPageHeight;
+
+      // Calculate new scroll position
+      const newScrollTop = newCenterY - viewportHeight / 2;
+
+      console.log('[QuranViewer] Scroll adjustment:', {
+        centerY,
+        pageAtCenter,
+        newCenterY,
+        newScrollTop,
+        currentPage: Math.floor(pageAtCenter) + 1,
+      });
+
+      // Adjust scroll so the same content remains at the center of the viewport
+      container.scrollTop = newScrollTop;
 
       // Recalculate visible range after scale change, then clear the flag
       requestAnimationFrame(() => {

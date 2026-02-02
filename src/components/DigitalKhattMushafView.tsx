@@ -15,6 +15,7 @@ import { quranText as newMadinahText } from '../../digitalkhatt-react/src/lib/da
 import { quranText as oldMadinahText } from '../../digitalkhatt-react/src/lib/data/quran_text_old_madinah';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAudio } from '../hooks/useAudio';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { useMobileNav } from '../contexts/MobileNavContext';
 import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
@@ -44,60 +45,6 @@ const QURAN_TEXT = {
 // ============================================
 // Hooks
 // ============================================
-
-// Hook to detect if we're on mobile (respects layoutMode setting)
-// Uses zoom-compensated viewport width to prevent mode switching during browser zoom
-function useIsMobile(layoutMode: 'auto' | 'desktop' | 'mobile' = 'auto') {
-  // Capture the base devicePixelRatio on initial load (before any zoom changes)
-  const baseDprRef = useRef<number | null>(null);
-
-  const [isMobile, setIsMobile] = useState(() => {
-    if (layoutMode === 'desktop') return false;
-    if (layoutMode === 'mobile') return true;
-    if (typeof window === 'undefined') return false;
-
-    // Initialize baseDpr
-    baseDprRef.current = window.devicePixelRatio;
-    return window.innerWidth < 1024;
-  });
-
-  useEffect(() => {
-    if (layoutMode === 'desktop') {
-      setIsMobile(false);
-      return;
-    }
-    if (layoutMode === 'mobile') {
-      setIsMobile(true);
-      return;
-    }
-
-    // Initialize baseDpr if not set
-    if (baseDprRef.current === null) {
-      baseDprRef.current = window.devicePixelRatio;
-    }
-
-    const checkMobile = () => {
-      const baseDpr = baseDprRef.current ?? 1;
-      const currentDpr = window.devicePixelRatio;
-
-      // Calculate zoom factor relative to initial page load
-      // If user zoomed in, currentDpr > baseDpr
-      const zoomFactor = currentDpr / baseDpr;
-
-      // Compensate for zoom: multiply innerWidth by zoom factor
-      // to get the "original" width before zoom was applied
-      const compensatedWidth = window.innerWidth * zoomFactor;
-
-      setIsMobile(compensatedWidth < 1024);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, [layoutMode]);
-
-  return isMobile;
-}
 
 // Hook to track window dimensions for responsive layout
 // Uses a stable height reference to prevent layout shifts when mobile browser UI appears/disappears

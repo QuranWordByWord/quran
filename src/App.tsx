@@ -13,6 +13,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { usePage } from './hooks/usePage';
 import { useSearch } from './hooks/useSearch';
 import { useAudio } from './hooks/useAudio';
+import { useIsMobile } from './hooks/useIsMobile';
 import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { BookmarkProvider } from './contexts/BookmarkContext';
@@ -525,8 +526,13 @@ function AppContentInner() {
     mushafScript, setMushafScript,
     tajweedEnabled, setTajweedEnabled,
     mushafZoom, setMushafZoom,
-    mushafFontScale, setMushafFontScale
+    mushafFontScale, setMushafFontScale,
+    layoutMode
   } = useSettings();
+
+  // Use zoom-compensated mobile detection for sidebar visibility
+  // This ensures sidebars don't flicker during zoom changes
+  const isMobile = useIsMobile(layoutMode);
 
   const openMenu = () => setIsMenuOpen(true);
 
@@ -591,7 +597,7 @@ function AppContentInner() {
           </Header>
 
         <div className="flex min-h-0 lg:flex-1 lg:overflow-hidden">
-          <ChapterQuickLinks side="left" />
+          <ChapterQuickLinks side="left" isMobile={isMobile} />
 
           <main id="main-content" className="flex-1 min-w-0 overflow-hidden" role="main" aria-label="Quran content">
             <Routes>
@@ -616,7 +622,7 @@ function AppContentInner() {
             </Routes>
           </main>
 
-          <ChapterQuickLinks side="right" />
+          <ChapterQuickLinks side="right" isMobile={isMobile} />
         </div>
 
         {/* Mobile chapter selector menu - used for both views */}
