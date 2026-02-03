@@ -17,6 +17,7 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { BookmarkProvider } from './contexts/BookmarkContext';
+import { FavoriteJuzProvider } from './contexts/FavoriteJuzContext';
 import { ToastProvider } from './components/Toast';
 import { convertPageBetweenViews, getSurahStartPage, convertPageBetweenMushafScripts } from './utils/pageToSurah';
 import { MUSHAF_SCRIPTS } from './config/constants';
@@ -651,10 +652,12 @@ function App() {
       <BrowserRouter basename="/quran">
         <SettingsProvider>
           <BookmarkProvider>
-            <ToastProvider>
-              <OfflineIndicator />
-              <AppContent />
-            </ToastProvider>
+            <FavoriteJuzProvider>
+              <ToastProvider>
+                <OfflineIndicator />
+                <AppContent />
+              </ToastProvider>
+            </FavoriteJuzProvider>
           </BookmarkProvider>
         </SettingsProvider>
       </BrowserRouter>

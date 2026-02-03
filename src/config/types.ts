@@ -51,6 +51,13 @@ export interface Bookmark {
   label?: string;                          // Optional custom label
 }
 
+// Favorite Juz data structure
+export interface FavoriteJuz {
+  id: string;                              // Unique ID (timestamp-based)
+  juzNumber: number;                       // Juz number (1-30)
+  createdAt: number;                       // Unix timestamp
+}
+
 // Mushaf script type for DigitalKhatt renderer
 export type MushafScript = 'indoPak15' | 'newMadinah' | 'oldMadinah';
 
@@ -88,4 +95,6 @@ export interface StorageKeys {
   verseNumberFormat: string;
   bookmarks: string;
   bookmarksSidebarExpanded: string;
+  favoriteJuz: string;
+  favoriteJuzSidebarExpanded: string;
 }

@@ -55,4 +55,6 @@ export const STORAGE_KEYS: StorageKeys = {
   verseNumberFormat: 'verseNumberFormat',
   bookmarks: 'quran-app-bookmarks',
   bookmarksSidebarExpanded: 'quran-bookmarks-sidebar-expanded',
+  favoriteJuz: 'quran-app-favorite-juz',
+  favoriteJuzSidebarExpanded: 'quran-favorite-juz-sidebar-expanded',
 };

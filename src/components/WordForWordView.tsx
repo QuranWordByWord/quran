@@ -466,6 +466,7 @@ export function WordForWordView({
                         lineNumber={line.lineNumber}
                         onPlayWord={isPreview ? undefined : onPlayWord}
                         onPlayVerse={isPreview ? undefined : onPlayVerse}
+                        onPlaySurah={isPreview ? undefined : onPlaySurah}
                         fontClass={fontClass}
                         justified={pageNum <= 3}
                         highlightedVerseKey={isPreview ? null : highlightedVerseKey}
@@ -660,6 +661,7 @@ function MushafLine({
   words,
   onPlayWord,
   onPlayVerse,
+  onPlaySurah,
   fontClass,
   justified = false,
   highlightedVerseKey,
@@ -672,6 +674,7 @@ function MushafLine({
   lineNumber: number;
   onPlayWord?: (audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
+  onPlaySurah?: (surah: number) => void;
   fontClass: string;
   justified?: boolean;
   highlightedVerseKey?: string | null;
@@ -747,6 +750,7 @@ function MushafLine({
                 surahNumber={item.surahNumber}
                 onWordClick={(wordPosition, audioUrl, pageNumber) => handleWordClick(verseKey, wordPosition, audioUrl, pageNumber)}
                 onPlayVerse={onPlayVerse}
+                onPlaySurah={onPlaySurah}
                 onHighlightVerse={handleVerseHighlight}
                 fontClass={fontClass}
                 isVerseHighlighted={isVerseHighlighted}
@@ -903,6 +907,7 @@ function WordCell({
   surahNumber,
   onWordClick,
   onPlayVerse,
+  onPlaySurah,
   onHighlightVerse,
   fontClass,
   isVerseHighlighted = false,
@@ -913,6 +918,7 @@ function WordCell({
   surahNumber: number;
   onWordClick?: (wordPosition: number, audioUrl: string | null, pageNumber?: number) => void;
   onPlayVerse?: (verseKey: string) => void;
+  onPlaySurah?: (surah: number) => void;
   onHighlightVerse?: (verseKey: string | null) => void;
   fontClass: string;
   isVerseHighlighted?: boolean;
@@ -935,7 +941,14 @@ function WordCell({
       // Click on end marker plays the whole verse and highlights it
       const verseKey = `${surahNumber}:${verseNumber}`;
       onHighlightVerse?.(verseKey);
-      onPlayVerse?.(verseKey);
+
+      // Special case: clicking verse 1 of Surah Al-Fatiha plays the whole surah
+      // (matching behavior of Bismillah line in other surahs)
+      if (surahNumber === 1 && verseNumber === 1) {
+        onPlaySurah?.(1);
+      } else {
+        onPlayVerse?.(verseKey);
+      }
     } else {
       // Click on word: show translations and play audio, highlight the word
       onWordClick?.(word.position, word.audio_url || null, word.page_number);

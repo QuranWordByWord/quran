@@ -4,8 +4,11 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
 import { useBookmarks } from '../contexts/BookmarkContext';
+import { useFavoriteJuz } from '../contexts/FavoriteJuzContext';
 import { BookmarkList } from './BookmarkList';
+import { JuzList } from './JuzList';
 import { loadSidebarExpanded, saveSidebarExpanded } from '../utils/bookmarkStorage';
+import { loadJuzSidebarExpanded, saveJuzSidebarExpanded } from '../utils/favoriteJuzStorage';
 import { convertPageBetweenViews, getSurahStartPage, convertPageBetweenMushafScripts } from '../utils/pageToSurah';
 import type { MushafScript } from '../config/types';
 import { MUSHAF_SCRIPTS, MUSHAF_PAGE_COUNTS } from '../config/constants';
@@ -148,13 +151,20 @@ export function ChapterQuickLinks({ side, isMobile }: ChapterQuickLinksProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { bookmarks } = useBookmarks();
+  const { favoriteJuz } = useFavoriteJuz();
   const { mushafScript } = useSettings();
   const [isBookmarksExpanded, setIsBookmarksExpanded] = useState(() => loadSidebarExpanded());
+  const [isJuzExpanded, setIsJuzExpanded] = useState(() => loadJuzSidebarExpanded());
 
   // Persist sidebar expanded state
   useEffect(() => {
     saveSidebarExpanded(isBookmarksExpanded);
   }, [isBookmarksExpanded]);
+
+  // Persist juz sidebar expanded state
+  useEffect(() => {
+    saveJuzSidebarExpanded(isJuzExpanded);
+  }, [isJuzExpanded]);
 
   // Determine if we're in mushaf mode based on current route
   const isMushafMode = location.pathname.startsWith('/mushaf');
@@ -192,6 +202,38 @@ export function ChapterQuickLinks({ side, isMobile }: ChapterQuickLinksProps) {
       aria-label={`Chapters ${side === 'left' ? '1 to 57' : '58 to 114'}`}
       role="navigation"
     >
+      {/* Juz section - only show on right sidebar */}
+      {side === 'right' && (
+        <div className="border-b border-[var(--color-border)]">
+          <button
+            onClick={() => setIsJuzExpanded(!isJuzExpanded)}
+            className="w-full flex items-center justify-between px-2 py-2 bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 transition-colors"
+            aria-expanded={isJuzExpanded}
+          >
+            <span className="flex items-center gap-1.5 font-semibold text-[var(--color-primary)] text-xs xl:text-sm">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              Juz (30){favoriteJuz.length > 0 && ` · ${favoriteJuz.length} fav`}
+            </span>
+            <svg
+              className={`w-4 h-4 text-[var(--color-primary)] transition-transform ${isJuzExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {isJuzExpanded && (
+            <div className="max-h-64 overflow-y-auto">
+              <JuzList compact onNavigate={() => {}} />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Bookmarks section - only show on left sidebar */}
       {side === 'left' && bookmarks.length > 0 && (
         <div className="border-b border-[var(--color-border)]">
@@ -247,7 +289,7 @@ export function ChapterQuickLinks({ side, isMobile }: ChapterQuickLinksProps) {
 }
 
 // Mobile chapter selector - dropdown/modal style
-type MenuTab = 'chapters' | 'bookmarks' | 'settings';
+type MenuTab = 'chapters' | 'juz' | 'bookmarks' | 'settings';
 type VerseNumberFormat = 'arabic' | 'english';
 
 // Settings tab component with theme toggle
@@ -607,10 +649,14 @@ function SettingsTab({
 
       {/* App info */}
       <div className="pt-4 border-t border-gray-200">
-        <div className="text-center">
-          <span className="text-2xl" aria-hidden="true">📖</span>
-          <p className="font-semibold text-gray-800 mt-1">Quran Word by Word</p>
-          <p className="text-xs text-gray-500 mt-1">15-Line Mushaf</p>
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-24 overflow-hidden" style={{ aspectRatio: '1.8' }}>
+            <img src="/quran/quran-logo.png" alt="" className="w-full" />
+          </div>
+          <div className="leading-none">
+            <span className="text-xl font-semibold tracking-wide text-gray-800 block">Quran</span>
+            <span className="text-xs text-gray-500 -mt-1.5 block">Word by Word</span>
+          </div>
         </div>
       </div>
     </div>
@@ -779,6 +825,18 @@ export function MobileChapterSelector({
                 >
                   Chapters
                 </button>
+                <button
+                  onClick={() => setActiveTab('juz')}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                    activeTab === 'juz' ? 'bg-white/20' : 'hover:bg-white/10'
+                  }`}
+                  role="tab"
+                  aria-selected={activeTab === 'juz'}
+                  aria-controls="juz-panel"
+                  id="juz-tab"
+                >
+                  Juz
+                </button>
                 <BookmarksTabButton
                   isActive={activeTab === 'bookmarks'}
                   onClick={() => setActiveTab('bookmarks')}
@@ -850,6 +908,17 @@ export function MobileChapterSelector({
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {activeTab === 'juz' && (
+                <div
+                  id="juz-panel"
+                  role="tabpanel"
+                  aria-labelledby="juz-tab"
+                  className="p-2"
+                >
+                  <JuzList onNavigate={() => setIsOpen(false)} />
                 </div>
               )}
 
