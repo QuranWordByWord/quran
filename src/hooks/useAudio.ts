@@ -126,23 +126,23 @@ export function useAudio(): UseAudioResult {
       return;
     }
 
-    // Play new URL - wait for canplay event before playing to avoid race condition
     // Reset duration and currentTime to avoid showing stale progress from previous audio
     setDuration(0);
     setCurrentTime(0);
 
+    // Set source and load
     audio.src = url;
-
-    const handleCanPlay = () => {
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.play().catch(() => {
-        // Ignore autoplay errors (e.g., user hasn't interacted with page yet)
-      });
-    };
-
-    audio.addEventListener('canplay', handleCanPlay);
     audio.load();
     setCurrentUrl(url);
+
+    // Safari (especially iOS) has strict autoplay policies that require play() to be called
+    // synchronously within the user gesture. Waiting for 'canplay' event breaks this chain.
+    // Instead, call play() immediately - browsers will buffer and start when ready.
+    // The play() promise handles the case where media isn't ready yet.
+    audio.play().catch(() => {
+      // Ignore autoplay errors (e.g., user hasn't interacted with page yet)
+      // Safari will show these errors but audio still plays once data is loaded
+    });
   }, [currentUrl]);
 
   const playWord = useCallback((audioUrl: string | null) => {

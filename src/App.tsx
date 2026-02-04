@@ -537,6 +537,19 @@ function AppContentInner() {
 
   const openMenu = () => setIsMenuOpen(true);
 
+  // Sync viewMode with URL on initial load and navigation
+  // This ensures direct URL access (e.g., pasting /mushaf/123) shows correct header controls
+  useEffect(() => {
+    const isMushafRoute = location.pathname.startsWith('/mushaf/');
+    const isWordForWordRoute = location.pathname.startsWith('/page/');
+
+    if (isMushafRoute && viewMode !== 'mushaf') {
+      setViewMode('mushaf');
+    } else if (isWordForWordRoute && viewMode !== 'wordforword') {
+      setViewMode('wordforword');
+    }
+  }, [location.pathname, viewMode, setViewMode]);
+
   // Extract current page info from URL for mobile header bookmark
   const getCurrentPageInfo = (): { page: number; mode: 'mushaf' | 'wordforword' } | null => {
     const mushafMatch = location.pathname.match(/^\/mushaf\/(\d+)/);
