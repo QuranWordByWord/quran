@@ -638,9 +638,27 @@ function AppContentInner() {
   );
 }
 
+// Handle SPA redirect from 404.html for GitHub Pages
+function SpaRedirectHandler() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const redirectPath = sessionStorage.getItem('spa-redirect');
+    if (redirectPath) {
+      sessionStorage.removeItem('spa-redirect');
+      // Remove the /quran base path since BrowserRouter already uses it as basename
+      const pathWithoutBase = redirectPath.replace(/^\/quran/, '') || '/';
+      navigate(pathWithoutBase, { replace: true });
+    }
+  }, [navigate]);
+
+  return null;
+}
+
 function AppContent() {
   return (
     <MobileNavProvider hideDelay={3000} scrollThreshold={30}>
+      <SpaRedirectHandler />
       <AppContentInner />
     </MobileNavProvider>
   );
