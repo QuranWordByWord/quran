@@ -234,9 +234,12 @@ export function MushafBorder({
   const innerWidth = frameWidth - borderX * 2;
   const innerHeight = frameHeight - borderY * 2;
 
-  // Center content within inner area
+  // Position content within inner area (centered horizontally, top-aligned vertically)
   const contentPosX = borderX + Math.round((innerWidth - contentWidth) / 2);
-  const contentPosY = borderY + Math.round((innerHeight - contentHeight) / 2);
+  const contentPosY = borderY;
+
+  // Scale content vertically to fill the inner height
+  const verticalScale = innerHeight / contentHeight;
 
   // Total dimensions including header/footer
   const totalWidth = frameWidth;
@@ -285,7 +288,7 @@ export function MushafBorder({
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
       }}>
-        {/* Page content - positioned inside the border */}
+        {/* Page content - positioned inside the border, scaled to fill inner height */}
         <div style={{
           position: 'absolute',
           top: contentPosY,
@@ -294,6 +297,8 @@ export function MushafBorder({
           height: contentHeight,
           backgroundColor: 'var(--mushaf-page-bg, #fffef5)',
           overflow: 'hidden',
+          transform: `scaleY(${verticalScale})`,
+          transformOrigin: 'top',
         }}>
           {children}
         </div>

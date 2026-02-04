@@ -176,17 +176,17 @@ export function QuranViewer({
 
   const totalPages = textService?.nbPages ?? 604;
 
-  // Calculate page height based on aspect ratio
-  const pageHeight = useMemo(() => {
-    return (pageWidth * 410) / 255;
-  }, [pageWidth]);
-
   // Border frame dimensions - MushafBorder maintains SVG aspect ratio (437:740)
   // SVG dimensions: 437x740, inner: 387x690
   const SVG_WIDTH = 437;
   const SVG_HEIGHT = 740;
   const SVG_INNER_WIDTH = 387;
   const SVG_INNER_HEIGHT = 690;
+
+  // Calculate page height based on aspect ratio
+  const pageHeight = useMemo(() => {
+    return (pageWidth * 410) / 255;
+  }, [pageWidth]);
 
   // Swipe navigation configuration
   const SWIPE_THRESHOLD = 80; // Min distance to trigger page change (px)
