@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Build workspace packages
+        run: bun run --cwd packages/quran-engine build
+
       - name: Build
         run: bun run build
 
