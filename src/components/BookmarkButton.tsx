@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useBookmarks } from '../contexts/BookmarkContext';
 import { useToast } from './Toast';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface BookmarkButtonProps {
   pageNumber: number;
@@ -16,18 +18,32 @@ export function BookmarkButton({
   className = '',
   showLabel = false,
 }: BookmarkButtonProps) {
-  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { isBookmarked, toggleBookmark, getBookmark } = useBookmarks();
   const { showToast } = useToast();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const bookmarked = isBookmarked(pageNumber, viewMode);
+  const bookmark = getBookmark(pageNumber, viewMode);
 
   const handleClick = () => {
-    const result = toggleBookmark(pageNumber, viewMode);
-    if (result.added) {
-      showToast('Bookmark added', 'success');
+    if (bookmarked) {
+      setShowConfirm(true);
     } else {
-      showToast('Bookmark removed', 'info');
+      const result = toggleBookmark(pageNumber, viewMode);
+      if (result.added) {
+        showToast('Bookmark added', 'success');
+      }
     }
+  };
+
+  const handleConfirmDelete = () => {
+    toggleBookmark(pageNumber, viewMode);
+    showToast('Bookmark removed', 'info');
+    setShowConfirm(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirm(false);
   };
 
   const sizeClasses = {
@@ -43,6 +59,7 @@ export function BookmarkButton({
   }[size];
 
   return (
+  <>
     <button
       onClick={handleClick}
       className={`
@@ -87,6 +104,23 @@ export function BookmarkButton({
         </span>
       )}
     </button>
+    <ConfirmDialog
+      isOpen={showConfirm}
+      title="Delete Bookmark"
+      message="Are you sure you want to delete this bookmark?"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      variant="destructive"
+      onConfirm={handleConfirmDelete}
+      onCancel={handleCancelDelete}
+      bookmarkDetails={bookmark ? {
+        surahName: bookmark.surahName,
+        pageNumber: bookmark.pageNumber,
+        viewMode: bookmark.viewMode,
+        createdAt: bookmark.createdAt,
+      } : undefined}
+    />
+  </>
   );
 }
 
@@ -94,24 +128,40 @@ export function BookmarkButton({
 interface InlineBookmarkButtonProps {
   pageNumber: number;
   viewMode: 'mushaf' | 'wordforword';
+  variant?: 'default' | 'header';
 }
 
 export function InlineBookmarkButton({
   pageNumber,
   viewMode,
+  variant = 'default',
 }: InlineBookmarkButtonProps) {
-  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { isBookmarked, toggleBookmark, getBookmark } = useBookmarks();
   const { showToast } = useToast();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const bookmarked = isBookmarked(pageNumber, viewMode);
+  const bookmark = getBookmark(pageNumber, viewMode);
 
   const handleClick = () => {
-    const result = toggleBookmark(pageNumber, viewMode);
-    if (result.added) {
-      showToast('Bookmark added', 'success');
+    if (bookmarked) {
+      setShowConfirm(true);
     } else {
-      showToast('Bookmark removed', 'info');
+      const result = toggleBookmark(pageNumber, viewMode);
+      if (result.added) {
+        showToast('Bookmark added', 'success');
+      }
     }
+  };
+
+  const handleConfirmDelete = () => {
+    toggleBookmark(pageNumber, viewMode);
+    showToast('Bookmark removed', 'info');
+    setShowConfirm(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirm(false);
   };
 
   // Get current date formatted as day and short month
@@ -119,7 +169,52 @@ export function InlineBookmarkButton({
   const currentDay = now.getDate();
   const currentMonth = now.toLocaleString('en-US', { month: 'short' });
 
+  // Header variant - white outline icon for header bar with date when bookmarked
+  // No confirmation dialog - deletes immediately for quick mobile interaction
+  if (variant === 'header') {
+    const handleHeaderClick = () => {
+      const result = toggleBookmark(pageNumber, viewMode);
+      if (result.added) {
+        showToast('Bookmark added', 'success');
+      } else {
+        showToast('Bookmark removed', 'info');
+      }
+    };
+
+    return (
+      <button
+        onClick={handleHeaderClick}
+        className="relative p-1.5 hover:bg-white/10 rounded-lg transition-colors active:scale-95"
+        aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+        aria-pressed={bookmarked}
+      >
+        <svg
+          className="w-5 h-6"
+          viewBox="0 0 24 30"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          aria-hidden="true"
+        >
+          <path
+            d="M4 4a2 2 0 012-2h12a2 2 0 012 2v24l-8-4-8 4V4z"
+            fill={bookmarked ? 'currentColor' : 'none'}
+          />
+        </svg>
+        {/* Date inside bookmark - only shown when bookmarked */}
+        {bookmarked && (
+          <div className="absolute inset-0 flex flex-col items-center justify-start pt-2 text-[var(--color-primary)]">
+            <span className="text-[8px] font-extrabold uppercase leading-none">{currentMonth}</span>
+            <span className="text-[10px] font-extrabold leading-none mt-px">{currentDay}</span>
+          </div>
+        )}
+      </button>
+    );
+  }
+
+  // Default variant - larger with date display
   return (
+  <>
     <button
       onClick={handleClick}
       className={`
@@ -157,10 +252,27 @@ export function InlineBookmarkButton({
       {/* Date inside bookmark - only shown when bookmarked */}
       {bookmarked && (
         <div className="relative z-10 flex flex-col items-center leading-none mt-1 text-white">
-          <span className="text-[9px] font-medium uppercase">{currentMonth}</span>
+          <span className="text-[9px] font-bold uppercase">{currentMonth}</span>
           <span className="text-xs font-bold">{currentDay}</span>
         </div>
       )}
     </button>
+    <ConfirmDialog
+      isOpen={showConfirm}
+      title="Delete Bookmark"
+      message="Are you sure you want to delete this bookmark?"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      variant="destructive"
+      onConfirm={handleConfirmDelete}
+      onCancel={handleCancelDelete}
+      bookmarkDetails={bookmark ? {
+        surahName: bookmark.surahName,
+        pageNumber: bookmark.pageNumber,
+        viewMode: bookmark.viewMode,
+        createdAt: bookmark.createdAt,
+      } : undefined}
+    />
+  </>
   );
 }

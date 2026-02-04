@@ -1,0 +1,4479 @@
+{
+  "name": "Al-Muzzammil",
+  "nameArabic": "المزمل",
+  "verses": [
+    {
+      "number": 1,
+      "words": [
+        {
+          "arabic": "يَـٰٓأَيُّهَا",
+          "english": "O you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "يَٰٓ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَيُّ",
+              "type": "noun"
+            },
+            {
+              "text": "هَا",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "O",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْمُزَّمِّلُ",
+          "english": "who wraps himself",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "who",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "wraps",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "himself",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "words": [
+        {
+          "arabic": "قُمِ",
+          "english": "Stand",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "Stand",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلَّيْلَ",
+          "english": "(in) the night",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(in)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "night",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "إِلَّا",
+          "english": "except",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "except",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "قَلِيلًۭا",
+          "english": "a little",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "little",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "words": [
+        {
+          "arabic": "نِّصْفَهُۥٓ",
+          "english": "Half of it",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "Half",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "of",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَوِ",
+          "english": "or",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "or",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱنقُصْ",
+          "english": "lessen",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "lessen",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مِنْهُ",
+          "english": "from it",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "مِنْ",
+              "type": "preposition"
+            },
+            {
+              "text": "هُ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "from",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "قَلِيلًا",
+          "english": "a little",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "little",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "words": [
+        {
+          "arabic": "أَوْ",
+          "english": "Or",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Or",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "زِدْ",
+          "english": "add",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "add",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلَيْهِ",
+          "english": "to it",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "عَلَيْ",
+              "type": "preposition"
+            },
+            {
+              "text": "هِ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَرَتِّلِ",
+          "english": "and recite",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "رَتِّلِ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "recite",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْقُرْءَانَ",
+          "english": "the Quran",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Quran",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَرْتِيلًا",
+          "english": "(with) measured rhythmic recitation",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(with)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "measured",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "rhythmic",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "recitation",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "words": [
+        {
+          "arabic": "إِنَّا",
+          "english": "Indeed, We",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "إِنَّ",
+              "type": "preposition"
+            },
+            {
+              "text": "ا",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "noun"
+            },
+            {
+              "text": ",",
+              "type": "punctuation"
+            },
+            {
+              "text": "We",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "سَنُلْقِى",
+          "english": "will cast",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "سَ",
+              "type": "preposition"
+            },
+            {
+              "text": "نُلْقِى",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "will",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "cast",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلَيْكَ",
+          "english": "upon you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "عَلَيْ",
+              "type": "preposition"
+            },
+            {
+              "text": "كَ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "upon",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "قَوْلًۭا",
+          "english": "a Word",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Word",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ثَقِيلًا",
+          "english": "heavy",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "heavy",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "words": [
+        {
+          "arabic": "إِنَّ",
+          "english": "Indeed",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "نَاشِئَةَ",
+          "english": "(the) rising",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "rising",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلَّيْلِ",
+          "english": "(at) the night",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(at)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "night",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "هِىَ",
+          "english": "it",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "it",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَشَدُّ",
+          "english": "(is) very hard",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(is)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "very",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "hard",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَطْـًۭٔا",
+          "english": "and most potent",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "most",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "potent",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَأَقْوَمُ",
+          "english": "and more suitable",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَقْوَمُ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "more",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "suitable",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "قِيلًا",
+          "english": "(for) Word",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(for)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Word",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "words": [
+        {
+          "arabic": "إِنَّ",
+          "english": "Indeed",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "لَكَ",
+          "english": "for you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "لَ",
+              "type": "preposition"
+            },
+            {
+              "text": "كَ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "for",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "فِى",
+          "english": "in",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "in",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلنَّهَارِ",
+          "english": "the day",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "day",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "سَبْحًۭا",
+          "english": "(is) occupation",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(is)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "occupation",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "طَوِيلًۭا",
+          "english": "prolonged",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "prolonged",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "words": [
+        {
+          "arabic": "وَٱذْكُرِ",
+          "english": "And remember",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱذْكُرِ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "remember",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱسْمَ",
+          "english": "(the) name",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "name",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "رَبِّكَ",
+          "english": "(of) your Lord",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "your",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "وَتَبَتَّلْ",
+          "english": "and devote yourself",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "تَبَتَّلْ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "devote",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "yourself",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "إِلَيْهِ",
+          "english": "to Him",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "إِلَيْ",
+              "type": "preposition"
+            },
+            {
+              "text": "هِ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Him",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَبْتِيلًۭا",
+          "english": "(with) devotion",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(with)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "devotion",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "words": [
+        {
+          "arabic": "رَّبُّ",
+          "english": "(The) Lord",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(The)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْمَشْرِقِ",
+          "english": "(of) the east",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "east",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱلْمَغْرِبِ",
+          "english": "and the west",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱلْ",
+              "type": "preposition"
+            },
+            {
+              "text": "مَغْرِبِ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "west",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "لَآ",
+          "english": "(there is) no",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "(there is)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "no",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "إِلَـٰهَ",
+          "english": "god",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "god",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "إِلَّا",
+          "english": "except",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "except",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "هُوَ",
+          "english": "Him",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "Him",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "فَٱتَّخِذْهُ",
+          "english": "so take Him",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱتَّخِذْ",
+              "type": "verb"
+            },
+            {
+              "text": "هُ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "so",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "take",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Him",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "وَكِيلًۭا",
+          "english": "(as) Disposer of Affairs",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(as)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Disposer",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "of",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Affairs",
+              "type": "allah-name"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "words": [
+        {
+          "arabic": "وَٱصْبِرْ",
+          "english": "And be patient",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱصْبِرْ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "be",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "patient",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلَىٰ",
+          "english": "over",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "over",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "مَا",
+          "english": "what",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "what",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "يَقُولُونَ",
+          "english": "they say",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "they",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "say",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱهْجُرْهُمْ",
+          "english": "and avoid them",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱهْجُرْ",
+              "type": "verb"
+            },
+            {
+              "text": "هُمْ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "avoid",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "هَجْرًۭا",
+          "english": "an avoidance",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "an",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "avoidance",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "جَمِيلًۭا",
+          "english": "gracious",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "gracious",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "words": [
+        {
+          "arabic": "وَذَرْنِى",
+          "english": "And leave Me",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ذَرْ",
+              "type": "verb"
+            },
+            {
+              "text": "نِى",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "leave",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Me",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱلْمُكَذِّبِينَ",
+          "english": "and the deniers",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱلْ",
+              "type": "preposition"
+            },
+            {
+              "text": "مُكَذِّبِينَ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "deniers",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "أُو۟لِى",
+          "english": "possessors",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "possessors",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلنَّعْمَةِ",
+          "english": "(of) the ease",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "ease",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَمَهِّلْهُمْ",
+          "english": "and allow them respite ",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "مَهِّلْ",
+              "type": "verb"
+            },
+            {
+              "text": "هُمْ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "allow",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "respite",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "قَلِيلًا",
+          "english": "a little",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "little",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "words": [
+        {
+          "arabic": "إِنَّ",
+          "english": "Indeed",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "لَدَيْنَآ",
+          "english": "with Us",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "with",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Us",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَنكَالًۭا",
+          "english": "(are) shackles",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(are)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "shackles",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَجَحِيمًۭا",
+          "english": "and burning fire",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "جَحِيمًا",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "burning",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "fire",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "words": [
+        {
+          "arabic": "وَطَعَامًۭا",
+          "english": "And food",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "طَعَامًا",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "food",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ذَا",
+          "english": "that",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "that",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "غُصَّةٍۢ",
+          "english": "chokes",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "chokes",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَعَذَابًا",
+          "english": "and a punishment",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "عَذَابًا",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "punishment",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَلِيمًۭا",
+          "english": "painful",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "painful",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "words": [
+        {
+          "arabic": "يَوْمَ",
+          "english": "(On the) Day",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(On the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Day",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَرْجُفُ",
+          "english": "will quake",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "will",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "quake",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْأَرْضُ",
+          "english": "the earth",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "earth",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱلْجِبَالُ",
+          "english": "and the mountains",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱلْ",
+              "type": "preposition"
+            },
+            {
+              "text": "جِبَالُ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "mountains",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "وَكَانَتِ",
+          "english": "and will become",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "كَانَتِ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "will",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "become",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْجِبَالُ",
+          "english": "the mountains",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "mountains",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "كَثِيبًۭا",
+          "english": "a heap of sand",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "heap",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "of",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "sand",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مَّهِيلًا",
+          "english": "pouring down",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "pouring",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "down",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "words": [
+        {
+          "arabic": "إِنَّآ",
+          "english": "Indeed, We",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "إِنَّ",
+              "type": "preposition"
+            },
+            {
+              "text": "آ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "noun"
+            },
+            {
+              "text": ",",
+              "type": "punctuation"
+            },
+            {
+              "text": "We",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَرْسَلْنَآ",
+          "english": "[We] have sent",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "[",
+              "type": "bracket"
+            },
+            {
+              "text": "We",
+              "type": "verb"
+            },
+            {
+              "text": "]",
+              "type": "bracket"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "have",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "sent",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "إِلَيْكُمْ",
+          "english": "to you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "إِلَيْ",
+              "type": "preposition"
+            },
+            {
+              "text": "كُمْ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "رَسُولًۭا",
+          "english": "a Messenger",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Messenger",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "شَـٰهِدًا",
+          "english": "(as) a witness",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(as)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "witness",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلَيْكُمْ",
+          "english": "upon you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "عَلَيْ",
+              "type": "preposition"
+            },
+            {
+              "text": "كُمْ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "upon",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "كَمَآ",
+          "english": "as",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "كَ",
+              "type": "preposition"
+            },
+            {
+              "text": "مَآ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "as",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "أَرْسَلْنَآ",
+          "english": "We sent",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "We",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "sent",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "إِلَىٰ",
+          "english": "to",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "فِرْعَوْنَ",
+          "english": "Firaun",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "Firaun",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "رَسُولًۭا",
+          "english": "a Messenger",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Messenger",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "words": [
+        {
+          "arabic": "فَعَصَىٰ",
+          "english": "But disobeyed",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "عَصَىٰ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "But",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "disobeyed",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "فِرْعَوْنُ",
+          "english": "Firaun",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "Firaun",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلرَّسُولَ",
+          "english": "the Messenger",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Messenger",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "فَأَخَذْنَـٰهُ",
+          "english": "so We seized him",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَخَذْ",
+              "type": "verb"
+            },
+            {
+              "text": "نَٰ",
+              "type": "noun"
+            },
+            {
+              "text": "هُ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "so",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "We",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "seized",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "him",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "أَخْذًۭا",
+          "english": "(with) a seizure",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(with)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "seizure",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَبِيلًۭا",
+          "english": "ruinous",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "ruinous",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "words": [
+        {
+          "arabic": "فَكَيْفَ",
+          "english": "Then how",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "كَيْفَ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "Then",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "how",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "تَتَّقُونَ",
+          "english": "will you guard yourselves",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "will",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "guard",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "yourselves",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "إِن",
+          "english": "if",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "if",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "كَفَرْتُمْ",
+          "english": "you disbelieve",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "you",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "disbelieve",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "يَوْمًۭا",
+          "english": "a Day",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Day",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "يَجْعَلُ",
+          "english": "(that) will make",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "(that)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "will",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "make",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْوِلْدَٰنَ",
+          "english": "the children",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "children",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "شِيبًا",
+          "english": "gray-haired",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "gray-haired",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "words": [
+        {
+          "arabic": "ٱلسَّمَآءُ",
+          "english": "The heaven",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "The",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "heaven",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مُنفَطِرٌۢ",
+          "english": "(will) break apart",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(will)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "break",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "apart",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "بِهِۦ ۚ",
+          "english": "therefrom",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "بِ",
+              "type": "preposition"
+            },
+            {
+              "text": "هِۦ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "therefrom",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "كَانَ",
+          "english": "is",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "is",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "وَعْدُهُۥ",
+          "english": "His Promise",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "His",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Promise",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مَفْعُولًا",
+          "english": "to be fulfilled",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "be",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "fulfilled",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "words": [
+        {
+          "arabic": "إِنَّ",
+          "english": "Indeed",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "هَـٰذِهِۦ",
+          "english": "this",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "هَٰ",
+              "type": "preposition"
+            },
+            {
+              "text": "ذِهِۦ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "this",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَذْكِرَةٌۭ ۖ",
+          "english": "(is) a Reminder",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(is)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Reminder",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "فَمَن",
+          "english": "then whoever",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "مَن",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "then",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "whoever",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "شَآءَ",
+          "english": "wills",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "wills",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱتَّخَذَ",
+          "english": "(let him) take",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "(let him)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "take",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "إِلَىٰ",
+          "english": "to",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "رَبِّهِۦ",
+          "english": "his Lord",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "his",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "سَبِيلًا",
+          "english": "a way",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "way",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "words": [
+        {
+          "arabic": "۞ إِنَّ",
+          "english": "Indeed",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "رَبَّكَ",
+          "english": "your Lord",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "your",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "يَعْلَمُ",
+          "english": "knows",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "knows",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "أَنَّكَ",
+          "english": "that you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "أَنَّ",
+              "type": "preposition"
+            },
+            {
+              "text": "كَ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "that",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَقُومُ",
+          "english": "stand",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "stand",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "أَدْنَىٰ",
+          "english": "(a little) less",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(a little)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "less",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مِن",
+          "english": "than",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "than",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ثُلُثَىِ",
+          "english": "two-thirds",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "two-thirds",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلَّيْلِ",
+          "english": "(of) the night",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "night",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَنِصْفَهُۥ",
+          "english": "and half of it",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "نِصْفَ",
+              "type": "noun"
+            },
+            {
+              "text": "هُۥ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "half",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "of",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَثُلُثَهُۥ",
+          "english": "and a third of it",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ثُلُثَ",
+              "type": "noun"
+            },
+            {
+              "text": "هُۥ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "third",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "of",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَطَآئِفَةٌۭ",
+          "english": "and (so do) a group",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "طَآئِفَةٌ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "(so do)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "group",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مِّنَ",
+          "english": "of",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "of",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلَّذِينَ",
+          "english": "those who",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "those",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "who",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مَعَكَ ۚ",
+          "english": "(are) with you",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(are)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "with",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱللَّهُ",
+          "english": "And Allah",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱللَّهُ",
+              "type": "allah-name"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Allah",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "يُقَدِّرُ",
+          "english": "determines",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "determines",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلَّيْلَ",
+          "english": "the night",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "night",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱلنَّهَارَ ۚ",
+          "english": "and the day",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱل",
+              "type": "preposition"
+            },
+            {
+              "text": "نَّهَارَ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "day",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلِمَ",
+          "english": "He knows",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "He",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "knows",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "أَن",
+          "english": "that",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "that",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "لَّن",
+          "english": "not",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "not",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "تُحْصُوهُ",
+          "english": "you count it",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "you",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "count",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "فَتَابَ",
+          "english": "so He has turned",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "تَابَ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "so",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "He",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "has",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "turned",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلَيْكُمْ ۖ",
+          "english": "to you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "عَلَيْ",
+              "type": "preposition"
+            },
+            {
+              "text": "كُمْ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "فَٱقْرَءُوا۟",
+          "english": "so recite",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱقْرَءُ",
+              "type": "verb"
+            },
+            {
+              "text": "وا۟",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "so",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "recite",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مَا",
+          "english": "what",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "what",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَيَسَّرَ",
+          "english": "is easy",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "is",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "easy",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مِنَ",
+          "english": "of",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "of",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْقُرْءَانِ ۚ",
+          "english": "the Quran",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Quran",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلِمَ",
+          "english": "He knows",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "He",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "knows",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "أَن",
+          "english": "that",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "that",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "سَيَكُونُ",
+          "english": "there will be",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "سَ",
+              "type": "preposition"
+            },
+            {
+              "text": "يَكُونُ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "there",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "will",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "be",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مِنكُم",
+          "english": "among you",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "مِن",
+              "type": "preposition"
+            },
+            {
+              "text": "كُم",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "among",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مَّرْضَىٰ ۙ",
+          "english": "sick",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "sick",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَءَاخَرُونَ",
+          "english": "and others",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ءَاخَرُونَ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "others",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "يَضْرِبُونَ",
+          "english": "traveling",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "traveling",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "فِى",
+          "english": "in",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "in",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْأَرْضِ",
+          "english": "the land",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "land",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "يَبْتَغُونَ",
+          "english": "seeking",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "seeking",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مِن",
+          "english": "of",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "of",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "فَضْلِ",
+          "english": "(the) Bounty",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Bounty",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱللَّهِ ۙ",
+          "english": "(of) Allah",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Allah",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "وَءَاخَرُونَ",
+          "english": "and others",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ءَاخَرُونَ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "others",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "يُقَـٰتِلُونَ",
+          "english": "fighting",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "fighting",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "فِى",
+          "english": "in",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "in",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "سَبِيلِ",
+          "english": "(the) way",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "way",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱللَّهِ ۖ",
+          "english": "(of) Allah",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Allah",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "فَٱقْرَءُوا۟",
+          "english": "So recite",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱقْرَءُ",
+              "type": "verb"
+            },
+            {
+              "text": "وا۟",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "So",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "recite",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مَا",
+          "english": "what",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "what",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَيَسَّرَ",
+          "english": "is easy",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "is",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "easy",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "مِنْهُ ۚ",
+          "english": "of it",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "مِنْ",
+              "type": "preposition"
+            },
+            {
+              "text": "هُ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "of",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَأَقِيمُوا۟",
+          "english": "and establish",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَقِيمُ",
+              "type": "verb"
+            },
+            {
+              "text": "وا۟",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "establish",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلصَّلَوٰةَ",
+          "english": "the prayer",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "prayer",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَءَاتُوا۟",
+          "english": "and give",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ءَاتُ",
+              "type": "verb"
+            },
+            {
+              "text": "وا۟",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "give",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلزَّكَوٰةَ",
+          "english": "the zakah",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "zakah",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَأَقْرِضُوا۟",
+          "english": "and loan",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَقْرِضُ",
+              "type": "verb"
+            },
+            {
+              "text": "وا۟",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "loan",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱللَّهَ",
+          "english": "Allah",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "Allah",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "قَرْضًا",
+          "english": "a loan",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "a",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "loan",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "حَسَنًۭا ۚ",
+          "english": "goodly",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "goodly",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَمَا",
+          "english": "And whatever",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "مَا",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "whatever",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "تُقَدِّمُوا۟",
+          "english": "you send forth",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "you",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "send",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "forth",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "لِأَنفُسِكُم",
+          "english": "for yourselves",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "لِ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَنفُسِ",
+              "type": "preposition"
+            },
+            {
+              "text": "كُم",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "for",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "yourselves",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مِّنْ",
+          "english": "of",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "of",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "خَيْرٍۢ",
+          "english": "good",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "good",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "تَجِدُوهُ",
+          "english": "you will find it",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "you",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "will",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "find",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "it",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "عِندَ",
+          "english": "with",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "with",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱللَّهِ",
+          "english": "Allah",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "Allah",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "هُوَ",
+          "english": "It",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "It",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "خَيْرًۭا",
+          "english": "(will be) better",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(will be)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "better",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَأَعْظَمَ",
+          "english": "and greater",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَعْظَمَ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "greater",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَجْرًۭا ۚ",
+          "english": "(in) reward",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(in)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "reward",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱسْتَغْفِرُوا۟",
+          "english": "And seek forgiveness",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱسْتَغْفِرُ",
+              "type": "verb"
+            },
+            {
+              "text": "وا۟",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "seek",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "forgiveness",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱللَّهَ ۖ",
+          "english": "(of) Allah",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Allah",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "إِنَّ",
+          "english": "Indeed",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱللَّهَ",
+          "english": "Allah",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "Allah",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "غَفُورٌۭ",
+          "english": "(is) Oft-Forgiving",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(is)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Oft-Forgiving",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "رَّحِيمٌۢ",
+          "english": "Most Merciful",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "Most",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Merciful",
+              "type": "allah-name"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

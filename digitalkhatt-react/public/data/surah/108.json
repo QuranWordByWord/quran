@@ -1,0 +1,279 @@
+{
+  "name": "Al-Kawthar",
+  "nameArabic": "الكوثر",
+  "verses": [
+    {
+      "number": 1,
+      "words": [
+        {
+          "arabic": "إِنَّآ",
+          "english": "Indeed, We",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "إِنَّ",
+              "type": "preposition"
+            },
+            {
+              "text": "آ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "noun"
+            },
+            {
+              "text": ",",
+              "type": "punctuation"
+            },
+            {
+              "text": "We",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَعْطَيْنَـٰكَ",
+          "english": "We have given you",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "We",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "have",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "given",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "you",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْكَوْثَرَ",
+          "english": "Al-Kauthar",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "Al-Kauthar",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "words": [
+        {
+          "arabic": "فَصَلِّ",
+          "english": "So pray",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "صَلِّ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "So",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "pray",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "لِرَبِّكَ",
+          "english": "to your Lord",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "لِ",
+              "type": "preposition"
+            },
+            {
+              "text": "رَبِّ",
+              "type": "allah-name"
+            },
+            {
+              "text": "كَ",
+              "type": "allah-name"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "to",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "your",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱنْحَرْ",
+          "english": "and sacrifice",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱنْحَرْ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "sacrifice",
+              "type": "verb"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "words": [
+        {
+          "arabic": "إِنَّ",
+          "english": "Indeed",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "Indeed",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "شَانِئَكَ",
+          "english": "your enemy ",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "your",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "enemy",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "هُوَ",
+          "english": "he (is)",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "he",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "(is)",
+              "type": "paren"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْأَبْتَرُ",
+          "english": "the one cut off",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "one",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "cut",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "off",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

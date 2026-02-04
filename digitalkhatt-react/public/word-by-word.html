@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quran Word by Word - Color Coded</title>
+  <style>
+    @font-face {
+      font-family: 'NewMadinah';
+      src: url('/fonts/newmadinah.otf') format('opentype');
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+
+    header h1 {
+      font-family: 'NewMadinah', serif;
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .surah-selector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .surah-selector label {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .surah-selector select {
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .toggle-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      color: #666;
+      cursor: pointer;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #00A650;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Word table styling */
+    .word-table {
+      width: 100%;
+      border-collapse: collapse;
+      direction: rtl;
+    }
+
+    .word-table td {
+      border: 1px solid #ddd;
+      padding: 15px 10px;
+      text-align: center;
+      vertical-align: top;
+      width: 33.33%;
+    }
+
+    .word-table tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    .arabic-word {
+      font-family: 'NewMadinah', 'Traditional Arabic', serif;
+      font-size: 32px;
+      line-height: 1.8;
+      margin-bottom: 8px;
+      direction: rtl;
+    }
+
+    .arabic-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .original-image {
+      max-height: 50px;
+      margin-bottom: 4px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background: #fafafa;
+      padding: 4px;
+    }
+
+    .original-image.loading {
+      opacity: 0.5;
+    }
+
+    .english-translation {
+      font-size: 13px;
+      color: #555;
+      direction: ltr;
+      line-height: 1.4;
+    }
+
+    /* Verse marker */
+    .verse-marker {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      border: 2px solid #888;
+      border-radius: 50%;
+      font-size: 12px;
+      color: #888;
+      margin-right: 5px;
+      font-family: 'Traditional Arabic', serif;
+    }
+
+    /* Grammatical color classes - using Tajweed-inspired colors */
+    .allah-name {
+      color: #00A650; /* Green - Names/Attributes of Allah (same as Tajweed green) */
+    }
+
+    .noun {
+      color: #000000; /* Black - Nouns and Pronouns */
+    }
+
+    .verb {
+      color: #EC008C; /* Magenta-pink - Verbs (same as Tajweed red3) */
+    }
+
+    .preposition {
+      color: #00ADEF; /* Cyan - Prepositions and Connectors (same as Tajweed lkalkala) */
+    }
+
+    .compound {
+      color: #F47216; /* Orange - Compound words (same as Tajweed red2) */
+    }
+
+    /* Parenthetical text - light grey */
+    .paren {
+      color: #B4B4B4; /* Same as Tajweed lgray */
+    }
+
+    /* Punctuation - inherit color or neutral */
+    .punctuation {
+      color: inherit;
+    }
+
+    /* Square brackets - light grey brackets, content keeps its color */
+    .bracket {
+      color: #B4B4B4; /* Same as Tajweed lgray */
+    }
+    .bracket-content {
+      color: inherit;
+    }
+
+    /* Legend */
+    .legend {
+      margin-top: 30px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border: 1px solid #eee;
+    }
+
+    .legend h3 {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      direction: ltr;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+    }
+
+    .legend-color.green { background-color: #00A650; }
+    .legend-color.black { background-color: #000000; }
+    .legend-color.magenta { background-color: #EC008C; }
+    .legend-color.cyan { background-color: #00ADEF; }
+    .legend-color.orange { background-color: #F47216; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .arabic-word {
+        font-size: 24px;
+      }
+      .english-translation {
+        font-size: 11px;
+      }
+      .word-table td {
+        padding: 10px 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>القرآن الكريم - كلمة بكلمة</h1>
+      <div style="font-size: 14px; color: #666; direction: ltr;">Quran Word by Word - Color Coded Grammar</div>
+
+      <div class="surah-selector">
+        <label for="surah-select">Select Surah:</label>
+        <select id="surah-select" onchange="loadSurah(this.value)">
+          <!-- Surahs will be populated dynamically -->
+        </select>
+      </div>
+
+      <div class="toggle-container">
+        <label class="toggle-label" for="show-original">Show Original Images:</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="show-original" onchange="toggleOriginalImages()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </header>
+
+    <div id="surah-content">
+      <!-- Content will be rendered by JavaScript -->
+    </div>
+
+    <div class="legend">
+      <h3>Color Legend - دليل الألوان</h3>
+      <div class="legend-items">
+        <div class="legend-item">
+          <div class="legend-color green"></div>
+          <span>Names/Attributes of Allah (أسماء الله)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color black"></div>
+          <span>Nouns & Pronouns (الأسماء)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color magenta"></div>
+          <span>Verbs (الأفعال)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color cyan"></div>
+          <span>Prepositions & Connectors (حروف الجر)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color orange"></div>
+          <span>Compound Words (الكلمات المركبة)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Surah metadata for the dropdown
+    const SURAH_LIST = [
+      { num: 1, name: "Al-Fatiha", nameArabic: "الفاتحة" },
+      { num: 2, name: "Al-Baqarah", nameArabic: "البقرة" },
+      { num: 3, name: "Aal-E-Imran", nameArabic: "آل عمران" },
+      { num: 4, name: "An-Nisa", nameArabic: "النساء" },
+      { num: 5, name: "Al-Ma'idah", nameArabic: "المائدة" },
+      { num: 6, name: "Al-An'am", nameArabic: "الأنعام" },
+      { num: 7, name: "Al-A'raf", nameArabic: "الأعراف" },
+      { num: 8, name: "Al-Anfal", nameArabic: "الأنفال" },
+      { num: 9, name: "At-Tawbah", nameArabic: "التوبة" },
+      { num: 10, name: "Yunus", nameArabic: "يونس" },
+      { num: 11, name: "Hud", nameArabic: "هود" },
+      { num: 12, name: "Yusuf", nameArabic: "يوسف" },
+      { num: 13, name: "Ar-Ra'd", nameArabic: "الرعد" },
+      { num: 14, name: "Ibrahim", nameArabic: "إبراهيم" },
+      { num: 15, name: "Al-Hijr", nameArabic: "الحجر" },
+      { num: 16, name: "An-Nahl", nameArabic: "النحل" },
+      { num: 17, name: "Al-Isra", nameArabic: "الإسراء" },
+      { num: 18, name: "Al-Kahf", nameArabic: "الكهف" },
+      { num: 19, name: "Maryam", nameArabic: "مريم" },
+      { num: 20, name: "Taha", nameArabic: "طه" },
+      { num: 21, name: "Al-Anbiya", nameArabic: "الأنبياء" },
+      { num: 22, name: "Al-Hajj", nameArabic: "الحج" },
+      { num: 23, name: "Al-Mu'minun", nameArabic: "المؤمنون" },
+      { num: 24, name: "An-Nur", nameArabic: "النور" },
+      { num: 25, name: "Al-Furqan", nameArabic: "الفرقان" },
+      { num: 26, name: "Ash-Shu'ara", nameArabic: "الشعراء" },
+      { num: 27, name: "An-Naml", nameArabic: "النمل" },
+      { num: 28, name: "Al-Qasas", nameArabic: "القصص" },
+      { num: 29, name: "Al-Ankabut", nameArabic: "العنكبوت" },
+      { num: 30, name: "Ar-Rum", nameArabic: "الروم" },
+      { num: 31, name: "Luqman", nameArabic: "لقمان" },
+      { num: 32, name: "As-Sajdah", nameArabic: "السجدة" },
+      { num: 33, name: "Al-Ahzab", nameArabic: "الأحزاب" },
+      { num: 34, name: "Saba", nameArabic: "سبأ" },
+      { num: 35, name: "Fatir", nameArabic: "فاطر" },
+      { num: 36, name: "Ya-Sin", nameArabic: "يس" },
+      { num: 37, name: "As-Saffat", nameArabic: "الصافات" },
+      { num: 38, name: "Sad", nameArabic: "ص" },
+      { num: 39, name: "Az-Zumar", nameArabic: "الزمر" },
+      { num: 40, name: "Ghafir", nameArabic: "غافر" },
+      { num: 41, name: "Fussilat", nameArabic: "فصلت" },
+      { num: 42, name: "Ash-Shura", nameArabic: "الشورى" },
+      { num: 43, name: "Az-Zukhruf", nameArabic: "الزخرف" },
+      { num: 44, name: "Ad-Dukhan", nameArabic: "الدخان" },
+      { num: 45, name: "Al-Jathiyah", nameArabic: "الجاثية" },
+      { num: 46, name: "Al-Ahqaf", nameArabic: "الأحقاف" },
+      { num: 47, name: "Muhammad", nameArabic: "محمد" },
+      { num: 48, name: "Al-Fath", nameArabic: "الفتح" },
+      { num: 49, name: "Al-Hujurat", nameArabic: "الحجرات" },
+      { num: 50, name: "Qaf", nameArabic: "ق" },
+      { num: 51, name: "Adh-Dhariyat", nameArabic: "الذاريات" },
+      { num: 52, name: "At-Tur", nameArabic: "الطور" },
+      { num: 53, name: "An-Najm", nameArabic: "النجم" },
+      { num: 54, name: "Al-Qamar", nameArabic: "القمر" },
+      { num: 55, name: "Ar-Rahman", nameArabic: "الرحمن" },
+      { num: 56, name: "Al-Waqi'ah", nameArabic: "الواقعة" },
+      { num: 57, name: "Al-Hadid", nameArabic: "الحديد" },
+      { num: 58, name: "Al-Mujadila", nameArabic: "المجادلة" },
+      { num: 59, name: "Al-Hashr", nameArabic: "الحشر" },
+      { num: 60, name: "Al-Mumtahanah", nameArabic: "الممتحنة" },
+      { num: 61, name: "As-Saf", nameArabic: "الصف" },
+      { num: 62, name: "Al-Jumu'ah", nameArabic: "الجمعة" },
+      { num: 63, name: "Al-Munafiqun", nameArabic: "المنافقون" },
+      { num: 64, name: "At-Taghabun", nameArabic: "التغابن" },
+      { num: 65, name: "At-Talaq", nameArabic: "الطلاق" },
+      { num: 66, name: "At-Tahrim", nameArabic: "التحريم" },
+      { num: 67, name: "Al-Mulk", nameArabic: "الملك" },
+      { num: 68, name: "Al-Qalam", nameArabic: "القلم" },
+      { num: 69, name: "Al-Haqqah", nameArabic: "الحاقة" },
+      { num: 70, name: "Al-Ma'arij", nameArabic: "المعارج" },
+      { num: 71, name: "Nuh", nameArabic: "نوح" },
+      { num: 72, name: "Al-Jinn", nameArabic: "الجن" },
+      { num: 73, name: "Al-Muzzammil", nameArabic: "المزمل" },
+      { num: 74, name: "Al-Muddaththir", nameArabic: "المدثر" },
+      { num: 75, name: "Al-Qiyamah", nameArabic: "القيامة" },
+      { num: 76, name: "Al-Insan", nameArabic: "الإنسان" },
+      { num: 77, name: "Al-Mursalat", nameArabic: "المرسلات" },
+      { num: 78, name: "An-Naba", nameArabic: "النبأ" },
+      { num: 79, name: "An-Nazi'at", nameArabic: "النازعات" },
+      { num: 80, name: "Abasa", nameArabic: "عبس" },
+      { num: 81, name: "At-Takwir", nameArabic: "التكوير" },
+      { num: 82, name: "Al-Infitar", nameArabic: "الانفطار" },
+      { num: 83, name: "Al-Mutaffifin", nameArabic: "المطففين" },
+      { num: 84, name: "Al-Inshiqaq", nameArabic: "الانشقاق" },
+      { num: 85, name: "Al-Buruj", nameArabic: "البروج" },
+      { num: 86, name: "At-Tariq", nameArabic: "الطارق" },
+      { num: 87, name: "Al-A'la", nameArabic: "الأعلى" },
+      { num: 88, name: "Al-Ghashiyah", nameArabic: "الغاشية" },
+      { num: 89, name: "Al-Fajr", nameArabic: "الفجر" },
+      { num: 90, name: "Al-Balad", nameArabic: "البلد" },
+      { num: 91, name: "Ash-Shams", nameArabic: "الشمس" },
+      { num: 92, name: "Al-Lail", nameArabic: "الليل" },
+      { num: 93, name: "Ad-Duhaa", nameArabic: "الضحى" },
+      { num: 94, name: "Ash-Sharh", nameArabic: "الشرح" },
+      { num: 95, name: "At-Tin", nameArabic: "التين" },
+      { num: 96, name: "Al-Alaq", nameArabic: "العلق" },
+      { num: 97, name: "Al-Qadr", nameArabic: "القدر" },
+      { num: 98, name: "Al-Bayyinah", nameArabic: "البينة" },
+      { num: 99, name: "Az-Zalzalah", nameArabic: "الزلزلة" },
+      { num: 100, name: "Al-Adiyat", nameArabic: "العاديات" },
+      { num: 101, name: "Al-Qari'ah", nameArabic: "القارعة" },
+      { num: 102, name: "At-Takathur", nameArabic: "التكاثر" },
+      { num: 103, name: "Al-Asr", nameArabic: "العصر" },
+      { num: 104, name: "Al-Humazah", nameArabic: "الهمزة" },
+      { num: 105, name: "Al-Fil", nameArabic: "الفيل" },
+      { num: 106, name: "Quraysh", nameArabic: "قريش" },
+      { num: 107, name: "Al-Ma'un", nameArabic: "الماعون" },
+      { num: 108, name: "Al-Kawthar", nameArabic: "الكوثر" },
+      { num: 109, name: "Al-Kafirun", nameArabic: "الكافرون" },
+      { num: 110, name: "An-Nasr", nameArabic: "النصر" },
+      { num: 111, name: "Al-Masad", nameArabic: "المسد" },
+      { num: 112, name: "Al-Ikhlas", nameArabic: "الإخلاص" },
+      { num: 113, name: "Al-Falaq", nameArabic: "الفلق" },
+      { num: 114, name: "An-Nas", nameArabic: "الناس" }
+    ];
+
+    // Cache for loaded surah data
+    const surahCache = {};
+
+    // Word count per surah (cumulative starting word ID for each surah)
+    // This maps surah number to the global word ID of its first word
+    const surahWordStartId = {};
+    let wordCountsLoaded = false;
+
+    // State for showing original images
+    let showOriginalImages = false;
+    let currentSurahNum = 1;
+
+    // Load word counts for all surahs to calculate global word IDs
+    async function loadWordCounts() {
+      if (wordCountsLoaded) return;
+
+      // Fetch all surahs in parallel for speed
+      const fetchPromises = [];
+      for (let surahNum = 1; surahNum <= 114; surahNum++) {
+        fetchPromises.push(
+          fetch(`/data/surah/${surahNum}.json`)
+            .then(response => response.ok ? response.json() : null)
+            .then(data => ({ surahNum, data }))
+            .catch(() => ({ surahNum, data: null }))
+        );
+      }
+
+      const results = await Promise.all(fetchPromises);
+
+      // Sort by surah number and calculate cumulative word counts
+      results.sort((a, b) => a.surahNum - b.surahNum);
+
+      let cumulativeWordCount = 0;
+      for (const { surahNum, data } of results) {
+        surahWordStartId[surahNum] = cumulativeWordCount;
+        if (data) {
+          surahCache[surahNum] = data;
+          // Count all words in this surah
+          let surahWordCount = 0;
+          data.verses.forEach(verse => {
+            surahWordCount += verse.words.length;
+          });
+          cumulativeWordCount += surahWordCount;
+        }
+      }
+
+      wordCountsLoaded = true;
+      console.log('Word counts loaded. Total words:', cumulativeWordCount);
+    }
+
+    // Convert number to Arabic numerals
+    function toArabicNumeral(num) {
+      const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+      return String(num).split('').map(d => arabicNumerals[parseInt(d)]).join('');
+    }
+
+    // Wrap parenthetical text in grey class
+    function formatParentheses(text) {
+      // Replace (text) with <span class="paren">(text)</span>
+      return text.replace(/\(([^)]+)\)/g, '<span class="paren">($1)</span>');
+    }
+
+    // Wrap square brackets in grey class, but keep content color
+    function formatBrackets(text) {
+      // Replace [text] with grey brackets but content keeps its color
+      return text.replace(/\[([^\]]+)\]/g, '<span class="bracket">[</span>$1<span class="bracket">]</span>');
+    }
+
+    // Apply all text formatting (legacy - for words without englishParts)
+    function formatEnglish(text) {
+      let result = formatParentheses(text);
+      result = formatBrackets(result);
+      return result;
+    }
+
+    // Render English parts with color coding
+    function renderEnglishParts(parts) {
+      if (!parts || !Array.isArray(parts)) {
+        return null;
+      }
+      return parts.map(part => {
+        if (part.type === 'space') {
+          return part.text;
+        }
+        return `<span class="${part.type}">${part.text}</span>`;
+      }).join('');
+    }
+
+    // Render a single word cell
+    function renderWordCell(word) {
+      let arabicHtml = '';
+
+      if (word.arabicParts) {
+        // Compound word with multiple parts
+        arabicHtml = word.arabicParts.map(part =>
+          `<span class="${part.type}">${part.text}</span>`
+        ).join('');
+      } else {
+        arabicHtml = `<span class="${word.type}">${word.arabic}</span>`;
+      }
+
+      return `
+        <td>
+          <div class="arabic-word">${arabicHtml}</div>
+          <div class="english-translation">${word.english}</div>
+        </td>
+      `;
+    }
+
+    // Render surah content
+    function renderSurah(surah, surahNum) {
+      if (!surah) {
+        return '<p>Surah data not available yet.</p>';
+      }
+
+      let html = `<h2 style="text-align: center; margin-bottom: 20px; font-family: 'NewMadinah', serif;">
+        سورة ${surah.nameArabic}
+        <span style="font-size: 14px; color: #666; display: block; direction: ltr;">Surah ${surah.name}</span>
+      </h2>`;
+
+      html += '<table class="word-table">';
+
+      // Collect all words from all verses into a flat array with verse markers and word IDs
+      let allWords = [];
+      // Get the starting global word ID for this surah (1-indexed for corpus.quran.com)
+      const surahStartWordId = (surahWordStartId[surahNum] || 0) + 1;
+      let wordCounter = 0;
+
+      surah.verses.forEach(verse => {
+        verse.words.forEach((word, idx) => {
+          // Global sequential word ID for corpus.quran.com
+          const globalWordId = surahStartWordId + wordCounter;
+          wordCounter++;
+
+          allWords.push({
+            ...word,
+            verseNum: verse.number,
+            wordNum: idx + 1,
+            globalWordId: globalWordId,
+            isLastInVerse: idx === verse.words.length - 1
+          });
+        });
+      });
+
+      // Render in rows of 3
+      const columns = 3;
+      for (let i = 0; i < allWords.length; i += columns) {
+        html += '<tr>';
+        for (let j = 0; j < columns; j++) {
+          const wordIdx = i + j;
+          if (wordIdx < allWords.length) {
+            const word = allWords[wordIdx];
+            let arabicHtml = '';
+
+            if (word.arabicParts) {
+              arabicHtml = word.arabicParts.map(part =>
+                `<span class="${part.type}">${part.text}</span>`
+              ).join('');
+            } else {
+              arabicHtml = `<span class="${word.type}">${word.arabic}</span>`;
+            }
+
+            // Add verse marker at the end of each verse
+            let verseMarker = '';
+            if (word.isLastInVerse) {
+              verseMarker = `<span class="verse-marker">${toArabicNumeral(word.verseNum)}</span>`;
+            }
+
+            // Render English - use englishParts if available, otherwise fallback to formatted text
+            const englishHtml = word.englishParts
+              ? renderEnglishParts(word.englishParts)
+              : formatEnglish(word.english);
+
+            // Build original image HTML if enabled
+            const imageStyle = showOriginalImages ? '' : 'display: none;';
+            const imageUrl = `https://corpus.quran.com/wordimage?id=${word.globalWordId}`;
+            const originalImageHtml = `<img class="original-image" src="${imageUrl}" alt="Original" style="${imageStyle}" data-word-id="${word.globalWordId}" onerror="this.style.display='none'">`;
+
+            html += `
+              <td>
+                <div class="arabic-container">
+                  ${originalImageHtml}
+                  <div class="arabic-word">${arabicHtml}${verseMarker}</div>
+                </div>
+                <div class="english-translation">${englishHtml}</div>
+              </td>
+            `;
+          } else {
+            html += '<td></td>';
+          }
+        }
+        html += '</tr>';
+      }
+
+      html += '</table>';
+      return html;
+    }
+
+    // Fetch surah data from JSON file
+    async function fetchSurahData(surahNum) {
+      if (surahCache[surahNum]) {
+        return surahCache[surahNum];
+      }
+
+      try {
+        const response = await fetch(`/data/surah/${surahNum}.json`);
+        if (!response.ok) {
+          throw new Error(`Failed to load surah ${surahNum}`);
+        }
+        const data = await response.json();
+        surahCache[surahNum] = data;
+        return data;
+      } catch (error) {
+        console.error('Error loading surah:', error);
+        return null;
+      }
+    }
+
+    // Load surah
+    async function loadSurah(surahNum) {
+      currentSurahNum = parseInt(surahNum);
+      const contentEl = document.getElementById('surah-content');
+      contentEl.innerHTML = '<p style="text-align: center; padding: 40px;">Loading...</p>';
+
+      const surahData = await fetchSurahData(currentSurahNum);
+      if (surahData) {
+        contentEl.innerHTML = renderSurah(surahData, currentSurahNum);
+      } else {
+        contentEl.innerHTML = '<p style="text-align: center; color: #c00;">Failed to load surah data. Please try again.</p>';
+      }
+    }
+
+    // Toggle original images visibility
+    function toggleOriginalImages() {
+      showOriginalImages = document.getElementById('show-original').checked;
+      const images = document.querySelectorAll('.original-image');
+      images.forEach(img => {
+        img.style.display = showOriginalImages ? '' : 'none';
+      });
+    }
+
+    // Populate surah dropdown
+    function populateSurahDropdown() {
+      const select = document.getElementById('surah-select');
+      select.innerHTML = SURAH_LIST.map(s =>
+        `<option value="${s.num}">${s.num}. ${s.name} (${s.nameArabic})</option>`
+      ).join('');
+    }
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', async function() {
+      populateSurahDropdown();
+      // Load word counts first (needed for global word IDs)
+      await loadWordCounts();
+      loadSurah(1);
+    });
+  </script>
+</body>
+</html>

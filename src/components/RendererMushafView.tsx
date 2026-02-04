@@ -387,7 +387,7 @@ function MushafContent({
         <div className="absolute right-2 bottom-0 flex items-center gap-2">
           {/* Bookmark button */}
           <div className="pointer-events-auto">
-            <InlineBookmarkButton pageNumber={pageNumber + 1} viewMode="mushaf" />
+            <InlineBookmarkButton pageNumber={pageNumber} viewMode="mushaf" />
           </div>
           {/* Next button */}
           <button

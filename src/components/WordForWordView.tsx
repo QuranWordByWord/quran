@@ -2,7 +2,11 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import type { Verse, Word } from '../types/quran';
 import { useFontClass, useVerseNumberFormat, useMenu } from '../App';
 import { useMobileNav } from '../contexts/MobileNavContext';
-import { InlineBookmarkButton } from './BookmarkButton';
+
+// Swipe navigation configuration
+const SWIPE_THRESHOLD = 80; // Min distance to trigger page change (px)
+const SWIPE_RESISTANCE = 0.3; // Resistance factor at boundaries
+const ANIMATION_DURATION = 250; // Transition duration in ms
 
 
 // Calculate proportional width weight based on word character count
@@ -25,13 +29,17 @@ interface WordForWordViewProps {
   onPageChange: (page: number) => void;
   onPlayWord?: (audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
+  onPlaySurah?: (surah: number) => void;
   isAudioActive?: boolean;
   onOpenMenu?: () => void;
   showTranslations?: boolean; // If false, shows traditional mushaf layout without word-by-word translations
   highlightedVerseKey?: string | null; // Verse key to highlight (e.g., "1:5")
   onHighlightVerse?: (verseKey: string | null) => void; // Callback to set highlighted verse
-  highlightedWordId?: number | null; // Word ID to highlight
-  onHighlightWord?: (wordId: number | null) => void; // Callback to set highlighted word
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null; // Word to highlight (shared with Mushaf view)
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null) => void; // Callback to set highlighted word
+  // Adjacent page data for swipe preview
+  prevPageVerses?: Verse[] | null;
+  nextPageVerses?: Verse[] | null;
 }
 
 // Line content type - can be words, surah header, or bismillah
@@ -40,6 +48,63 @@ interface LineContent {
   lineNumber: number;
   words?: { word: Word; verseNumber: number; surahNumber: number }[];
   surahNumber?: number;
+}
+
+// Helper function to process verses into lines
+function processVersesToLines(verses: Verse[]): LineContent[] {
+  const lineMap = new Map<number, { word: Word; verseNumber: number; surahNumber: number }[]>();
+
+  verses.forEach(verse => {
+    const surahNum = parseInt(verse.verse_key.split(':')[0]);
+
+    verse.words.forEach(word => {
+      const lineNum = word.line_number || 1;
+
+      if (!lineMap.has(lineNum)) {
+        lineMap.set(lineNum, []);
+      }
+
+      lineMap.get(lineNum)!.push({
+        word,
+        verseNumber: verse.verse_number,
+        surahNumber: surahNum,
+      });
+    });
+  });
+
+  const lines: LineContent[] = [];
+  const lineNumbers = Array.from(lineMap.keys()).sort((a, b) => a - b);
+
+  lineNumbers.forEach(lineNum => {
+    const words = lineMap.get(lineNum)!;
+
+    const firstWord = words[0];
+    if (firstWord && firstWord.verseNumber === 1 && firstWord.word.position === 1) {
+      const surahNum = firstWord.surahNumber;
+
+      lines.push({
+        type: 'surah-header',
+        lineNumber: lineNum,
+        surahNumber: surahNum,
+      });
+
+      if (surahNum !== 9 && surahNum !== 1) {
+        lines.push({
+          type: 'bismillah',
+          lineNumber: lineNum,
+          surahNumber: surahNum,
+        });
+      }
+    }
+
+    lines.push({
+      type: 'words',
+      lineNumber: lineNum,
+      words,
+    });
+  });
+
+  return lines;
 }
 
 // Get Juz name in Arabic
@@ -88,24 +153,173 @@ export function WordForWordView({
   onPageChange,
   onPlayWord,
   onPlayVerse,
+  onPlaySurah,
   isAudioActive = false,
   onOpenMenu,
   showTranslations = true,
   highlightedVerseKey,
   onHighlightVerse,
-  highlightedWordId,
+  highlightedWordInfo,
   onHighlightWord,
+  prevPageVerses,
+  nextPageVerses,
 }: WordForWordViewProps) {
   const fontClass = useFontClass();
   const { registerScrollContainer } = useMobileNav();
   const { isMenuOpen } = useMenu();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Swipe navigation state
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipePhase, setSwipePhase] = useState<'idle' | 'dragging' | 'animating'>('idle');
 
   // Register scroll container with mobile nav context
   useEffect(() => {
     registerScrollContainer(scrollContainerRef.current);
     return () => registerScrollContainer(null);
   }, [registerScrollContainer]);
+
+  // Reset swipe state when page changes externally
+  useEffect(() => {
+    setSwipeOffset(0);
+    setSwipePhase('idle');
+  }, [pageNumber]);
+
+  // Keyboard navigation (arrows for page navigation and scrolling)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' && pageNumber > 1) {
+        onPageChange(pageNumber - 1);
+      } else if (e.key === 'ArrowRight' && pageNumber < totalPages) {
+        onPageChange(pageNumber + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        // Scroll the content area
+        const scrollAmount = 100;
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollBy({
+            top: e.key === 'ArrowUp' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth',
+          });
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pageNumber, totalPages, onPageChange]);
+
+  // Touch handling for swipe navigation (mobile only)
+  useEffect(() => {
+    const container = containerRef.current;
+    const scrollContainer = scrollContainerRef.current;
+    if (!container || !scrollContainer) return;
+
+    // Only enable on mobile (check for touch support and screen width)
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+    if (!isMobile) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isSwiping = false;
+    let scrollStartTop = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      scrollStartTop = scrollContainer.scrollTop;
+      isSwiping = false;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+
+      const deltaX = e.touches[0].clientX - touchStartX;
+      const deltaY = e.touches[0].clientY - touchStartY;
+
+      // Only trigger swipe if at scroll boundary and moving vertically
+      const atTop = scrollContainer.scrollTop <= 0;
+      const atBottom = scrollContainer.scrollTop >= scrollContainer.scrollHeight - scrollContainer.clientHeight - 1;
+
+      // Determine if this should be a page swipe vs content scroll
+      const isVerticalGesture = Math.abs(deltaY) > Math.abs(deltaX);
+      const swipingDownAtTop = deltaY > 0 && atTop && scrollStartTop === 0;
+      const swipingUpAtBottom = deltaY < 0 && atBottom;
+
+      if (isVerticalGesture && (swipingDownAtTop || swipingUpAtBottom) && Math.abs(deltaY) > 10) {
+        e.preventDefault();
+        isSwiping = true;
+        setSwipePhase('dragging');
+
+        const hasPrevPage = pageNumber > 1;
+        const hasNextPage = pageNumber < totalPages;
+
+        // Apply rubber-band resistance at boundaries
+        let adjustedDelta = deltaY;
+        if ((deltaY > 0 && !hasPrevPage) || (deltaY < 0 && !hasNextPage)) {
+          adjustedDelta = deltaY * SWIPE_RESISTANCE;
+        }
+
+        setSwipeOffset(adjustedDelta);
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isSwiping) return;
+
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchEndY - touchStartY;
+
+      const shouldChangePage = Math.abs(deltaY) > SWIPE_THRESHOLD;
+      const hasPrevPage = pageNumber > 1;
+      const hasNextPage = pageNumber < totalPages;
+
+      if (shouldChangePage && deltaY > 0 && hasPrevPage) {
+        // Swipe down - animate off-screen, then change page
+        setSwipePhase('animating');
+        setSwipeOffset(container.clientHeight);
+        setTimeout(() => {
+          onPageChange(pageNumber - 1);
+          setSwipeOffset(0);
+          setSwipePhase('idle');
+        }, ANIMATION_DURATION);
+
+      } else if (shouldChangePage && deltaY < 0 && hasNextPage) {
+        // Swipe up - animate off-screen, then change page
+        setSwipePhase('animating');
+        setSwipeOffset(-container.clientHeight);
+        setTimeout(() => {
+          onPageChange(pageNumber + 1);
+          setSwipeOffset(0);
+          setSwipePhase('idle');
+        }, ANIMATION_DURATION);
+
+      } else {
+        // Snap back instantly (no animation)
+        setSwipeOffset(0);
+        setSwipePhase('idle');
+      }
+
+      isSwiping = false;
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pageNumber, totalPages, onPageChange]);
 
   if (loading) {
     return (
@@ -137,68 +351,161 @@ export function WordForWordView({
   const juzNumber = verses.length > 0 ? verses[0].juz_number : 1;
   const lastChapter = verses.length > 0 ? parseInt(verses[verses.length - 1].verse_key.split(':')[0]) : 1;
 
-  // Group words by their actual line numbers from the API
-  const lineMap = new Map<number, { word: Word; verseNumber: number; surahNumber: number }[]>();
+  // Process verses into lines using helper function
+  const lines = processVersesToLines(verses);
 
-  verses.forEach(verse => {
-    const surahNum = parseInt(verse.verse_key.split(':')[0]);
+  // Process adjacent page verses for swipe preview
+  const prevLines = prevPageVerses ? processVersesToLines(prevPageVerses) : null;
+  const nextLines = nextPageVerses ? processVersesToLines(nextPageVerses) : null;
+  const prevJuzNumber = prevPageVerses && prevPageVerses.length > 0 ? prevPageVerses[0].juz_number : 1;
+  const nextJuzNumber = nextPageVerses && nextPageVerses.length > 0 ? nextPageVerses[0].juz_number : 1;
+  const prevLastChapter = prevPageVerses && prevPageVerses.length > 0 ? parseInt(prevPageVerses[prevPageVerses.length - 1].verse_key.split(':')[0]) : 1;
+  const nextLastChapter = nextPageVerses && nextPageVerses.length > 0 ? parseInt(nextPageVerses[nextPageVerses.length - 1].verse_key.split(':')[0]) : 1;
 
-    verse.words.forEach(word => {
-      const lineNum = word.line_number || 1;
+  // Determine swipe animation state
+  const isAnimating = swipePhase === 'animating';
+  const isDragging = swipePhase === 'dragging';
+  const isSwipeActive = isDragging || isAnimating;
 
-      if (!lineMap.has(lineNum)) {
-        lineMap.set(lineNum, []);
-      }
+  // Determine which adjacent pages to show during swipe
+  const hasPrevPage = pageNumber > 1;
+  const hasNextPage = pageNumber < totalPages;
+  const showPrevPage = isSwipeActive && hasPrevPage && swipeOffset > 0 && prevLines;
+  const showNextPage = isSwipeActive && hasNextPage && swipeOffset < 0 && nextLines;
 
-      lineMap.get(lineNum)!.push({
-        word,
-        verseNumber: verse.verse_number,
-        surahNumber: surahNum,
-      });
-    });
-  });
+  // Helper to render page frame content
+  const renderPageContent = (
+    pageLines: LineContent[],
+    pageNum: number,
+    pageJuzNumber: number,
+    pageLastChapter: number,
+    isPreview: boolean = false
+  ) => (
+    <div className={`max-w-4xl mx-auto px-1 py-1 sm:p-4 md:p-6 lg:pb-6 ${isPreview ? 'pb-6' : (isAudioActive ? 'pb-36' : 'pb-20')} lg:pb-6`}>
+      <div className="relative bg-[var(--mushaf-frame-bg)] p-1 sm:p-1.5 rounded-sm shadow-xl">
+        <div className="relative border-[3px] sm:border-4 border-[var(--mushaf-border)] rounded-sm">
+          <div className="absolute -top-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-l-[3px] sm:border-t-4 sm:border-l-4 border-[var(--mushaf-border)] rounded-tl-sm" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-r-[3px] sm:border-t-4 sm:border-r-4 border-[var(--mushaf-border)] rounded-tr-sm" />
+          <div className="absolute -bottom-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-l-[3px] sm:border-b-4 sm:border-l-4 border-[var(--mushaf-border)] rounded-bl-sm" />
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-r-[3px] sm:border-b-4 sm:border-r-4 border-[var(--mushaf-border)] rounded-br-sm" />
 
-  // Convert to sorted array of lines (1-15)
-  const lines: LineContent[] = [];
+          <div className="border-2 border-[var(--mushaf-accent)] m-0.5">
+            <div className="border border-[var(--mushaf-border)] bg-[var(--mushaf-page-bg)]">
+              {/* Page Header */}
+              <div className="flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 border-b-2 border-[var(--mushaf-border)] bg-[var(--mushaf-header-bg)]">
+                <div className="text-left flex-1">
+                  <span className="arabic-text text-xs sm:text-sm font-bold text-[var(--mushaf-text-header)]">
+                    {getJuzName(pageJuzNumber)}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)] block">
+                    Juz {pageJuzNumber}
+                  </span>
+                </div>
+                <div className="text-center px-3">
+                  <span className="text-base sm:text-lg font-bold text-[var(--mushaf-text-header)]">
+                    {pageNum}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)]">
+                    {' '}/ {totalPages}
+                  </span>
+                </div>
+                <div className="text-right flex-1">
+                  <span className="arabic-text text-xs sm:text-sm font-bold text-[var(--mushaf-text-header)]">
+                    سورة {getSurahNameArabic(pageLastChapter)}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)] block">
+                    {getSurahNameEnglish(pageLastChapter)}
+                  </span>
+                </div>
+              </div>
 
-  // Get all line numbers and sort them
-  const lineNumbers = Array.from(lineMap.keys()).sort((a, b) => a - b);
+              {/* Page Content */}
+              <div className="p-2 sm:p-4 md:p-5 min-h-[60vh] bg-[var(--mushaf-page-bg)]">
+                {pageLines.map((line, index) => {
+                  if (line.type === 'surah-header') {
+                    return (
+                      <SurahHeader
+                        key={`surah-header-${line.surahNumber}-${index}`}
+                        surahNumber={line.surahNumber!}
+                        fontClass={fontClass}
+                      />
+                    );
+                  }
 
-  lineNumbers.forEach(lineNum => {
-    const words = lineMap.get(lineNum)!;
+                  if (line.type === 'bismillah') {
+                    return (
+                      <div
+                        key={`bismillah-${index}`}
+                        className="flex items-center justify-center gap-2 py-2 sm:py-3"
+                        dir="rtl"
+                      >
+                        <span className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl text-[var(--mushaf-text-header)]`}>
+                          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                        </span>
+                        {/* Verse marker for playing surah audio */}
+                        {!isPreview && line.surahNumber && (
+                          <button
+                            onClick={() => onPlaySurah?.(line.surahNumber!)}
+                            className="inline-flex items-center justify-center rounded transition-colors hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)] cursor-pointer"
+                            aria-label={`Play Surah ${line.surahNumber}`}
+                            title="Click to play surah"
+                          >
+                            <span className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl text-[var(--mushaf-accent)] px-0.5`}>
+                              ۝
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  }
 
-    // Check if this line starts a new surah (first word is verse 1)
-    const firstWord = words[0];
-    if (firstWord && firstWord.verseNumber === 1 && firstWord.word.position === 1) {
-      // Check if this surah needs a header (not continuing from previous page)
-      const surahNum = firstWord.surahNumber;
+                  if (line.type === 'words' && line.words) {
+                    return showTranslations ? (
+                      <MushafLine
+                        key={`page-${pageNum}-line-${line.lineNumber}-${index}`}
+                        words={line.words}
+                        lineNumber={line.lineNumber}
+                        onPlayWord={isPreview ? undefined : onPlayWord}
+                        onPlayVerse={isPreview ? undefined : onPlayVerse}
+                        onPlaySurah={isPreview ? undefined : onPlaySurah}
+                        fontClass={fontClass}
+                        justified={pageNum <= 3}
+                        highlightedVerseKey={isPreview ? null : highlightedVerseKey}
+                        onHighlightVerse={isPreview ? undefined : onHighlightVerse}
+                        highlightedWordInfo={isPreview ? null : highlightedWordInfo}
+                        onHighlightWord={isPreview ? undefined : onHighlightWord}
+                        currentPageNumber={pageNum}
+                      />
+                    ) : (
+                      <TraditionalMushafLine
+                        key={`page-${pageNum}-line-${line.lineNumber}-${index}`}
+                        words={line.words}
+                        onPlayWord={isPreview ? undefined : onPlayWord}
+                        onPlayVerse={isPreview ? undefined : onPlayVerse}
+                        fontClass={fontClass}
+                        highlightedVerseKey={isPreview ? null : highlightedVerseKey}
+                        onHighlightVerse={isPreview ? undefined : onHighlightVerse}
+                        highlightedWordInfo={isPreview ? null : highlightedWordInfo}
+                        onHighlightWord={isPreview ? undefined : onHighlightWord}
+                        currentPageNumber={pageNum}
+                      />
+                    );
+                  }
 
-      // Add surah header
-      lines.push({
-        type: 'surah-header',
-        lineNumber: lineNum,
-        surahNumber: surahNum,
-      });
-
-      // Add bismillah for all surahs except At-Tawbah (9)
-      if (surahNum !== 9 && surahNum !== 1) {
-        lines.push({
-          type: 'bismillah',
-          lineNumber: lineNum,
-        });
-      }
-    }
-
-    lines.push({
-      type: 'words',
-      lineNumber: lineNum,
-      words,
-    });
-  });
+                  return null;
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div
-      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)]"
+      ref={containerRef}
+      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen pt-14 lg:pt-0 lg:h-[calc(100vh-64px)] overflow-hidden"
       role="article"
       aria-label={`Quran page ${pageNumber} of ${totalPages}, Juz ${juzNumber}`}
     >
@@ -215,123 +522,47 @@ export function WordForWordView({
           <span className="text-3xl xl:text-4xl text-[var(--mushaf-arrow-color)] group-hover:opacity-80 transition-colors" aria-hidden="true">←</span>
         </button>
 
-        {/* Scrollable content area */}
+        {/* Previous page preview during swipe */}
+        {showPrevPage && (
+          <div
+            className="lg:hidden absolute inset-0 pointer-events-none z-10 overflow-hidden"
+            style={{
+              transform: `translateY(${swipeOffset - window.innerHeight}px)`,
+              transition: isAnimating ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)` : 'none',
+            }}
+          >
+            <div className="h-full overflow-hidden">
+              {renderPageContent(prevLines!, pageNumber - 1, prevJuzNumber, prevLastChapter, true)}
+            </div>
+          </div>
+        )}
+
+        {/* Next page preview during swipe */}
+        {showNextPage && (
+          <div
+            className="lg:hidden absolute inset-0 pointer-events-none z-10 overflow-hidden"
+            style={{
+              transform: `translateY(${swipeOffset + window.innerHeight}px)`,
+              transition: isAnimating ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)` : 'none',
+            }}
+          >
+            <div className="h-full overflow-hidden">
+              {renderPageContent(nextLines!, pageNumber + 1, nextJuzNumber, nextLastChapter, true)}
+            </div>
+          </div>
+        )}
+
+        {/* Scrollable content area with swipe transform */}
         <div
           ref={scrollContainerRef}
           className="flex-1 min-h-0 overflow-y-auto scrollbar-none lg:scrollbar-auto"
+          style={{
+            transform: swipeOffset !== 0 ? `translateY(${swipeOffset}px)` : undefined,
+            transition: isAnimating ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)` : 'none',
+          }}
         >
-          <div className={`max-w-4xl mx-auto px-1 py-1 sm:p-4 md:p-6 lg:pb-6 ${isAudioActive ? 'pb-20' : 'pb-4'}`}>
-          {/* Outer decorative frame */}
-          <div className="relative bg-[var(--mushaf-frame-bg)] p-1 sm:p-1.5 rounded-sm shadow-xl">
-            {/* Olive/Green ornate border - outer */}
-            <div className="relative border-[3px] sm:border-4 border-[var(--mushaf-border)] rounded-sm">
-              {/* Corner ornaments - outer */}
-              <div className="absolute -top-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-l-[3px] sm:border-t-4 sm:border-l-4 border-[var(--mushaf-border)] rounded-tl-sm" />
-              <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-t-[3px] border-r-[3px] sm:border-t-4 sm:border-r-4 border-[var(--mushaf-border)] rounded-tr-sm" />
-              <div className="absolute -bottom-1 -left-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-l-[3px] sm:border-b-4 sm:border-l-4 border-[var(--mushaf-border)] rounded-bl-sm" />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 border-b-[3px] border-r-[3px] sm:border-b-4 sm:border-r-4 border-[var(--mushaf-border)] rounded-br-sm" />
-
-              {/* Inner gold/yellow accent border */}
-              <div className="border-2 border-[var(--mushaf-accent)] m-0.5">
-                {/* Innermost content border */}
-                <div className="border border-[var(--mushaf-border)] bg-[var(--mushaf-page-bg)]">
-
-                  {/* Page Header - Compact */}
-                  <div className="flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 border-b-2 border-[var(--mushaf-border)] bg-[var(--mushaf-header-bg)]">
-                    {/* Juz Info - Left side of page */}
-                    <div className="text-left flex-1">
-                      <span className="arabic-text text-xs sm:text-sm font-bold text-[var(--mushaf-text-header)]">
-                        {getJuzName(juzNumber)}
-                      </span>
-                      <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)] block">
-                        Juz {juzNumber}
-                      </span>
-                    </div>
-
-                    {/* Page Number - Center */}
-                    <div className="text-center px-3">
-                      <span className="text-base sm:text-lg font-bold text-[var(--mushaf-text-header)]">
-                        {pageNumber}
-                      </span>
-                      <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)]">
-                        {' '}/ {totalPages}
-                      </span>
-                    </div>
-
-                    {/* Surah Name - Right side of page */}
-                    <div className="text-right flex-1">
-                      <span className="arabic-text text-xs sm:text-sm font-bold text-[var(--mushaf-text-header)]">
-                        سورة {getSurahNameArabic(lastChapter)}
-                      </span>
-                      <span className="text-[9px] sm:text-[10px] text-[var(--mushaf-text-secondary)] block">
-                        {getSurahNameEnglish(lastChapter)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Page Content - 15 Lines */}
-                  <div className="p-2 sm:p-4 md:p-5 min-h-[60vh] bg-[var(--mushaf-page-bg)]">
-                    {lines.map((line, index) => {
-                      if (line.type === 'surah-header') {
-                        return (
-                          <SurahHeader
-                            key={`surah-header-${line.surahNumber}-${index}`}
-                            surahNumber={line.surahNumber!}
-                            fontClass={fontClass}
-                          />
-                        );
-                      }
-
-                      if (line.type === 'bismillah') {
-                        return (
-                          <div key={`bismillah-${index}`} className="text-center py-2 sm:py-3">
-                            <span className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl text-[var(--mushaf-text-header)]`}>
-                              بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-                            </span>
-                          </div>
-                        );
-                      }
-
-                      if (line.type === 'words' && line.words) {
-                        return showTranslations ? (
-                          <MushafLine
-                            key={`page-${pageNumber}-line-${line.lineNumber}-${index}`}
-                            words={line.words}
-                            lineNumber={line.lineNumber}
-                            onPlayWord={onPlayWord}
-                            onPlayVerse={onPlayVerse}
-                            fontClass={fontClass}
-                            justified={pageNumber <= 3}
-                            highlightedVerseKey={highlightedVerseKey}
-                            onHighlightVerse={onHighlightVerse}
-                            highlightedWordId={highlightedWordId}
-                            onHighlightWord={onHighlightWord}
-                          />
-                        ) : (
-                          <TraditionalMushafLine
-                            key={`page-${pageNumber}-line-${line.lineNumber}-${index}`}
-                            words={line.words}
-                            onPlayWord={onPlayWord}
-                            onPlayVerse={onPlayVerse}
-                            fontClass={fontClass}
-                            highlightedVerseKey={highlightedVerseKey}
-                            onHighlightVerse={onHighlightVerse}
-                            highlightedWordId={highlightedWordId}
-                            onHighlightWord={onHighlightWord}
-                          />
-                        );
-                      }
-
-                      return null;
-                    })}
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderPageContent(lines, pageNumber, juzNumber, lastChapter, false)}
         </div>
-      </div>
 
         {/* Right arrow - Next page (desktop only) */}
         <button
@@ -350,39 +581,39 @@ export function WordForWordView({
         className={`lg:hidden fixed left-0 right-0 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
       >
         {/* Center - Page number button (absolutely centered) */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-0">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-auto">
           <button
             onClick={onOpenMenu}
-            className="pointer-events-auto text-xs text-[var(--mushaf-text-secondary)] bg-[var(--mushaf-page-bg)]/90 px-3 py-1.5 rounded-full border border-[var(--mushaf-border)] shadow-md active:scale-95 transition-transform"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm rounded-full border border-[var(--mushaf-border)] shadow-lg active:scale-95 transition-transform"
             aria-label="Open menu"
           >
-            {pageNumber} / {totalPages}
+            <span className="text-sm text-[var(--mushaf-text-primary)]">
+              {pageNumber} / {totalPages}
+            </span>
+            <svg className="w-4 h-4 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
         </div>
 
-        {/* Left side - Previous button */}
-        <div className="absolute left-2 bottom-0">
+        {/* Left side - Previous button (pill shape) */}
+        <div className="absolute left-2 bottom-0 pointer-events-auto">
           <button
             onClick={() => onPageChange(pageNumber - 1)}
             disabled={pageNumber <= 1}
-            className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
             aria-label={`Go to previous page ${pageNumber - 1}`}
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
           </button>
         </div>
 
-        {/* Right side - Bookmark and Next button */}
-        <div className="absolute right-2 bottom-0 flex items-center gap-2">
-          {/* Bookmark button */}
-          <div className="pointer-events-auto">
-            <InlineBookmarkButton pageNumber={pageNumber} viewMode="wordforword" />
-          </div>
-          {/* Next button */}
+        {/* Right side - Next button (pill shape) */}
+        <div className="absolute right-2 bottom-0 pointer-events-auto">
           <button
             onClick={() => onPageChange(pageNumber + 1)}
             disabled={pageNumber >= totalPages}
-            className="pointer-events-auto w-10 h-10 rounded-full bg-[var(--mushaf-page-bg)]/90 border border-[var(--mushaf-border)] shadow-md flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
             aria-label={`Go to next page ${pageNumber + 1}`}
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
@@ -431,23 +662,27 @@ function MushafLine({
   words,
   onPlayWord,
   onPlayVerse,
+  onPlaySurah,
   fontClass,
   justified = false,
   highlightedVerseKey,
   onHighlightVerse,
-  highlightedWordId,
+  highlightedWordInfo,
   onHighlightWord,
+  currentPageNumber,
 }: {
   words: { word: Word; verseNumber: number; surahNumber: number }[];
   lineNumber: number;
   onPlayWord?: (audioUrl: string | null) => void;
   onPlayVerse?: (verseKey: string) => void;
+  onPlaySurah?: (surah: number) => void;
   fontClass: string;
   justified?: boolean;
   highlightedVerseKey?: string | null;
   onHighlightVerse?: (verseKey: string | null) => void;
-  highlightedWordId?: number | null;
-  onHighlightWord?: (wordId: number | null) => void;
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null;
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null) => void;
+  currentPageNumber: number; // Current page being viewed, used as fallback for word.page_number
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -462,14 +697,22 @@ function MushafLine({
     setIsExpanded(prev => !prev);
   };
 
-  const handleWordClick = (wordId: number, audioUrl: string | null) => {
+  const handleWordClick = (verseKey: string, wordPosition: number, audioUrl: string | null, pageNumber?: number) => {
     // Single click on word: show translations, highlight the word, and play audio
     setIsExpanded(true);
     onHighlightVerse?.(null); // Clear verse highlight
-    onHighlightWord?.(wordId); // Highlight this word
+    // Use word's page_number if available, otherwise use current page being viewed
+    // Include sourceView to enable proper page conversion when switching views
+    onHighlightWord?.({ verseKey, wordPosition, pageNumber: pageNumber ?? currentPageNumber, sourceView: 'wordforword' });
     if (audioUrl) {
       onPlayWord?.(audioUrl);
     }
+  };
+
+  const handleVerseHighlight = (verseKey: string | null) => {
+    // When highlighting a verse, clear word highlight first
+    onHighlightWord?.(null);
+    onHighlightVerse?.(verseKey);
   };
 
   // Calculate total weight for percentage-based widths
@@ -494,7 +737,7 @@ function MushafLine({
           const widthPercent = (wordWeights[idx] / totalWeight) * 100;
           const verseKey = `${item.surahNumber}:${item.verseNumber}`;
           const isVerseHighlighted = highlightedVerseKey === verseKey;
-          const isWordHighlighted = highlightedWordId === item.word.id;
+          const isWordHighlighted = highlightedWordInfo?.verseKey === verseKey && highlightedWordInfo?.wordPosition === item.word.position;
           return (
             <div
               key={`${item.word.id}-${idx}`}
@@ -506,10 +749,10 @@ function MushafLine({
                 word={item.word}
                 verseNumber={item.verseNumber}
                 surahNumber={item.surahNumber}
-                onWordClick={handleWordClick}
+                onWordClick={(wordPosition, audioUrl, pageNumber) => handleWordClick(verseKey, wordPosition, audioUrl, pageNumber)}
                 onPlayVerse={onPlayVerse}
-                onHighlightVerse={onHighlightVerse}
-                onHighlightWord={onHighlightWord}
+                onPlaySurah={onPlaySurah}
+                onHighlightVerse={handleVerseHighlight}
                 fontClass={fontClass}
                 isVerseHighlighted={isVerseHighlighted}
                 isWordHighlighted={isWordHighlighted}
@@ -551,8 +794,9 @@ function TraditionalMushafLine({
   fontClass,
   highlightedVerseKey,
   onHighlightVerse,
-  highlightedWordId,
+  highlightedWordInfo,
   onHighlightWord,
+  currentPageNumber,
 }: {
   words: { word: Word; verseNumber: number; surahNumber: number }[];
   onPlayWord?: (audioUrl: string | null) => void;
@@ -560,22 +804,25 @@ function TraditionalMushafLine({
   fontClass: string;
   highlightedVerseKey?: string | null;
   onHighlightVerse?: (verseKey: string | null) => void;
-  highlightedWordId?: number | null;
-  onHighlightWord?: (wordId: number | null) => void;
+  highlightedWordInfo?: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null;
+  onHighlightWord?: (info: { verseKey: string; wordPosition: number; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword' } | null) => void;
+  currentPageNumber: number; // Current page being viewed, used as fallback for word.page_number
 }) {
   const { format: verseNumberFormat } = useVerseNumberFormat();
 
   const handleWordClick = (word: Word, surahNumber: number, verseNumber: number) => {
+    const verseKey = `${surahNumber}:${verseNumber}`;
     if (word.char_type_name === 'end') {
       // Click on verse marker plays the full verse and highlights it
-      const verseKey = `${surahNumber}:${verseNumber}`;
       onHighlightWord?.(null); // Clear word highlight
       onHighlightVerse?.(verseKey);
       onPlayVerse?.(verseKey);
     } else if (word.audio_url) {
       // Click on word plays the word audio and highlights the word
       onHighlightVerse?.(null); // Clear verse highlight
-      onHighlightWord?.(word.id); // Highlight this word
+      // Use word's page_number if available, otherwise use current page being viewed
+      // Include sourceView to enable proper page conversion when switching views
+      onHighlightWord?.({ verseKey, wordPosition: word.position, pageNumber: word.page_number ?? currentPageNumber, sourceView: 'wordforword' });
       onPlayWord?.(word.audio_url);
     }
   };
@@ -592,24 +839,24 @@ function TraditionalMushafLine({
           const text = item.word.text || item.word.text_uthmani || '';
           const verseKey = `${item.surahNumber}:${item.verseNumber}`;
           const isVerseHighlighted = highlightedVerseKey === verseKey;
-          const isWordHighlighted = highlightedWordId === item.word.id;
+          const isWordHighlighted = highlightedWordInfo?.verseKey === verseKey && highlightedWordInfo?.wordPosition === item.word.position;
           const isHighlighted = isWordHighlighted || isVerseHighlighted;
 
           return (
             <span
               key={`${item.word.id}-${idx}`}
               onClick={() => handleWordClick(item.word, item.surahNumber, item.verseNumber)}
-              className={`inline select-none transition-colors rounded ${
+              className={`group inline select-none transition-colors rounded ${
                 isHighlighted
                   ? 'bg-[var(--mushaf-highlight-bg)]'
                   : item.word.audio_url || isEndMarker
-                  ? 'cursor-pointer hover:text-[var(--mushaf-accent)]'
+                  ? 'cursor-pointer'
                   : ''
               }`}
             >
               {isEndMarker ? (
                 // Verse marker
-                <span className="relative inline-flex items-center justify-center mx-0.5">
+                <span className="relative inline-flex items-center justify-center mx-0.5" title="Click to play ayah">
                   <span
                     className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-accent)]`}
                   >
@@ -641,7 +888,7 @@ function TraditionalMushafLine({
               ) : (
                 // Regular word - no spacing between words
                 <span
-                  className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-text)]`}
+                  className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-text)] group-hover:text-[var(--mushaf-hover-gold)] transition-colors`}
                 >
                   {text}
                 </span>
@@ -661,8 +908,8 @@ function WordCell({
   surahNumber,
   onWordClick,
   onPlayVerse,
+  onPlaySurah,
   onHighlightVerse,
-  onHighlightWord,
   fontClass,
   isVerseHighlighted = false,
   isWordHighlighted = false,
@@ -670,10 +917,10 @@ function WordCell({
   word: Word;
   verseNumber: number;
   surahNumber: number;
-  onWordClick?: (wordId: number, audioUrl: string | null) => void;
+  onWordClick?: (wordPosition: number, audioUrl: string | null, pageNumber?: number) => void;
   onPlayVerse?: (verseKey: string) => void;
+  onPlaySurah?: (surah: number) => void;
   onHighlightVerse?: (verseKey: string | null) => void;
-  onHighlightWord?: (wordId: number | null) => void;
   fontClass: string;
   isVerseHighlighted?: boolean;
   isWordHighlighted?: boolean;
@@ -694,12 +941,18 @@ function WordCell({
     if (isEndMarker) {
       // Click on end marker plays the whole verse and highlights it
       const verseKey = `${surahNumber}:${verseNumber}`;
-      onHighlightWord?.(null); // Clear word highlight
       onHighlightVerse?.(verseKey);
-      onPlayVerse?.(verseKey);
+
+      // Special case: clicking verse 1 of Surah Al-Fatiha plays the whole surah
+      // (matching behavior of Bismillah line in other surahs)
+      if (surahNumber === 1 && verseNumber === 1) {
+        onPlaySurah?.(1);
+      } else {
+        onPlayVerse?.(verseKey);
+      }
     } else {
       // Click on word: show translations and play audio, highlight the word
-      onWordClick?.(word.id, word.audio_url || null);
+      onWordClick?.(word.position, word.audio_url || null, word.page_number);
     }
   };
 
@@ -714,11 +967,14 @@ function WordCell({
       {/* Arabic Word - using selected font style */}
       {isEndMarker ? (
         // Verse marker - with optional English number overlay
-        <span className={`relative inline-flex items-center justify-center rounded transition-colors ${
-          isHighlighted
-            ? "bg-[var(--mushaf-highlight-bg)]"
-            : "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
-        }`}>
+        <span
+          className={`relative inline-flex items-center justify-center rounded transition-colors ${
+            isHighlighted
+              ? "bg-[var(--mushaf-highlight-bg)]"
+              : "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
+          }`}
+          title={surahNumber === 1 && verseNumber === 1 ? "Click to play surah" : "Click to play ayah"}
+        >
           <span
             className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-accent)]`}
           >
@@ -755,8 +1011,8 @@ function WordCell({
             isHighlighted
               ? "bg-[var(--mushaf-highlight-bg)]"
               : word.audio_url
-              ? "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
-              : "hover:bg-[var(--mushaf-header-bg)]/50"
+              ? "hover:bg-[var(--mushaf-header-bg)] hover:text-[var(--mushaf-hover-gold)] active:bg-[var(--mushaf-arrow-hover)]"
+              : "hover:bg-[var(--mushaf-header-bg)]/50 hover:text-[var(--mushaf-hover-gold)]"
           }`}
         >
           {word.text || word.text_uthmani}

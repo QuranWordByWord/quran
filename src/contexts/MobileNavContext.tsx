@@ -3,17 +3,25 @@ import type { ReactNode } from 'react';
 
 interface MobileNavContextType {
   isNavVisible: boolean;
+  headerHeight: number; // 0 when hidden, 56 when visible
+  isMushafMode: boolean;
   toggle: () => void;
   show: () => void;
   hide: () => void;
+  showTemporarily: () => void; // Show header for 3s then auto-hide (for Mushaf tap)
+  setMushafMode: (enabled: boolean) => void;
   registerScrollContainer: (element: HTMLElement | null) => void;
 }
 
 const MobileNavContext = createContext<MobileNavContextType>({
   isNavVisible: true,
+  headerHeight: 56,
+  isMushafMode: false,
   toggle: () => {},
   show: () => {},
   hide: () => {},
+  showTemporarily: () => {},
+  setMushafMode: () => {},
   registerScrollContainer: () => {},
 });
 
@@ -31,11 +39,15 @@ export function MobileNavProvider({
   scrollThreshold = 50,
 }: MobileNavProviderProps) {
   const [isNavVisible, setIsNavVisible] = useState(true);
+  const [isMushafMode, setIsMushafModeState] = useState(false);
   const lastScrollY = useRef(0);
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   // Use ref to store scroll handler to avoid stale closures
   const scrollHandlerRef = useRef<(() => void) | null>(null);
+
+  // Header height: 0 when hidden, 56 when visible
+  const headerHeight = isNavVisible ? 56 : 0;
 
   const clearHideTimeout = useCallback(() => {
     if (hideTimeoutRef.current) {
@@ -73,8 +85,36 @@ export function MobileNavProvider({
     });
   }, [scheduleHide, clearHideTimeout]);
 
+  // Show header temporarily (for Mushaf tap) - shows for 3s then auto-hides
+  const showTemporarily = useCallback(() => {
+    setIsNavVisible(true);
+    scheduleHide();
+  }, [scheduleHide]);
+
+  // Set Mushaf mode - hides header immediately and disables scroll-based show/hide
+  const setMushafMode = useCallback((enabled: boolean) => {
+    setIsMushafModeState(enabled);
+    if (enabled) {
+      // In Mushaf mode, start with header hidden
+      clearHideTimeout();
+      setIsNavVisible(false);
+    } else {
+      // Exiting Mushaf mode, show header
+      setIsNavVisible(true);
+    }
+  }, [clearHideTimeout]);
+
   // Define handleScroll before registerScrollContainer
+  // Use ref to track Mushaf mode in scroll handler without stale closure
+  const isMushafModeRef = useRef(isMushafMode);
+  useEffect(() => {
+    isMushafModeRef.current = isMushafMode;
+  }, [isMushafMode]);
+
   const handleScroll = useCallback(() => {
+    // Skip scroll-based show/hide in Mushaf mode (use tap instead)
+    if (isMushafModeRef.current) return;
+
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -152,7 +192,17 @@ export function MobileNavProvider({
   }, [clearHideTimeout]);
 
   return (
-    <MobileNavContext.Provider value={{ isNavVisible, toggle, show, hide, registerScrollContainer }}>
+    <MobileNavContext.Provider value={{
+      isNavVisible,
+      headerHeight,
+      isMushafMode,
+      toggle,
+      show,
+      hide,
+      showTemporarily,
+      setMushafMode,
+      registerScrollContainer,
+    }}>
       {children}
     </MobileNavContext.Provider>
   );

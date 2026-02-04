@@ -1,0 +1,536 @@
+{
+  "name": "Al-Fil",
+  "nameArabic": "الفيل",
+  "verses": [
+    {
+      "number": 1,
+      "words": [
+        {
+          "arabic": "أَلَمْ",
+          "english": "Have not",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "أَ",
+              "type": "preposition"
+            },
+            {
+              "text": "لَمْ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "Have",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "not",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "تَرَ",
+          "english": "you seen",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "you",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "seen",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "كَيْفَ",
+          "english": "how",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "how",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "فَعَلَ",
+          "english": "dealt",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "dealt",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "رَبُّكَ",
+          "english": "your Lord",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "your",
+              "type": "allah-name"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "بِأَصْحَـٰبِ",
+          "english": "with (the) Companions",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "بِ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَصْحَٰبِ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "with",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Companions",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْفِيلِ",
+          "english": "(of the) Elephant",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Elephant",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "words": [
+        {
+          "arabic": "أَلَمْ",
+          "english": "Did not",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "أَ",
+              "type": "preposition"
+            },
+            {
+              "text": "لَمْ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "Did",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "not",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "يَجْعَلْ",
+          "english": "He make",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "He",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "make",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "كَيْدَهُمْ",
+          "english": "their plan",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "their",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "plan",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "فِى",
+          "english": "go",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "go",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "تَضْلِيلٍۢ",
+          "english": "astray",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "astray",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "words": [
+        {
+          "arabic": "وَأَرْسَلَ",
+          "english": "And He sent",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "أَرْسَلَ",
+              "type": "verb"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "And",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "He",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "sent",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "عَلَيْهِمْ",
+          "english": "against them",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "عَلَيْ",
+              "type": "preposition"
+            },
+            {
+              "text": "هِمْ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "against",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "طَيْرًا",
+          "english": "birds",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "birds",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "أَبَابِيلَ",
+          "english": "(in) flocks",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(in)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "flocks",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "words": [
+        {
+          "arabic": "تَرْمِيهِم",
+          "english": "Striking them",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "Striking",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "بِحِجَارَةٍۢ",
+          "english": "with stones",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "بِ",
+              "type": "preposition"
+            },
+            {
+              "text": "حِجَارَةٍ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "with",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "stones",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مِّن",
+          "english": "of",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "of",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "سِجِّيلٍۢ",
+          "english": "baked clay",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "baked",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "clay",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "words": [
+        {
+          "arabic": "فَجَعَلَهُمْ",
+          "english": "Then He made them",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "فَ",
+              "type": "preposition"
+            },
+            {
+              "text": "جَعَلَ",
+              "type": "verb"
+            },
+            {
+              "text": "هُمْ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "Then",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "He",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "made",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "them",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "كَعَصْفٍۢ",
+          "english": "like straw",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "كَ",
+              "type": "preposition"
+            },
+            {
+              "text": "عَصْفٍ",
+              "type": "noun"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "like",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "straw",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "مَّأْكُولٍۭ",
+          "english": "eaten up",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "eaten",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "up",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

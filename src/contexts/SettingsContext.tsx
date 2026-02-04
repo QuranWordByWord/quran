@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import type { AppSettings, ReciterConfig, TranslationConfig, FontConfig } from '../config/types';
+import type { AppSettings, ReciterConfig, TranslationConfig, FontConfig, MushafScript } from '../config/types';
 import { FONT_OPTIONS } from '../config/defaults';
 import { RECITERS, getReciterById, DEFAULT_RECITER_ID } from '../config/reciters';
 import { TRANSLATIONS, getTranslationById, DEFAULT_TRANSLATION_ID } from '../config/translations';
@@ -44,9 +44,27 @@ interface SettingsContextType {
   layoutMode: 'auto' | 'desktop' | 'mobile';
   setLayoutMode: (mode: 'auto' | 'desktop' | 'mobile') => void;
 
+  // Mushaf settings (for DigitalKhatt renderer)
+  mushafScript: MushafScript;
+  setMushafScript: (script: MushafScript) => void;
+  tajweedEnabled: boolean;
+  setTajweedEnabled: (enabled: boolean) => void;
+  mushafZoom: number;
+  setMushafZoom: (zoom: number) => void;
+  mushafFontScale: number;
+  setMushafFontScale: (scale: number) => void;
+
   // Highlighted verse (shared between views, session-only, not persisted)
   highlightedVerseKey: string | null;
   setHighlightedVerseKey: (verseKey: string | null) => void;
+
+  // Highlighted word (shared between views, session-only, not persisted)
+  // Uses verseKey + wordPosition as common identifier that both views can map to/from
+  // pageNumber is the UI page number from the source view (varies by view/script)
+  // sourceView tracks which view set the highlight for proper page conversion
+  // sourceScript tracks the mushaf script if sourceView is 'mushaf'
+  highlightedWordInfo: { verseKey: string; wordPosition: number; wordCoords?: { page: number; line: number; word: number }; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null;
+  setHighlightedWordInfo: (info: { verseKey: string; wordPosition: number; wordCoords?: { page: number; line: number; word: number }; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null) => void;
 
   // Bulk update
   updateSettings: (partial: Partial<AppSettings>) => void;
@@ -75,6 +93,8 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   // Session-only state for highlighted verse (shared between views, not persisted)
   const [highlightedVerseKey, setHighlightedVerseKey] = useState<string | null>(null);
+  // Session-only state for highlighted word (shared between views, not persisted)
+  const [highlightedWordInfo, setHighlightedWordInfo] = useState<{ verseKey: string; wordPosition: number; wordCoords?: { page: number; line: number; word: number }; pageNumber?: number; sourceView?: 'mushaf' | 'wordforword'; sourceScript?: MushafScript } | null>(null);
 
   // Persist settings whenever they change
   useEffect(() => {
@@ -168,6 +188,36 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     [updateSettings]
   );
 
+  const setMushafScript = useCallback(
+    (script: MushafScript) => {
+      updateSettings({ mushafScript: script });
+    },
+    [updateSettings]
+  );
+
+  const setTajweedEnabled = useCallback(
+    (enabled: boolean) => {
+      updateSettings({ tajweedEnabled: enabled });
+    },
+    [updateSettings]
+  );
+
+  const setMushafZoom = useCallback(
+    (zoom: number) => {
+      updateSettings({ mushafZoom: zoom });
+    },
+    [updateSettings]
+  );
+
+  const setMushafFontScale = useCallback(
+    (scale: number) => {
+      // Clamp to valid range (0.5 to 1.2)
+      const clamped = Math.max(0.5, Math.min(1.2, scale));
+      updateSettings({ mushafFontScale: clamped });
+    },
+    [updateSettings]
+  );
+
   const value: SettingsContextType = {
     settings,
     reciter,
@@ -190,8 +240,18 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setViewMode,
     layoutMode: settings.layoutMode,
     setLayoutMode,
+    mushafScript: settings.mushafScript,
+    setMushafScript,
+    tajweedEnabled: settings.tajweedEnabled,
+    setTajweedEnabled,
+    mushafZoom: settings.mushafZoom,
+    setMushafZoom,
+    mushafFontScale: settings.mushafFontScale,
+    setMushafFontScale,
     highlightedVerseKey,
     setHighlightedVerseKey,
+    highlightedWordInfo,
+    setHighlightedWordInfo,
     updateSettings,
   };
 

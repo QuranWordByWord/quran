@@ -4,9 +4,14 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { apiPageToUiPage, TOTAL_UI_PAGES } from '../api/quran';
 import { useBookmarks } from '../contexts/BookmarkContext';
+import { useFavoriteJuz } from '../contexts/FavoriteJuzContext';
 import { BookmarkList } from './BookmarkList';
+import { JuzList } from './JuzList';
 import { loadSidebarExpanded, saveSidebarExpanded } from '../utils/bookmarkStorage';
-import { convertPageBetweenViews } from '../utils/pageToSurah';
+import { loadJuzSidebarExpanded, saveJuzSidebarExpanded } from '../utils/favoriteJuzStorage';
+import { convertPageBetweenViews, getSurahStartPage, convertPageBetweenMushafScripts } from '../utils/pageToSurah';
+import type { MushafScript } from '../config/types';
+import { MUSHAF_SCRIPTS, MUSHAF_PAGE_COUNTS } from '../config/constants';
 
 // Chapter data with verse counts and starting page numbers
 // apiPage: QPC Nastaleeq 15-line Mushaf (610 pages) - used for word-by-word view
@@ -137,19 +142,29 @@ export const chapters = chapterData.map(ch => ({
 
 interface ChapterQuickLinksProps {
   side: 'left' | 'right';
+  /** When true, sidebar is hidden. Uses zoom-compensated detection to prevent layout jumps during zoom. */
+  isMobile?: boolean;
 }
 
 // Desktop sidebar component - hidden on mobile
-export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
+export function ChapterQuickLinks({ side, isMobile }: ChapterQuickLinksProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { bookmarks } = useBookmarks();
+  const { favoriteJuz } = useFavoriteJuz();
+  const { mushafScript } = useSettings();
   const [isBookmarksExpanded, setIsBookmarksExpanded] = useState(() => loadSidebarExpanded());
+  const [isJuzExpanded, setIsJuzExpanded] = useState(() => loadJuzSidebarExpanded());
 
   // Persist sidebar expanded state
   useEffect(() => {
     saveSidebarExpanded(isBookmarksExpanded);
   }, [isBookmarksExpanded]);
+
+  // Persist juz sidebar expanded state
+  useEffect(() => {
+    saveJuzSidebarExpanded(isJuzExpanded);
+  }, [isJuzExpanded]);
 
   // Determine if we're in mushaf mode based on current route
   const isMushafMode = location.pathname.startsWith('/mushaf');
@@ -161,20 +176,64 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
 
   const handleChapterClick = (chapter: typeof chapters[0]) => {
     // Navigate to the same mode the user is currently in
-    // Use mushafUiPage for mushaf view (604-page mushaf) and page for word-by-word (610-page mushaf)
+    // Use getSurahStartPage to get correct page based on mushaf script
     if (isMushafMode) {
-      navigate(`/mushaf/${chapter.mushafUiPage}`);
+      const targetPage = getSurahStartPage(chapter.id, 'mushaf', mushafScript);
+      navigate(`/mushaf/${targetPage}`);
     } else {
       navigate(`/page/${chapter.page}`);
     }
   };
 
+  // If isMobile is explicitly passed and true, hide the sidebar
+  // If isMobile is false (desktop), always show regardless of CSS breakpoint
+  // If isMobile is undefined, fall back to CSS breakpoint behavior (hidden lg:block)
+  if (isMobile === true) {
+    return null;
+  }
+
+  // When isMobile is explicitly false, use 'block' to override CSS breakpoint
+  // When isMobile is undefined, use 'hidden lg:block' for CSS-based responsiveness
+  const visibilityClass = isMobile === false ? 'block' : 'hidden lg:block';
+
   return (
     <nav
-      className="hidden lg:block w-44 xl:w-48 bg-[var(--color-bg-card)] border-x border-[var(--color-border)] h-[calc(100vh-64px)] overflow-y-auto text-sm shrink-0"
+      className={`${visibilityClass} w-44 xl:w-48 bg-[var(--color-bg-card)] border-x border-[var(--color-border)] h-[calc(100vh-64px)] overflow-y-auto text-sm shrink-0`}
       aria-label={`Chapters ${side === 'left' ? '1 to 57' : '58 to 114'}`}
       role="navigation"
     >
+      {/* Juz section - only show on right sidebar */}
+      {side === 'right' && (
+        <div className="border-b border-[var(--color-border)]">
+          <button
+            onClick={() => setIsJuzExpanded(!isJuzExpanded)}
+            className="w-full flex items-center justify-between px-2 py-2 bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 transition-colors"
+            aria-expanded={isJuzExpanded}
+          >
+            <span className="flex items-center gap-1.5 font-semibold text-[var(--color-primary)] text-xs xl:text-sm">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              Juz (30){favoriteJuz.length > 0 && ` · ${favoriteJuz.length} fav`}
+            </span>
+            <svg
+              className={`w-4 h-4 text-[var(--color-primary)] transition-transform ${isJuzExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {isJuzExpanded && (
+            <div className="max-h-64 overflow-y-auto">
+              <JuzList compact onNavigate={() => {}} />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Bookmarks section - only show on left sidebar */}
       {side === 'left' && bookmarks.length > 0 && (
         <div className="border-b border-[var(--color-border)]">
@@ -230,7 +289,7 @@ export function ChapterQuickLinks({ side }: ChapterQuickLinksProps) {
 }
 
 // Mobile chapter selector - dropdown/modal style
-type MenuTab = 'chapters' | 'bookmarks' | 'settings';
+type MenuTab = 'chapters' | 'juz' | 'bookmarks' | 'settings';
 type VerseNumberFormat = 'arabic' | 'english';
 
 // Settings tab component with theme toggle
@@ -244,7 +303,14 @@ function SettingsTab({
   onClose?: () => void;
 }) {
   const { theme, setTheme } = useTheme();
-  const { viewMode, setViewMode, layoutMode, setLayoutMode } = useSettings();
+  const {
+    viewMode, setViewMode,
+    layoutMode, setLayoutMode,
+    mushafScript, setMushafScript,
+    tajweedEnabled, setTajweedEnabled,
+    mushafZoom, setMushafZoom,
+    mushafFontScale, setMushafFontScale,
+  } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -268,6 +334,25 @@ function SettingsTab({
       navigate(`/page/${targetPage}`);
     }
     onClose?.();
+  };
+
+  const handleMushafScriptChange = (newScript: MushafScript) => {
+    const { page: currentPage, currentMode } = getCurrentPageAndMode();
+
+    // Only convert pages if we're in mushaf mode
+    if (currentMode === 'mushaf') {
+      // Convert page from current script to new script
+      const targetPage = convertPageBetweenMushafScripts(currentPage, mushafScript, newScript);
+
+      // Update the script setting
+      setMushafScript(newScript);
+
+      // Navigate to the equivalent page in the new script
+      navigate(`/mushaf/${targetPage}`);
+    } else {
+      // Not in mushaf mode, just update the setting
+      setMushafScript(newScript);
+    }
   };
 
   return (
@@ -426,12 +511,152 @@ function SettingsTab({
         </div>
       </fieldset>
 
+      {/* Mushaf-specific settings - only show when in mushaf view */}
+      {viewMode === 'mushaf' && (
+        <>
+          {/* Mushaf Script */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Mushaf Script</legend>
+            <div className="flex flex-col gap-1">
+              {MUSHAF_SCRIPTS.map((script) => (
+                <button
+                  key={script.id}
+                  onClick={() => handleMushafScriptChange(script.id)}
+                  className={`w-full px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-between ${
+                    mushafScript === script.id
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  role="radio"
+                  aria-checked={mushafScript === script.id}
+                >
+                  <span>{script.name}</span>
+                  <span className={`text-xs ${mushafScript === script.id ? 'text-white/70' : 'text-gray-500'}`}>
+                    {script.pages} pages
+                  </span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          {/* Tajweed toggle */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Tajweed Colors</legend>
+            <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Tajweed colors">
+              <button
+                onClick={() => setTajweedEnabled(false)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
+                  !tajweedEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={!tajweedEnabled}
+              >
+                Off
+              </button>
+              <button
+                onClick={() => setTajweedEnabled(true)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors flex items-center justify-center gap-2 ${
+                  tajweedEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={tajweedEnabled}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+                On
+              </button>
+            </div>
+          </fieldset>
+
+          {/* Zoom controls */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Page Zoom: {Math.round(mushafZoom * 100)}%</legend>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMushafZoom(Math.max(0.5, mushafZoom / 1.15))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Zoom out"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setMushafZoom(1)}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  Math.abs(mushafZoom - 1) < 0.01
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setMushafZoom(Math.min(3, mushafZoom * 1.15))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Zoom in"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+          </fieldset>
+
+          {/* Font scale controls */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Font Size: {Math.round(mushafFontScale * 100)}%</legend>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMushafFontScale(Math.max(0.5, mushafFontScale - 0.05))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Decrease font size"
+              >
+                <span className="text-lg text-gray-600">A</span>
+                <svg className="w-3 h-3 text-gray-600 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setMushafFontScale(1)}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                  Math.abs(mushafFontScale - 1) < 0.01
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setMushafFontScale(Math.min(1.2, mushafFontScale + 0.05))}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center"
+                aria-label="Increase font size"
+              >
+                <span className="text-xl text-gray-600">A</span>
+                <svg className="w-3 h-3 text-gray-600 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+            </div>
+          </fieldset>
+        </>
+      )}
+
       {/* App info */}
       <div className="pt-4 border-t border-gray-200">
-        <div className="text-center">
-          <span className="text-2xl" aria-hidden="true">📖</span>
-          <p className="font-semibold text-gray-800 mt-1">Quran Word by Word</p>
-          <p className="text-xs text-gray-500 mt-1">15-Line Mushaf</p>
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-24 overflow-hidden" style={{ aspectRatio: '1.8' }}>
+            <img src="/quran/quran-logo.png" alt="" className="w-full" />
+          </div>
+          <div className="leading-none">
+            <span className="text-xl font-semibold tracking-wide text-gray-800 block">Quran</span>
+            <span className="text-xs text-gray-500 -mt-1.5 block">Word by Word</span>
+          </div>
         </div>
       </div>
     </div>
@@ -484,6 +709,7 @@ export function MobileChapterSelector({
   onMenuOpenChange,
 }: MobileChapterSelectorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const { mushafScript } = useSettings();
 
   // Use controlled state if provided, otherwise use internal state
   const isOpen = isMenuOpen !== undefined ? isMenuOpen : internalOpen;
@@ -521,19 +747,20 @@ export function MobileChapterSelector({
 
   const handleChapterClick = (chapter: typeof chapters[0]) => {
     // Navigate to the same mode the user is currently in
-    // Use mushafUiPage for mushaf view (604-page mushaf) and page for word-by-word (610-page mushaf)
+    // Use getSurahStartPage to get correct page based on mushaf script
     if (isMushafMode) {
-      navigate(`/mushaf/${chapter.mushafUiPage}`);
+      const targetPage = getSurahStartPage(chapter.id, 'mushaf', mushafScript);
+      navigate(`/mushaf/${targetPage}`);
     } else {
       navigate(`/page/${chapter.page}`);
     }
     setIsOpen(false);
   };
 
-  // Total pages differs between mushaf view (604 pages) and word-by-word view (610 pages)
-  // For mushaf, users see pages 1-604 (renderer pages), but URLs use 2-605 (app pages with intro offset)
-  const MUSHAF_RENDERER_TOTAL_PAGES = 604;
-  const effectiveTotalPages = isMushafMode ? MUSHAF_RENDERER_TOTAL_PAGES : totalPages;
+  // Total pages differs between mushaf scripts
+  // Get the correct total pages based on the current mushaf script
+  const mushafTotalPages = MUSHAF_PAGE_COUNTS[mushafScript];
+  const effectiveTotalPages = isMushafMode ? mushafTotalPages : totalPages;
 
   const handleGoToPage = () => {
     const page = parseInt(goToPage);
@@ -598,6 +825,18 @@ export function MobileChapterSelector({
                 >
                   Chapters
                 </button>
+                <button
+                  onClick={() => setActiveTab('juz')}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                    activeTab === 'juz' ? 'bg-white/20' : 'hover:bg-white/10'
+                  }`}
+                  role="tab"
+                  aria-selected={activeTab === 'juz'}
+                  aria-controls="juz-panel"
+                  id="juz-tab"
+                >
+                  Juz
+                </button>
                 <BookmarksTabButton
                   isActive={activeTab === 'bookmarks'}
                   onClick={() => setActiveTab('bookmarks')}
@@ -618,7 +857,8 @@ export function MobileChapterSelector({
             </div>
 
             {/* Content - account for header tabs (~100px) and potential audio player (~80px) */}
-            <div className="overflow-y-auto max-h-[calc(85vh-180px)] pb-4">
+            {/* Use fixed height to prevent menu from jumping when switching tabs */}
+            <div className="overflow-y-auto h-[calc(85vh-180px)] pb-4">
               {activeTab === 'chapters' && (
                 <div
                   id="chapters-panel"
@@ -671,11 +911,23 @@ export function MobileChapterSelector({
                 </div>
               )}
 
+              {activeTab === 'juz' && (
+                <div
+                  id="juz-panel"
+                  role="tabpanel"
+                  aria-labelledby="juz-tab"
+                  className="p-2"
+                >
+                  <JuzList onNavigate={() => setIsOpen(false)} />
+                </div>
+              )}
+
               {activeTab === 'bookmarks' && (
                 <div
                   id="bookmarks-panel"
                   role="tabpanel"
                   aria-labelledby="bookmarks-tab"
+                  className="p-2"
                 >
                   <BookmarkList onNavigate={() => setIsOpen(false)} />
                 </div>

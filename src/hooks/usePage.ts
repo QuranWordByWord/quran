@@ -9,6 +9,9 @@ interface UsePageResult {
   pageNumber: number;
   totalPages: number;
   isIntroPage: boolean;
+  // Adjacent page data for swipe previews (from cache)
+  prevPageVerses: Verse[] | null;
+  nextPageVerses: Verse[] | null;
 }
 
 // Simple cache for preloaded pages
@@ -105,6 +108,12 @@ export function usePage(pageNumber: number): UsePageResult {
     }
   }, [loading, apiPage, isIntroPage]);
 
+  // Get adjacent pages from cache (for swipe preview)
+  const prevApiPage = apiPage - 1;
+  const nextApiPage = apiPage + 1;
+  const prevPageVerses = prevApiPage >= 1 ? pageCache.get(prevApiPage) ?? null : null;
+  const nextPageVerses = nextApiPage <= TOTAL_MUSHAF_PAGES ? pageCache.get(nextApiPage) ?? null : null;
+
   return {
     verses,
     loading,
@@ -112,5 +121,7 @@ export function usePage(pageNumber: number): UsePageResult {
     pageNumber,
     totalPages: TOTAL_UI_PAGES,
     isIntroPage,
+    prevPageVerses,
+    nextPageVerses,
   };
 }

@@ -2,8 +2,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import path from 'path'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@digitalkhatt/quran-engine': path.resolve(__dirname, 'packages/quran-engine/src'),
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -17,6 +23,7 @@ export default defineConfig({
         theme_color: '#047857',
         background_color: '#ffffff',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         orientation: 'portrait-primary',
         scope: '/quran/',
         start_url: '/quran/',

@@ -1,0 +1,448 @@
+{
+  "name": "An-Nas",
+  "nameArabic": "الناس",
+  "verses": [
+    {
+      "number": 1,
+      "words": [
+        {
+          "arabic": "قُلْ",
+          "english": "Say",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "Say",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "أَعُوذُ",
+          "english": "I seek refuge",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "I",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "seek",
+              "type": "verb"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "refuge",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "بِرَبِّ",
+          "english": "in (the) Lord",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "بِ",
+              "type": "preposition"
+            },
+            {
+              "text": "رَبِّ",
+              "type": "allah-name"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "in",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "Lord",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلنَّاسِ",
+          "english": "(of) mankind",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "mankind",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "words": [
+        {
+          "arabic": "مَلِكِ",
+          "english": "(The) King",
+          "type": "allah-name",
+          "englishParts": [
+            {
+              "text": "(The)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "King",
+              "type": "allah-name"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلنَّاسِ",
+          "english": "(of) mankind",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "mankind",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "words": [
+        {
+          "arabic": "إِلَـٰهِ",
+          "english": "(The) God",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(The)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "God",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلنَّاسِ",
+          "english": "(of) mankind",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "mankind",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "words": [
+        {
+          "arabic": "مِن",
+          "english": "From",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "From",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "شَرِّ",
+          "english": "(the) evil",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "evil",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْوَسْوَاسِ",
+          "english": "(of) the whisperer",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "whisperer",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْخَنَّاسِ",
+          "english": "the one who withdraws",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "one",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "who",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "withdraws",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "words": [
+        {
+          "arabic": "ٱلَّذِى",
+          "english": "The one who",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "The",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "one",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "who",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "يُوَسْوِسُ",
+          "english": "whispers",
+          "type": "verb",
+          "englishParts": [
+            {
+              "text": "whispers",
+              "type": "verb"
+            }
+          ]
+        },
+        {
+          "arabic": "فِى",
+          "english": "in",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "in",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "صُدُورِ",
+          "english": "(the) breasts",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(the)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "breasts",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلنَّاسِ",
+          "english": "(of) mankind",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "(of)",
+              "type": "paren"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "mankind",
+              "type": "noun"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "words": [
+        {
+          "arabic": "مِنَ",
+          "english": "From",
+          "type": "preposition",
+          "englishParts": [
+            {
+              "text": "From",
+              "type": "preposition"
+            }
+          ]
+        },
+        {
+          "arabic": "ٱلْجِنَّةِ",
+          "english": "the jinn",
+          "type": "noun",
+          "englishParts": [
+            {
+              "text": "the",
+              "type": "noun"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "jinn",
+              "type": "noun"
+            }
+          ]
+        },
+        {
+          "arabic": "وَٱلنَّاسِ",
+          "english": "and men",
+          "type": "compound",
+          "arabicParts": [
+            {
+              "text": "وَ",
+              "type": "preposition"
+            },
+            {
+              "text": "ٱل",
+              "type": "preposition"
+            },
+            {
+              "text": "نَّاسِ",
+              "type": "preposition"
+            }
+          ],
+          "englishParts": [
+            {
+              "text": "and",
+              "type": "preposition"
+            },
+            {
+              "text": " ",
+              "type": "space"
+            },
+            {
+              "text": "men",
+              "type": "preposition"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
