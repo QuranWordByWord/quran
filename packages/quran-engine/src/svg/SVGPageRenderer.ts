@@ -316,6 +316,11 @@ export class SVGPageRenderer {
             svg.setAttribute('data-ayah', '0');
             svg.classList.add('word-group', 'bismillah-verse-marker');
 
+            // Add tooltip for desktop hover
+            const titleElem = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            titleElem.textContent = 'Click to play surah';
+            svg.appendChild(titleElem);
+
             // Add click handler
             if (options.onWordClick) {
               svg.addEventListener('click', (e) => {
@@ -476,6 +481,11 @@ export class SVGPageRenderer {
           svg.setAttribute('data-surah', currentSurah.toString());
           svg.setAttribute('data-ayah', '0');
           svg.classList.add('word-group', 'bismillah-verse-marker');
+
+          // Add tooltip for desktop hover
+          const titleElem = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          titleElem.textContent = 'Click to play surah';
+          svg.appendChild(titleElem);
 
           // Add click handler for verse marker
           if (options.onWordClick) {
@@ -713,6 +723,18 @@ export class SVGPageRenderer {
         // Extract word text from lineTextInfo
         const wordInfo = lineTextInfo.wordInfos[wordIndex];
         const wordText = wordInfo ? lineText.substring(wordInfo.startIndex, wordInfo.endIndex + 1) : '';
+
+        // Add tooltip for Fatiha verse 1 marker (Madinah scripts)
+        // In Madinah scripts, Fatiha's bismillah IS verse 1, so clicking it plays the surah
+        const isVerseMarker = wordText.includes('\u06DD');
+        const isMadinahScript = this.mushafType === MushafLayoutType.OldMadinah ||
+                                this.mushafType === MushafLayoutType.NewMadinah;
+        const isFatihaVerse1 = pageIndex === 0 && wordText.includes('١');
+        if (isVerseMarker && isMadinahScript) {
+          const titleElem = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          titleElem.textContent = isFatihaVerse1 ? 'Click to play surah' : 'Click to play ayah';
+          wordRect.appendChild(titleElem);
+        }
 
         if (options.onWordClick) {
           wordRect.addEventListener('click', (e) => {

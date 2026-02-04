@@ -55,8 +55,8 @@ export function Header({ children, isVisible = true, onOpenMenu, pageNumber, vie
               <img src="/quran/quran-logo.png" alt="" className="w-full" />
             </div>
             <div>
-              <span className="text-base sm:text-xl font-semibold tracking-wide block">Quran</span>
-              <span className="text-[10px] sm:text-xs text-white/70 hidden sm:block">Word by Word</span>
+              <span className="text-base sm:text-xl font-semibold tracking-wide block leading-tight">Quran</span>
+              <span className="text-[10px] sm:text-xs text-white/70 -mt-1 sm:mt-0 block sm:inline">Word by Word</span>
             </div>
           </a>
 

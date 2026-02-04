@@ -448,6 +448,7 @@ export function WordForWordView({
                             onClick={() => onPlaySurah?.(line.surahNumber!)}
                             className="inline-flex items-center justify-center rounded transition-colors hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)] cursor-pointer"
                             aria-label={`Play Surah ${line.surahNumber}`}
+                            title="Click to play surah"
                           >
                             <span className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl text-[var(--mushaf-accent)] px-0.5`}>
                               ۝
@@ -855,7 +856,7 @@ function TraditionalMushafLine({
             >
               {isEndMarker ? (
                 // Verse marker
-                <span className="relative inline-flex items-center justify-center mx-0.5">
+                <span className="relative inline-flex items-center justify-center mx-0.5" title="Click to play ayah">
                   <span
                     className={`arabic-text ${fontClass} text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-accent)]`}
                   >
@@ -966,11 +967,14 @@ function WordCell({
       {/* Arabic Word - using selected font style */}
       {isEndMarker ? (
         // Verse marker - with optional English number overlay
-        <span className={`relative inline-flex items-center justify-center rounded transition-colors ${
-          isHighlighted
-            ? "bg-[var(--mushaf-highlight-bg)]"
-            : "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
-        }`}>
+        <span
+          className={`relative inline-flex items-center justify-center rounded transition-colors ${
+            isHighlighted
+              ? "bg-[var(--mushaf-highlight-bg)]"
+              : "hover:bg-[var(--mushaf-header-bg)] active:bg-[var(--mushaf-arrow-hover)]"
+          }`}
+          title={surahNumber === 1 && verseNumber === 1 ? "Click to play surah" : "Click to play ayah"}
+        >
           <span
             className={`arabic-text ${fontClass} leading-relaxed px-0.5 text-lg sm:text-xl md:text-2xl lg:text-3xl text-[var(--mushaf-accent)]`}
           >
