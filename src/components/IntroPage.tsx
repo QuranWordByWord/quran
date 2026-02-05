@@ -121,6 +121,9 @@ export function IntroPage({ onStartReading, variant = 'wordforword' }: IntroPage
             Click on any line to reveal word meanings.
           </p>
           <p>
+            Click any word to play the word by word audio, Verse marker to play the ayah or the Bismillah verse marker to play the surah.
+          </p>
+          <p>
             <span className="text-[var(--mushaf-border)] font-medium">Bookmarks</span> — Save your place and continue where you left off
           </p>
         </div>
