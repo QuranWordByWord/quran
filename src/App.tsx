@@ -14,6 +14,7 @@ import { usePage } from './hooks/usePage';
 import { useSearch } from './hooks/useSearch';
 import { useAudio } from './hooks/useAudio';
 import { useIsMobile } from './hooks/useIsMobile';
+import { useWakeLock } from './hooks/useWakeLock';
 import { MobileNavProvider, useMobileNav } from './contexts/MobileNavContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { BookmarkProvider } from './contexts/BookmarkContext';
@@ -521,6 +522,10 @@ function AppContentInner() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isNavVisible: _isNavVisible } = useMobileNav();
+
+  // Keep screen awake on mobile while reading (prevents screen lock during Quran reading)
+  const isReadingView = location.pathname.startsWith('/mushaf/') || location.pathname.startsWith('/page/');
+  useWakeLock({ enabled: isReadingView });
   const {
     viewMode, setViewMode,
     verseNumberFormat, setVerseNumberFormat,
