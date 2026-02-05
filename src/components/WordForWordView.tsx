@@ -505,7 +505,7 @@ export function WordForWordView({
   return (
     <div
       ref={containerRef}
-      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen pt-14 lg:pt-0 lg:h-[calc(100vh-64px)] overflow-hidden"
+      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)] overflow-hidden"
       role="article"
       aria-label={`Quran page ${pageNumber} of ${totalPages}, Juz ${juzNumber}`}
     >

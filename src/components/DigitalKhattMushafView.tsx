@@ -132,27 +132,46 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const [tajweedGuideOpen, setTajweedGuideOpen] = useState(false);
 
   // Calculate responsive page dimensions for mobile single-page mode
-  // The page should fit entirely on screen without showing other pages
-  // Page aspect ratio: height/width = 410/255 ≈ 1.608
-  // Border adds: 25px on each side (50 total width), 25px top/bottom border + 24px header + 32px footer (106 total height)
+  // The page should fit entirely on screen, maximizing available space
+  // MushafBorder uses SVG with aspect ratio 437:740, content area 387:690
   const mobilePageDimensions = useMemo(() => {
-    const BORDER_WIDTH = 50; // 25px each side
-    const BORDER_HEIGHT = 106; // 25*2 (top/bottom) + 24 (header) + 32 (footer)
-    const PAGE_ASPECT_RATIO = 410 / 255; // height / width ≈ 1.608
+    // MushafBorder SVG dimensions (from MushafBorder.tsx)
+    const SVG_WIDTH = 437;
+    const SVG_HEIGHT = 740;
+    const SVG_INNER_WIDTH = 387;  // Content area width (SVG_WIDTH - 25*2)
+    const SVG_ASPECT_RATIO = SVG_WIDTH / SVG_HEIGHT;  // ~0.59
+    const HEADER_FOOTER = 24 + 32;  // 56px for header + footer at scale 1.0
+    const BOTTOM_NAV = 20;  // Minimal reservation - nav buttons float over content
 
-    // Calculate max page width based on available screen width
-    const availableWidth = windowDimensions.width - 4;
-    const maxPageWidth = availableWidth - BORDER_WIDTH;
+    // Width-based calculation: max page width from screen width
+    // The border frame width = pageWidth × (SVG_WIDTH / SVG_INNER_WIDTH)
+    // So the max pageWidth that fits screen = screenWidth × (SVG_INNER_WIDTH / SVG_WIDTH)
+    const maxPageWidth = windowDimensions.width * (SVG_INNER_WIDTH / SVG_WIDTH);
 
-    // Calculate ideal page width based on stable height (to fill vertical space)
-    // Uses stableHeight to prevent layout shifts when mobile browser URL bar appears/disappears
-    // Header ~56px, bottom nav area ~60px, some padding ~8px
-    const availableHeight = windowDimensions.stableHeight - 56 - 60 - 8;
-    const pageContentHeight = availableHeight - BORDER_HEIGHT;
-    const idealPageWidthFromHeight = pageContentHeight / PAGE_ASPECT_RATIO;
+    // Height-based calculation: ideal page width to fill available screen height
+    // totalHeight = frameHeight + HEADER_FOOTER
+    // frameHeight = frameWidth / SVG_ASPECT_RATIO
+    // frameWidth = pageWidth × (SVG_WIDTH / SVG_INNER_WIDTH)
+    // Solving backwards for pageWidth from available height:
+    const availableHeight = windowDimensions.stableHeight - BOTTOM_NAV;
+    const frameHeight = availableHeight - HEADER_FOOTER;
+    const frameWidth = frameHeight * SVG_ASPECT_RATIO;
+    const idealPageWidth = frameWidth * (SVG_INNER_WIDTH / SVG_WIDTH);
 
-    // Use height-based width but constrain to not exceed screen width
-    const pageWidth = Math.max(200, Math.min(maxPageWidth, idealPageWidthFromHeight));
+    // Use the smaller of the two to ensure page fits on screen
+    const pageWidth = Math.max(200, Math.min(maxPageWidth, idealPageWidth));
+
+    // Debug logging
+    console.log('mobilePageDimensions:', {
+      screenWidth: windowDimensions.width,
+      stableHeight: windowDimensions.stableHeight,
+      maxPageWidth,
+      idealPageWidth,
+      pageWidth,
+      availableHeight,
+      frameHeight,
+      frameWidth,
+    });
 
     return { pageWidth };
   }, [windowDimensions.width, windowDimensions.stableHeight]);
@@ -395,7 +414,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         {/* Mushaf content */}
         <div
           ref={scrollContainerRef}
-          className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-start pt-1 overflow-visible' : 'h-full'}`}
+          className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-stretch overflow-visible' : 'h-full'}`}
         >
           {isMobile ? (
             /* Mobile view - single page mode, page fits exactly on screen */
@@ -404,6 +423,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               initialPage={quranPage}
               width="100%"
               height="100%"
+              style={{ alignItems: 'flex-start', paddingTop: 8 }}
               pageWidth={mobilePageDimensions.pageWidth}
               scale={mushafZoom}
               onScaleChange={setMushafZoom}
