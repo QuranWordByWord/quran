@@ -77,8 +77,8 @@ const SURAH_NAMES_ENGLISH: Record<number, string> = {
 
 // Page to Juz mapping - Madani mushaf (604 pages)
 const JUZ_START_PAGES_MADANI = [
-  1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
-  201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+  1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
+  202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
   402, 422, 442, 462, 482, 502, 522, 542, 562, 582
 ];
 
@@ -86,8 +86,8 @@ const JUZ_START_PAGES_MADANI = [
 // Calculated based on JUZ_POSITIONS verse data mapped to IndoPak page numbers
 // Juz 29 starts at Surah 67 (page 562), Juz 30 starts at Surah 78 (page 586)
 const JUZ_START_PAGES_INDOPAK = [
-  1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
-  201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+  1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
+  202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
   402, 422, 442, 462, 482, 502, 522, 542, 562, 586
 ];
 
@@ -234,9 +234,12 @@ export function MushafBorder({
   const innerWidth = frameWidth - borderX * 2;
   const innerHeight = frameHeight - borderY * 2;
 
-  // Center content within inner area
+  // Position content within inner area (centered horizontally, top-aligned vertically)
   const contentPosX = borderX + Math.round((innerWidth - contentWidth) / 2);
-  const contentPosY = borderY + Math.round((innerHeight - contentHeight) / 2);
+  const contentPosY = borderY;
+
+  // Scale content vertically to fill the inner height
+  const verticalScale = innerHeight / contentHeight;
 
   // Total dimensions including header/footer
   const totalWidth = frameWidth;
@@ -285,7 +288,7 @@ export function MushafBorder({
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
       }}>
-        {/* Page content - positioned inside the border */}
+        {/* Page content - positioned inside the border, scaled to fill inner height */}
         <div style={{
           position: 'absolute',
           top: contentPosY,
@@ -294,6 +297,8 @@ export function MushafBorder({
           height: contentHeight,
           backgroundColor: 'var(--mushaf-page-bg, #fffef5)',
           overflow: 'hidden',
+          transform: `scaleY(${verticalScale})`,
+          transformOrigin: 'top',
         }}>
           {children}
         </div>
