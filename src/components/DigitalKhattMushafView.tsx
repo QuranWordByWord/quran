@@ -21,6 +21,7 @@ import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
 import { TajweedGuide } from './TajweedGuide';
+import { InlineBookmarkButton } from './BookmarkButton';
 import { MUSHAF_PAGE_COUNTS } from '../config/constants';
 import type { MushafScript } from '../config/types';
 
@@ -160,18 +161,6 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
 
     // Use the smaller of the two to ensure page fits on screen
     const pageWidth = Math.max(200, Math.min(maxPageWidth, idealPageWidth));
-
-    // Debug logging
-    console.log('mobilePageDimensions:', {
-      screenWidth: windowDimensions.width,
-      stableHeight: windowDimensions.stableHeight,
-      maxPageWidth,
-      idealPageWidth,
-      pageWidth,
-      availableHeight,
-      frameHeight,
-      frameWidth,
-    });
 
     return { pageWidth };
   }, [windowDimensions.width, windowDimensions.stableHeight]);
@@ -494,7 +483,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
             </button>
           </div>
 
-          {/* Left side - Previous button + Tajweed info button (when enabled) */}
+          {/* Left side - Previous button + Bookmark */}
           <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
             <button
               onClick={() => handlePageChange(quranPage - 1)}
@@ -504,6 +493,11 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
             >
               <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
             </button>
+            <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" variant="mobile-nav" />
+          </div>
+
+          {/* Right side - Tajweed info button (when enabled) + Next button */}
+          <div className="absolute right-2 bottom-0 pointer-events-auto flex items-center gap-2">
             {/* Tajweed info button - only shown when tajweed is enabled */}
             {tajweedEnabled && (
               <button
@@ -516,10 +510,6 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
                 </svg>
               </button>
             )}
-          </div>
-
-          {/* Right side - Next button (pill shape) */}
-          <div className="absolute right-2 bottom-0 pointer-events-auto">
             <button
               onClick={() => handlePageChange(quranPage + 1)}
               disabled={quranPage >= totalPages}

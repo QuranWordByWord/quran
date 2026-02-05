@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import type { Verse, Word } from '../types/quran';
 import { useFontClass, useVerseNumberFormat, useMenu } from '../App';
 import { useMobileNav } from '../contexts/MobileNavContext';
+import { InlineBookmarkButton } from './BookmarkButton';
 
 // Swipe navigation configuration
 const SWIPE_THRESHOLD = 80; // Min distance to trigger page change (px)
@@ -596,8 +597,8 @@ export function WordForWordView({
           </button>
         </div>
 
-        {/* Left side - Previous button (pill shape) */}
-        <div className="absolute left-2 bottom-0 pointer-events-auto">
+        {/* Left side - Previous button + Bookmark */}
+        <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
           <button
             onClick={() => onPageChange(pageNumber - 1)}
             disabled={pageNumber <= 1}
@@ -606,6 +607,7 @@ export function WordForWordView({
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
           </button>
+          <InlineBookmarkButton pageNumber={pageNumber} viewMode="wordforword" variant="mobile-nav" />
         </div>
 
         {/* Right side - Next button (pill shape) */}
