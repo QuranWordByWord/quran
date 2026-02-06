@@ -27,7 +27,7 @@ export function Header({ children, isVisible = true, onOpenMenu, pageNumber, vie
 
   return (
     <header
-      className={`bg-[var(--color-primary)] text-white shadow-lg fixed top-0 left-0 right-0 z-50 transition-transform duration-300 lg:sticky ${isVisible ? 'translate-y-0' : '-translate-y-full lg:translate-y-0'
+      className={`bg-[var(--color-primary)] text-white shadow-lg fixed top-0 left-0 right-0 z-50 transition-transform duration-300 lg:sticky hidden md:block ${isVisible ? 'translate-y-0' : '-translate-y-full lg:translate-y-0'
         }`}
       role="banner"
     >

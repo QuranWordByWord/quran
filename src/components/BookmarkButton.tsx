@@ -128,7 +128,7 @@ export function BookmarkButton({
 interface InlineBookmarkButtonProps {
   pageNumber: number;
   viewMode: 'mushaf' | 'wordforword';
-  variant?: 'default' | 'header';
+  variant?: 'default' | 'header' | 'mobile-nav';
 }
 
 export function InlineBookmarkButton({
@@ -206,6 +206,49 @@ export function InlineBookmarkButton({
           <div className="absolute inset-0 flex flex-col items-center justify-start pt-2 text-[var(--color-primary)]">
             <span className="text-[8px] font-extrabold uppercase leading-none">{currentMonth}</span>
             <span className="text-[10px] font-extrabold leading-none mt-px">{currentDay}</span>
+          </div>
+        )}
+      </button>
+    );
+  }
+
+  // Mobile nav variant - pill button style matching other nav buttons
+  if (variant === 'mobile-nav') {
+    const handleMobileNavClick = () => {
+      const result = toggleBookmark(pageNumber, viewMode);
+      if (result.added) {
+        showToast('Bookmark added', 'success');
+      } else {
+        showToast('Bookmark removed', 'info');
+      }
+    };
+
+    return (
+      <button
+        onClick={handleMobileNavClick}
+        className="relative h-11 w-11 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+        aria-pressed={bookmarked}
+      >
+        <svg
+          className="w-6 h-7"
+          viewBox="0 0 24 28"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          aria-hidden="true"
+        >
+          <path
+            d="M4 4a2 2 0 012-2h12a2 2 0 012 2v22l-8-4-8 4V4z"
+            fill={bookmarked ? 'var(--color-primary)' : 'none'}
+            stroke={bookmarked ? 'var(--color-primary)' : 'var(--mushaf-text-secondary)'}
+          />
+        </svg>
+        {/* Date inside bookmark - only shown when bookmarked */}
+        {bookmarked && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center -mt-1 text-white pointer-events-none">
+            <span className="text-[7px] font-bold uppercase leading-none">{currentMonth}</span>
+            <span className="text-[10px] font-bold leading-none">{currentDay}</span>
           </div>
         )}
       </button>

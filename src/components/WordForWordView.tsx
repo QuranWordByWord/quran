@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import type { Verse, Word } from '../types/quran';
 import { useFontClass, useVerseNumberFormat, useMenu } from '../App';
 import { useMobileNav } from '../contexts/MobileNavContext';
+import { InlineBookmarkButton } from './BookmarkButton';
 
 // Swipe navigation configuration
 const SWIPE_THRESHOLD = 80; // Min distance to trigger page change (px)
@@ -282,23 +283,21 @@ export function WordForWordView({
       const hasNextPage = pageNumber < totalPages;
 
       if (shouldChangePage && deltaY > 0 && hasPrevPage) {
-        // Swipe down - animate off-screen, then change page
+        // Swipe down - animate previous page into view, then update URL
         setSwipePhase('animating');
         setSwipeOffset(container.clientHeight);
         setTimeout(() => {
+          // Only trigger navigation - useEffect resets state when pageNumber changes
           onPageChange(pageNumber - 1);
-          setSwipeOffset(0);
-          setSwipePhase('idle');
         }, ANIMATION_DURATION);
 
       } else if (shouldChangePage && deltaY < 0 && hasNextPage) {
-        // Swipe up - animate off-screen, then change page
+        // Swipe up - animate next page into view, then update URL
         setSwipePhase('animating');
         setSwipeOffset(-container.clientHeight);
         setTimeout(() => {
+          // Only trigger navigation - useEffect resets state when pageNumber changes
           onPageChange(pageNumber + 1);
-          setSwipeOffset(0);
-          setSwipePhase('idle');
         }, ANIMATION_DURATION);
 
       } else {
@@ -505,7 +504,7 @@ export function WordForWordView({
   return (
     <div
       ref={containerRef}
-      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen pt-14 lg:pt-0 lg:h-[calc(100vh-64px)] overflow-hidden"
+      className="flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)] overflow-hidden"
       role="article"
       aria-label={`Quran page ${pageNumber} of ${totalPages}, Juz ${juzNumber}`}
     >
@@ -529,6 +528,7 @@ export function WordForWordView({
             style={{
               transform: `translateY(${swipeOffset - window.innerHeight}px)`,
               transition: isAnimating ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)` : 'none',
+              willChange: 'transform',
             }}
           >
             <div className="h-full overflow-hidden">
@@ -544,6 +544,7 @@ export function WordForWordView({
             style={{
               transform: `translateY(${swipeOffset + window.innerHeight}px)`,
               transition: isAnimating ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)` : 'none',
+              willChange: 'transform',
             }}
           >
             <div className="h-full overflow-hidden">
@@ -559,6 +560,7 @@ export function WordForWordView({
           style={{
             transform: swipeOffset !== 0 ? `translateY(${swipeOffset}px)` : undefined,
             transition: isAnimating ? `transform ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)` : 'none',
+            willChange: isSwipeActive ? 'transform' : 'auto',
           }}
         >
           {renderPageContent(lines, pageNumber, juzNumber, lastChapter, false)}
@@ -596,8 +598,8 @@ export function WordForWordView({
           </button>
         </div>
 
-        {/* Left side - Previous button (pill shape) */}
-        <div className="absolute left-2 bottom-0 pointer-events-auto">
+        {/* Left side - Previous button + Bookmark */}
+        <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
           <button
             onClick={() => onPageChange(pageNumber - 1)}
             disabled={pageNumber <= 1}
@@ -606,6 +608,7 @@ export function WordForWordView({
           >
             <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
           </button>
+          <InlineBookmarkButton pageNumber={pageNumber} viewMode="wordforword" variant="mobile-nav" />
         </div>
 
         {/* Right side - Next button (pill shape) */}

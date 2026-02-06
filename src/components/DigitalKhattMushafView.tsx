@@ -21,6 +21,7 @@ import { useMenu } from '../App';
 import { AudioPlayer } from './AudioPlayer';
 import { IntroPage } from './IntroPage';
 import { TajweedGuide } from './TajweedGuide';
+import { InlineBookmarkButton } from './BookmarkButton';
 import { MUSHAF_PAGE_COUNTS } from '../config/constants';
 import type { MushafScript } from '../config/types';
 
@@ -132,27 +133,34 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   const [tajweedGuideOpen, setTajweedGuideOpen] = useState(false);
 
   // Calculate responsive page dimensions for mobile single-page mode
-  // The page should fit entirely on screen without showing other pages
-  // Page aspect ratio: height/width = 410/255 ≈ 1.608
-  // Border adds: 25px on each side (50 total width), 25px top/bottom border + 24px header + 32px footer (106 total height)
+  // The page should fit entirely on screen, maximizing available space
+  // MushafBorder uses SVG with aspect ratio 437:740, content area 387:690
   const mobilePageDimensions = useMemo(() => {
-    const BORDER_WIDTH = 50; // 25px each side
-    const BORDER_HEIGHT = 106; // 25*2 (top/bottom) + 24 (header) + 32 (footer)
-    const PAGE_ASPECT_RATIO = 410 / 255; // height / width ≈ 1.608
+    // MushafBorder SVG dimensions (from MushafBorder.tsx)
+    const SVG_WIDTH = 437;
+    const SVG_HEIGHT = 740;
+    const SVG_INNER_WIDTH = 387;  // Content area width (SVG_WIDTH - 25*2)
+    const SVG_ASPECT_RATIO = SVG_WIDTH / SVG_HEIGHT;  // ~0.59
+    const HEADER_FOOTER = 24 + 32;  // 56px for header + footer at scale 1.0
+    const BOTTOM_NAV = 20;  // Minimal reservation - nav buttons float over content
 
-    // Calculate max page width based on available screen width
-    const availableWidth = windowDimensions.width - 4;
-    const maxPageWidth = availableWidth - BORDER_WIDTH;
+    // Width-based calculation: max page width from screen width
+    // The border frame width = pageWidth × (SVG_WIDTH / SVG_INNER_WIDTH)
+    // So the max pageWidth that fits screen = screenWidth × (SVG_INNER_WIDTH / SVG_WIDTH)
+    const maxPageWidth = windowDimensions.width * (SVG_INNER_WIDTH / SVG_WIDTH);
 
-    // Calculate ideal page width based on stable height (to fill vertical space)
-    // Uses stableHeight to prevent layout shifts when mobile browser URL bar appears/disappears
-    // Header ~56px, bottom nav area ~60px, some padding ~8px
-    const availableHeight = windowDimensions.stableHeight - 56 - 60 - 8;
-    const pageContentHeight = availableHeight - BORDER_HEIGHT;
-    const idealPageWidthFromHeight = pageContentHeight / PAGE_ASPECT_RATIO;
+    // Height-based calculation: ideal page width to fill available screen height
+    // totalHeight = frameHeight + HEADER_FOOTER
+    // frameHeight = frameWidth / SVG_ASPECT_RATIO
+    // frameWidth = pageWidth × (SVG_WIDTH / SVG_INNER_WIDTH)
+    // Solving backwards for pageWidth from available height:
+    const availableHeight = windowDimensions.stableHeight - BOTTOM_NAV;
+    const frameHeight = availableHeight - HEADER_FOOTER;
+    const frameWidth = frameHeight * SVG_ASPECT_RATIO;
+    const idealPageWidth = frameWidth * (SVG_INNER_WIDTH / SVG_WIDTH);
 
-    // Use height-based width but constrain to not exceed screen width
-    const pageWidth = Math.max(200, Math.min(maxPageWidth, idealPageWidthFromHeight));
+    // Use the smaller of the two to ensure page fits on screen
+    const pageWidth = Math.max(200, Math.min(maxPageWidth, idealPageWidth));
 
     return { pageWidth };
   }, [windowDimensions.width, windowDimensions.stableHeight]);
@@ -188,8 +196,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   // Handle page navigation
   const handlePageChange = useCallback((newPage: number) => {
     console.log('handlePageChange called with:', newPage, 'totalPages:', totalPages);
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 0 && newPage <= totalPages) {
       // Convert quran page to app page (add 1 for intro page offset)
+      // newPage 0 goes to /mushaf/1 (intro page)
       const targetUrl = `/mushaf/${newPage + 1}`;
       console.log('Navigating to:', targetUrl);
       navigate(targetUrl);
@@ -385,7 +394,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         {/* Left arrow - Previous page (desktop only) */}
         <button
           onClick={() => handlePageChange(quranPage - 1)}
-          disabled={quranPage <= 1}
+          disabled={quranPage < 1}
           className="hidden lg:flex items-center justify-center w-16 xl:w-20 bg-[var(--mushaf-arrow-bg)] hover:bg-[var(--mushaf-arrow-hover)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors group"
           aria-label="Previous page"
         >
@@ -395,7 +404,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         {/* Mushaf content */}
         <div
           ref={scrollContainerRef}
-          className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-start pt-1 overflow-visible' : 'h-full'}`}
+          className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-stretch overflow-visible' : 'h-full'}`}
         >
           {isMobile ? (
             /* Mobile view - single page mode, page fits exactly on screen */
@@ -404,6 +413,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               initialPage={quranPage}
               width="100%"
               height="100%"
+              style={{ alignItems: 'flex-start', paddingTop: 2 }}
               pageWidth={mobilePageDimensions.pageWidth}
               scale={mushafZoom}
               onScaleChange={setMushafZoom}
@@ -474,16 +484,21 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
             </button>
           </div>
 
-          {/* Left side - Previous button + Tajweed info button (when enabled) */}
+          {/* Left side - Previous button + Bookmark */}
           <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
             <button
               onClick={() => handlePageChange(quranPage - 1)}
-              disabled={quranPage <= 1}
+              disabled={quranPage < 1}
               className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
               aria-label={`Go to previous page ${quranPage - 1}`}
             >
               <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
             </button>
+            <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" variant="mobile-nav" />
+          </div>
+
+          {/* Right side - Tajweed info button (when enabled) + Next button */}
+          <div className="absolute right-2 bottom-0 pointer-events-auto flex items-center gap-2">
             {/* Tajweed info button - only shown when tajweed is enabled */}
             {tajweedEnabled && (
               <button
@@ -496,10 +511,6 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
                 </svg>
               </button>
             )}
-          </div>
-
-          {/* Right side - Next button (pill shape) */}
-          <div className="absolute right-2 bottom-0 pointer-events-auto">
             <button
               onClick={() => handlePageChange(quranPage + 1)}
               disabled={quranPage >= totalPages}
