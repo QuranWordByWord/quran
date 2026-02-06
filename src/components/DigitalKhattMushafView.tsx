@@ -196,8 +196,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   // Handle page navigation
   const handlePageChange = useCallback((newPage: number) => {
     console.log('handlePageChange called with:', newPage, 'totalPages:', totalPages);
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 0 && newPage <= totalPages) {
       // Convert quran page to app page (add 1 for intro page offset)
+      // newPage 0 goes to /mushaf/1 (intro page)
       const targetUrl = `/mushaf/${newPage + 1}`;
       console.log('Navigating to:', targetUrl);
       navigate(targetUrl);
@@ -393,7 +394,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
         {/* Left arrow - Previous page (desktop only) */}
         <button
           onClick={() => handlePageChange(quranPage - 1)}
-          disabled={quranPage <= 1}
+          disabled={quranPage < 1}
           className="hidden lg:flex items-center justify-center w-16 xl:w-20 bg-[var(--mushaf-arrow-bg)] hover:bg-[var(--mushaf-arrow-hover)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors group"
           aria-label="Previous page"
         >
@@ -412,7 +413,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               initialPage={quranPage}
               width="100%"
               height="100%"
-              style={{ alignItems: 'flex-start', paddingTop: 8 }}
+              style={{ alignItems: 'flex-start', paddingTop: 2 }}
               pageWidth={mobilePageDimensions.pageWidth}
               scale={mushafZoom}
               onScaleChange={setMushafZoom}
@@ -487,7 +488,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
           <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
             <button
               onClick={() => handlePageChange(quranPage - 1)}
-              disabled={quranPage <= 1}
+              disabled={quranPage < 1}
               className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
               aria-label={`Go to previous page ${quranPage - 1}`}
             >
