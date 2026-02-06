@@ -721,9 +721,26 @@ export function MobileChapterSelector({
     }
   };
   const [activeTab, setActiveTab] = useState<MenuTab>('chapters');
+  const [animateBar, setAnimateBar] = useState(false);
   const [goToPage, setGoToPage] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Trigger bar animation when menu opens
+  useEffect(() => {
+    if (isOpen) {
+      setAnimateBar(false);
+      const showTimer = setTimeout(() => setAnimateBar(true), 50);
+      // Hide bar after animation completes (1000ms animation + 400ms visible)
+      const hideTimer = setTimeout(() => setAnimateBar(false), 1450);
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+      };
+    } else {
+      setAnimateBar(false);
+    }
+  }, [isOpen]);
 
   // Determine if we're in mushaf mode based on current route
   const isMushafMode = location.pathname.startsWith('/mushaf');
@@ -811,6 +828,16 @@ export function MobileChapterSelector({
                   </svg>
                 </button>
               </div>
+              {/* Animated gradient bar */}
+              <div
+                className={`h-1 transition-all duration-1000 origin-center ${
+                  animateBar ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+                }`}
+                style={{
+                  background: 'linear-gradient(90deg, transparent 0%, #1a6b4a 20%, #b8965c 50%, #1a6b4a 80%, transparent 100%)',
+                }}
+                aria-hidden="true"
+              />
               {/* Tabs */}
               <div className="flex border-t border-white/20" role="tablist" aria-label="Menu sections">
                 <button
