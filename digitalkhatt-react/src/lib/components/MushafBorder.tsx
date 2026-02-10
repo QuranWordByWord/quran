@@ -134,6 +134,12 @@ function getJuzForPage(pageNumber: number, layoutType: MushafLayoutTypeString): 
   return 1;
 }
 
+function isJuzStartPage(pageNumber: number, layoutType: MushafLayoutTypeString): boolean {
+  const juzStartPages = layoutType === 'indoPak15' ? JUZ_START_PAGES_INDOPAK : JUZ_START_PAGES_MADANI;
+  // Skip juz 1 (index 0) — only highlight juz 2-30
+  return juzStartPages.indexOf(pageNumber) > 0;
+}
+
 function getSurahForPage(pageNumber: number, layoutType: MushafLayoutTypeString): number {
   const surahStartPages = layoutType === 'indoPak15' ? SURAH_START_PAGES_INDOPAK : SURAH_START_PAGES_MADANI;
   for (let i = surahStartPages.length - 1; i >= 0; i--) {
@@ -180,6 +186,7 @@ export function MushafBorder({
 }: MushafBorderProps) {
   const surahNumber = getSurahForPage(pageNumber, layoutType);
   const juzNumber = getJuzForPage(pageNumber, layoutType);
+  const juzStart = isJuzStartPage(pageNumber, layoutType);
   const surahName = SURAH_NAMES_ARABIC[surahNumber] || '';
   const juzName = JUZ_NAMES_ARABIC[juzNumber] || '';
   const surahNameEnglish = SURAH_NAMES_ENGLISH[surahNumber] || '';
@@ -247,7 +254,7 @@ export function MushafBorder({
 
   return (
     <div
-      className="mushaf-border-container"
+      className={`mushaf-border-container${juzStart ? ' juz-start-page' : ''}`}
       style={{
         position: 'relative',
         width: totalWidth,
@@ -304,18 +311,18 @@ export function MushafBorder({
         </div>
       </div>
 
-      {/* Footer with page number - outside border */}
+      {/* Footer with page number - outside border, using Madina font to match verse marker numerals */}
       <div style={{
         position: 'absolute',
-        bottom: 0,
+        bottom: footerHeight * 0.35,
         left: 0,
         right: 0,
         height: footerHeight,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        fontFamily: 'var(--font-arabic, "Amiri", "Traditional Arabic", serif)',
-        fontSize: 16 * scale,
+        fontFamily: 'var(--font-arabic-madina)',
+        fontSize: 28 * scale,
         color: 'var(--mushaf-metadata-text, #3E9257)',
       }}>
         <span>{pageNumberArabic}</span>

@@ -397,6 +397,7 @@ export class SVGPageRenderer {
         lineElem.appendChild(surahContainer);
       } else if (lineInfo.lineType === 2) {
         // Basmala line (not on first two pages - those are handled above)
+        lineElem.classList.add('linebasmala');
         lineElem.style.marginLeft = margin + 'px';
         lineElem.style.marginRight = lineElem.style.marginLeft;
         lineElem.style.height = INTERLINE * scale + 'px';
