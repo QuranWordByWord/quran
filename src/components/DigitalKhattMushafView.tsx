@@ -162,7 +162,18 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     // Use the smaller of the two to ensure page fits on screen
     const pageWidth = Math.max(200, Math.min(maxPageWidth, idealPageWidth));
 
-    return { pageWidth };
+    // When width-constrained (tall phone), compute target frame height to fill screen
+    let targetFrameHeight: number | undefined;
+    if (pageWidth === maxPageWidth) {
+      const aspectFrameWidth = pageWidth * (SVG_WIDTH / SVG_INNER_WIDTH);
+      const aspectFrameHeight = aspectFrameWidth / SVG_ASPECT_RATIO;
+      const availFrameHeight = availableHeight - HEADER_FOOTER;
+      if (availFrameHeight > aspectFrameHeight + 10) {
+        targetFrameHeight = availFrameHeight;
+      }
+    }
+
+    return { pageWidth, targetFrameHeight };
   }, [windowDimensions.width, windowDimensions.stableHeight]);
 
   // Page calculation
@@ -407,7 +418,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
           className={`flex-1 min-h-0 min-w-0 ${isMobile ? 'flex justify-center items-stretch overflow-visible' : 'h-full'}`}
         >
           {isMobile ? (
-            /* Mobile view - single page mode, page fits exactly on screen */
+            /* Mobile view - single page mode, page auto-fits to viewport */
             <QuranViewer
               layoutType={layoutType}
               initialPage={quranPage}
@@ -415,8 +426,9 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               height="100%"
               style={{ alignItems: 'flex-start', paddingTop: 2 }}
               pageWidth={mobilePageDimensions.pageWidth}
-              scale={mushafZoom}
-              onScaleChange={setMushafZoom}
+              targetFrameHeight={mobilePageDimensions.targetFrameHeight}
+              scale={1}
+              enablePinchZoom={false}
               fontScale={mushafFontScale}
               tajweedEnabled={tajweedEnabled}
               verseNumberFormat={verseNumberFormat}
@@ -466,13 +478,26 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
       {/* Mobile navigation buttons - hidden when menu is open */}
       {!isMenuOpen && (
         <div
-          className={`lg:hidden fixed left-0 right-0 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
+          className={`lg:hidden fixed left-0 right-0 z-[55] transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
         >
-          {/* Center - Page info and menu button */}
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-auto">
+          <div className="flex items-center justify-between px-2 gap-1.5">
+            {/* Left side - Previous button + Bookmark */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => handlePageChange(quranPage - 1)}
+                disabled={quranPage < 1}
+                className="h-11 px-4 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+                aria-label={`Go to previous page ${quranPage - 1}`}
+              >
+                <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
+              </button>
+              <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" variant="mobile-nav" />
+            </div>
+
+            {/* Center - Page info and menu button */}
             <button
               onClick={onOpenMenu}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm rounded-full border border-[var(--mushaf-border)] shadow-lg"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm rounded-full border border-[var(--mushaf-border)] shadow-lg shrink-0"
               aria-label="Open menu"
             >
               <span className="text-sm text-[var(--mushaf-text-primary)]">
@@ -482,43 +507,30 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-          </div>
 
-          {/* Left side - Previous button + Bookmark */}
-          <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(quranPage - 1)}
-              disabled={quranPage < 1}
-              className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-              aria-label={`Go to previous page ${quranPage - 1}`}
-            >
-              <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
-            </button>
-            <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" variant="mobile-nav" />
-          </div>
-
-          {/* Right side - Tajweed info button (when enabled) + Next button */}
-          <div className="absolute right-2 bottom-0 pointer-events-auto flex items-center gap-2">
-            {/* Tajweed info button - only shown when tajweed is enabled */}
-            {tajweedEnabled && (
+            {/* Right side - Tajweed info button (when enabled) + Next button */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* Tajweed info button - only shown when tajweed is enabled */}
+              {tajweedEnabled && (
+                <button
+                  onClick={() => setTajweedGuideOpen(true)}
+                  className="h-11 w-11 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+                  aria-label="Open Tajweed color guide"
+                >
+                  <svg className="w-5 h-5 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+              )}
               <button
-                onClick={() => setTajweedGuideOpen(true)}
-                className="h-11 w-11 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center active:scale-95 transition-transform"
-                aria-label="Open Tajweed color guide"
+                onClick={() => handlePageChange(quranPage + 1)}
+                disabled={quranPage >= totalPages}
+                className="h-11 px-4 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+                aria-label={`Go to next page ${quranPage + 1}`}
               >
-                <svg className="w-5 h-5 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
               </button>
-            )}
-            <button
-              onClick={() => handlePageChange(quranPage + 1)}
-              disabled={quranPage >= totalPages}
-              className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-              aria-label={`Go to next page ${quranPage + 1}`}
-            >
-              <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
-            </button>
+            </div>
           </div>
         </div>
       )}
