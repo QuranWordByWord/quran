@@ -382,3 +382,32 @@ textarea:focus-visible,
 .dark .custom-verse-highlight {
   color: #ffc107 !important;
 }
+
+/* Juz start line highlight - green background edge-to-edge on the first content line of each juz (except juz 1) */
+/* Use box-shadow to extend bg beyond margins without affecting text layout */
+/* Case 1: First line is content (no surah header, no basmala) */
+/* Case 2: Surah header first, then basmala, then content */
+/* Case 3: Surah header first, then content (no basmala, e.g. At-Tawbah) */
+/* Case 4: Basmala first (surah header on previous page), then content */
+.juz-start-page .quran-page-content > .line:first-child:not(.linesuran):not(.linebasmala),
+.juz-start-page .quran-page-content > .linesuran:first-child + .line:not(.linebasmala),
+.juz-start-page .quran-page-content > .linesuran:first-child + .linebasmala + .line,
+.juz-start-page .quran-page-content > .linebasmala:first-child + .line {
+  background-color: rgba(21, 87, 36, 0.22);
+  box-shadow: -50px 0 0 rgba(21, 87, 36, 0.22), 50px 0 0 rgba(21, 87, 36, 0.22);
+}
+.dark .juz-start-page .quran-page-content > .line:first-child:not(.linesuran):not(.linebasmala),
+.dark .juz-start-page .quran-page-content > .linesuran:first-child + .line:not(.linebasmala),
+.dark .juz-start-page .quran-page-content > .linesuran:first-child + .linebasmala + .line,
+.dark .juz-start-page .quran-page-content > .linebasmala:first-child + .line {
+  background-color: rgba(34, 139, 34, 0.45);
+  box-shadow: -50px 0 0 rgba(34, 139, 34, 0.45), 50px 0 0 rgba(34, 139, 34, 0.45);
+}
+
+/* Word-for-Word view juz start line highlight */
+.wfw-juz-start-line {
+  background-color: rgba(26, 107, 74, 0.15);
+}
+.dark .wfw-juz-start-line {
+  background-color: rgba(144, 192, 112, 0.18);
+}

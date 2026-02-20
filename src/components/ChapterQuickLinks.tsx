@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -663,29 +663,37 @@ function SettingsTab({
   );
 }
 
-// Bookmarks tab button with count badge
-function BookmarksTabButton({ isActive, onClick }: { isActive: boolean; onClick: () => void }) {
+// Juz tab label with favorite count badge (for use inside tab button)
+function JuzTabLabel() {
+  const { favoriteJuz } = useFavoriteJuz();
+  const count = favoriteJuz.length;
+
+  return (
+    <>
+      Juz
+      {count > 0 && (
+        <span className="min-w-5 h-5 px-1 ml-1 bg-white text-[var(--color-primary)] text-xs rounded-full flex items-center justify-center font-bold">
+          {count}
+        </span>
+      )}
+    </>
+  );
+}
+
+// Bookmarks tab label with count badge (for use inside tab button)
+function BookmarksTabLabel() {
   const { bookmarks } = useBookmarks();
   const count = bookmarks.length;
 
   return (
-    <button
-      onClick={onClick}
-      className={`flex-1 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
-        isActive ? 'bg-white/20' : 'hover:bg-white/10'
-      }`}
-      role="tab"
-      aria-selected={isActive}
-      aria-controls="bookmarks-panel"
-      id="bookmarks-tab"
-    >
+    <>
       Bookmarks
       {count > 0 && (
         <span className="min-w-5 h-5 px-1 bg-white text-[var(--color-primary)] text-xs rounded-full flex items-center justify-center font-bold">
           {count}
         </span>
       )}
-    </button>
+    </>
   );
 }
 
@@ -721,9 +729,56 @@ export function MobileChapterSelector({
     }
   };
   const [activeTab, setActiveTab] = useState<MenuTab>('chapters');
+  const [animateBar, setAnimateBar] = useState(false);
+
+  // Refs for tab indicator animation
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const chaptersTabRef = useRef<HTMLButtonElement>(null);
+  const juzTabRef = useRef<HTMLButtonElement>(null);
+  const bookmarksTabRef = useRef<HTMLButtonElement>(null);
+  const settingsTabRef = useRef<HTMLButtonElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+
+  // Update indicator position when active tab changes
+  useEffect(() => {
+    const tabRefs: Record<MenuTab, React.RefObject<HTMLButtonElement | null>> = {
+      chapters: chaptersTabRef,
+      juz: juzTabRef,
+      bookmarks: bookmarksTabRef,
+      settings: settingsTabRef,
+    };
+
+    const activeRef = tabRefs[activeTab];
+    const container = tabsContainerRef.current;
+
+    if (activeRef.current && container) {
+      const tabRect = activeRef.current.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      setIndicatorStyle({
+        left: tabRect.left - containerRect.left,
+        width: tabRect.width,
+      });
+    }
+  }, [activeTab, isOpen]);
   const [goToPage, setGoToPage] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Trigger bar animation when menu opens
+  useEffect(() => {
+    if (isOpen) {
+      setAnimateBar(false);
+      const showTimer = setTimeout(() => setAnimateBar(true), 50);
+      // Hide bar after animation completes (1000ms animation + 400ms visible)
+      const hideTimer = setTimeout(() => setAnimateBar(false), 1450);
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+      };
+    } else {
+      setAnimateBar(false);
+    }
+  }, [isOpen]);
 
   // Determine if we're in mushaf mode based on current route
   const isMushafMode = location.pathname.startsWith('/mushaf');
@@ -811,40 +866,62 @@ export function MobileChapterSelector({
                   </svg>
                 </button>
               </div>
+              {/* Animated gradient bar */}
+              <div
+                className={`h-1 transition-all duration-1000 origin-center ${
+                  animateBar ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+                }`}
+                style={{
+                  background: 'linear-gradient(90deg, transparent 0%, #1a6b4a 20%, #b8965c 50%, #1a6b4a 80%, transparent 100%)',
+                }}
+                aria-hidden="true"
+              />
               {/* Tabs */}
-              <div className="flex border-t border-white/20" role="tablist" aria-label="Menu sections">
+              <div ref={tabsContainerRef} className="relative flex border-t border-white/20" role="tablist" aria-label="Menu sections">
                 <button
+                  ref={chaptersTabRef}
                   onClick={() => setActiveTab('chapters')}
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                    activeTab === 'chapters' ? 'bg-white/20' : 'hover:bg-white/10'
+                  className={`flex-1 py-2.5 text-sm font-medium transition-all duration-200 relative z-10 ${
+                    activeTab === 'chapters' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white/90 hover:bg-white/10'
                   }`}
                   role="tab"
                   aria-selected={activeTab === 'chapters'}
                   aria-controls="chapters-panel"
                   id="chapters-tab"
                 >
-                  Chapters
+                  Surahs
                 </button>
                 <button
+                  ref={juzTabRef}
                   onClick={() => setActiveTab('juz')}
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                    activeTab === 'juz' ? 'bg-white/20' : 'hover:bg-white/10'
+                  className={`flex-1 py-2.5 text-sm font-medium transition-all duration-200 relative z-10 flex items-center justify-center gap-1 ${
+                    activeTab === 'juz' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white/90 hover:bg-white/10'
                   }`}
                   role="tab"
                   aria-selected={activeTab === 'juz'}
                   aria-controls="juz-panel"
                   id="juz-tab"
                 >
-                  Juz
+                  <JuzTabLabel />
                 </button>
-                <BookmarksTabButton
-                  isActive={activeTab === 'bookmarks'}
-                  onClick={() => setActiveTab('bookmarks')}
-                />
                 <button
+                  ref={bookmarksTabRef}
+                  onClick={() => setActiveTab('bookmarks')}
+                  className={`flex-1 py-2.5 text-sm font-medium transition-all duration-200 relative z-10 flex items-center justify-center gap-1 ${
+                    activeTab === 'bookmarks' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white/90 hover:bg-white/10'
+                  }`}
+                  role="tab"
+                  aria-selected={activeTab === 'bookmarks'}
+                  aria-controls="bookmarks-panel"
+                  id="bookmarks-tab"
+                >
+                  <BookmarksTabLabel />
+                </button>
+                <button
+                  ref={settingsTabRef}
                   onClick={() => setActiveTab('settings')}
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                    activeTab === 'settings' ? 'bg-white/20' : 'hover:bg-white/10'
+                  className={`flex-1 py-2.5 text-sm font-medium transition-all duration-200 relative z-10 ${
+                    activeTab === 'settings' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white/90 hover:bg-white/10'
                   }`}
                   role="tab"
                   aria-selected={activeTab === 'settings'}
@@ -853,6 +930,16 @@ export function MobileChapterSelector({
                 >
                   Settings
                 </button>
+                {/* Sliding indicator */}
+                <div
+                  className="absolute bottom-0 h-0.5 rounded-full transition-all duration-700 ease-out"
+                  style={{
+                    left: indicatorStyle.left,
+                    width: indicatorStyle.width,
+                    backgroundColor: 'var(--mushaf-hover-gold)',
+                  }}
+                  aria-hidden="true"
+                />
               </div>
             </div>
 

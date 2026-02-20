@@ -89,6 +89,8 @@ export interface QuranViewerProps {
   // Single page mode
   /** Display only one page at a time, fitting to container (for mobile) */
   singlePageMode?: boolean;
+  /** Target frame height for MushafBorder (mobile height fill) */
+  targetFrameHeight?: number;
 
   // Free scroll mode
   /** Disable onPageChange during scroll (for desktop free scrolling) */
@@ -132,6 +134,7 @@ export function QuranViewer({
   overscanPages = 2,
   showBorder = false,
   singlePageMode = false,
+  targetFrameHeight,
   freeScroll = false,
   className,
   style,
@@ -206,13 +209,19 @@ export function QuranViewer({
     const innerHeightFromWidth = heightFromWidth * (SVG_INNER_HEIGHT / SVG_HEIGHT);
     const frameFromHeight = scaledPageHeight * (SVG_HEIGHT / SVG_INNER_HEIGHT);
 
-    const frameHeight = innerHeightFromWidth >= scaledPageHeight
+    let frameHeight = innerHeightFromWidth >= scaledPageHeight
       ? Math.round(heightFromWidth)
       : Math.round(frameFromHeight);
 
+    // Apply targetFrameHeight override for mobile height fill (only at scale 1)
+    if (targetFrameHeight !== undefined && s === 1) {
+      const maxFrameHeight = Math.round(frameHeight * 1.20);
+      frameHeight = Math.min(targetFrameHeight, maxFrameHeight);
+    }
+
     const headerFooterH = (24 + 32) * s;
     return (frameHeight - scaledPageHeight) + headerFooterH;
-  }, [showBorder, pageWidth, pageHeight]);
+  }, [showBorder, pageWidth, pageHeight, targetFrameHeight]);
 
   // Calculate frame dimensions that match MushafBorder's calculation
   const { frameWidth: borderFrameWidth, frameHeight: borderFrameHeight } = useMemo(() => {
@@ -230,12 +239,23 @@ export function QuranViewer({
     const frameFromHeight = scaledPageHeight * (SVG_HEIGHT / SVG_INNER_HEIGHT);
     const widthFromHeight = frameFromHeight * (SVG_WIDTH / SVG_HEIGHT);
 
+    let fw: number, fh: number;
     if (innerHeightFromWidth >= scaledPageHeight) {
-      return { frameWidth: Math.round(frameFromWidth), frameHeight: Math.round(heightFromWidth) };
+      fw = Math.round(frameFromWidth);
+      fh = Math.round(heightFromWidth);
     } else {
-      return { frameWidth: Math.round(widthFromHeight), frameHeight: Math.round(frameFromHeight) };
+      fw = Math.round(widthFromHeight);
+      fh = Math.round(frameFromHeight);
     }
-  }, [showBorder, pageWidth, pageHeight, scale]);
+
+    // Apply targetFrameHeight override for mobile height fill (only at scale 1)
+    if (targetFrameHeight !== undefined && scale === 1) {
+      const maxFh = Math.round(fh * 1.20);
+      fh = Math.min(targetFrameHeight, maxFh);
+    }
+
+    return { frameWidth: fw, frameHeight: fh };
+  }, [showBorder, pageWidth, pageHeight, scale, targetFrameHeight]);
 
   const headerFooterHeight = showBorder ? (24 + 32) * scale : 0;
 
@@ -584,16 +604,20 @@ export function QuranViewer({
     let lastGestureScale = scaleRef.current;
 
     const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2 && enablePinchZoom) {
-        // Pinch zoom start
+      if (e.touches.length === 2) {
+        // Multi-touch: always cancel single-touch tracking to prevent swipe
         isSingleTouch = false;
         isPanning = false;
-        isPinching = true;
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        initialDistance = Math.sqrt(dx * dx + dy * dy);
-        pinchInitialScale = scaleRef.current;
-        lastGestureScale = scaleRef.current;
+
+        if (enablePinchZoom) {
+          // Pinch zoom start
+          isPinching = true;
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          initialDistance = Math.sqrt(dx * dx + dy * dy);
+          pinchInitialScale = scaleRef.current;
+          lastGestureScale = scaleRef.current;
+        }
       } else if (e.touches.length === 1) {
         // Single touch - could be swipe or pan
         isSingleTouch = true;
@@ -701,6 +725,8 @@ export function QuranViewer({
             setCurrentPage(newPage);
             setSwipeOffset(0);
             onPageChange?.(newPage);
+            // Reset any native scroll offset that may have accumulated
+            container.scrollTop = 0;
           }, ANIMATION_DURATION);
 
         } else if (shouldChangePage && deltaY < 0 && !atLastPage) {
@@ -718,12 +744,15 @@ export function QuranViewer({
             setCurrentPage(newPage);
             setSwipeOffset(0);
             onPageChange?.(newPage);
+            // Reset any native scroll offset that may have accumulated
+            container.scrollTop = 0;
           }, ANIMATION_DURATION);
 
         } else {
           // Snap back to center instantly (no animation)
           setSwipeOffset(0);
           setSwipePhase('idle');
+          container.scrollTop = 0;
         }
       }
 
@@ -942,6 +971,7 @@ export function QuranViewer({
             contentWidth={scaledPageWidth}
             contentHeight={scaledPageHeight}
             scale={scale}
+            targetFrameHeight={targetFrameHeight}
             borderColor="var(--mushaf-border, #2d5a27)"
             verseNumberFormat={verseNumberFormat}
             layoutType={layoutType}
@@ -966,7 +996,7 @@ export function QuranViewer({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          touchAction: scale > 1 ? 'none' : 'pan-y',
+          touchAction: 'none', // We handle all touch interactions (swipe, pinch, pan)
           ...style,
         }}
         tabIndex={0}

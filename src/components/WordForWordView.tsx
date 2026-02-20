@@ -3,6 +3,7 @@ import type { Verse, Word } from '../types/quran';
 import { useFontClass, useVerseNumberFormat, useMenu } from '../App';
 import { useMobileNav } from '../contexts/MobileNavContext';
 import { InlineBookmarkButton } from './BookmarkButton';
+import { JUZ_DATA } from '../config/juzData';
 
 // Swipe navigation configuration
 const SWIPE_THRESHOLD = 80; // Min distance to trigger page change (px)
@@ -106,6 +107,13 @@ function processVersesToLines(verses: Verse[]): LineContent[] {
   });
 
   return lines;
+}
+
+// Check if a UI page (1-indexed with intro offset) is the start of a juz (except juz 1)
+// UI page = apiPage + 1 (page 1 is intro)
+const JUZ_START_UI_PAGES = new Set(JUZ_DATA.filter(j => j.id > 1).map(j => j.apiPage + 1));
+function isJuzStartPage(uiPage: number): boolean {
+  return JUZ_START_UI_PAGES.has(uiPage);
 }
 
 // Get Juz name in Arabic
@@ -421,6 +429,7 @@ export function WordForWordView({
               {/* Page Content */}
               <div className="p-2 sm:p-4 md:p-5 min-h-[60vh] bg-[var(--mushaf-page-bg)]">
                 {pageLines.map((line, index) => {
+                  const isJuzLine = isJuzStartPage(pageNum) && index === pageLines.findIndex(l => l.type === 'words');
                   if (line.type === 'surah-header') {
                     return (
                       <SurahHeader
@@ -459,7 +468,7 @@ export function WordForWordView({
                   }
 
                   if (line.type === 'words' && line.words) {
-                    return showTranslations ? (
+                    const lineContent = showTranslations ? (
                       <MushafLine
                         key={`page-${pageNum}-line-${line.lineNumber}-${index}`}
                         words={line.words}
@@ -489,6 +498,14 @@ export function WordForWordView({
                         currentPageNumber={pageNum}
                       />
                     );
+                    if (isJuzLine) {
+                      return (
+                        <div key={`juz-line-${index}`} className="wfw-juz-start-line -mx-2 sm:-mx-4 md:-mx-5 px-2 sm:px-4 md:px-5">
+                          {lineContent}
+                        </div>
+                      );
+                    }
+                    return lineContent;
                   }
 
                   return null;

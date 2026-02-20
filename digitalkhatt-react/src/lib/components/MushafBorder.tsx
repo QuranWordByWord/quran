@@ -134,6 +134,12 @@ function getJuzForPage(pageNumber: number, layoutType: MushafLayoutTypeString): 
   return 1;
 }
 
+function isJuzStartPage(pageNumber: number, layoutType: MushafLayoutTypeString): boolean {
+  const juzStartPages = layoutType === 'indoPak15' ? JUZ_START_PAGES_INDOPAK : JUZ_START_PAGES_MADANI;
+  // Skip juz 1 (index 0) — only highlight juz 2-30
+  return juzStartPages.indexOf(pageNumber) > 0;
+}
+
 function getSurahForPage(pageNumber: number, layoutType: MushafLayoutTypeString): number {
   const surahStartPages = layoutType === 'indoPak15' ? SURAH_START_PAGES_INDOPAK : SURAH_START_PAGES_MADANI;
   for (let i = surahStartPages.length - 1; i >= 0; i--) {
@@ -161,6 +167,8 @@ export interface MushafBorderProps {
   scale: number;
   /** Border color */
   borderColor?: string;
+  /** Target frame height - overrides aspect-ratio calculation for mobile height fill */
+  targetFrameHeight?: number;
   /** Verse number format - when 'english', shows English names in brackets */
   verseNumberFormat?: 'arabic' | 'english';
   /** Mushaf layout type - determines page mappings */
@@ -174,12 +182,14 @@ export function MushafBorder({
   contentWidth,
   contentHeight,
   scale,
+  targetFrameHeight,
   verseNumberFormat = 'arabic',
   layoutType = 'indoPak15',
   children,
 }: MushafBorderProps) {
   const surahNumber = getSurahForPage(pageNumber, layoutType);
   const juzNumber = getJuzForPage(pageNumber, layoutType);
+  const juzStart = isJuzStartPage(pageNumber, layoutType);
   const surahName = SURAH_NAMES_ARABIC[surahNumber] || '';
   const juzName = JUZ_NAMES_ARABIC[juzNumber] || '';
   const surahNameEnglish = SURAH_NAMES_ENGLISH[surahNumber] || '';
@@ -226,17 +236,18 @@ export function MushafBorder({
     frameHeight = Math.round(frameFromHeight);
   }
 
-  // Border sizes in the correctly-proportioned frame (same ratio as SVG)
-  const borderX = Math.round(frameWidth * (SVG_BORDER / SVG_WIDTH));
-  const borderY = Math.round(frameHeight * (SVG_BORDER / SVG_HEIGHT));
+  // Override frame height for mobile height fill (stretch to fill tall screens)
+  // Capped at 20% stretch to prevent excessive border/text distortion
+  if (targetFrameHeight !== undefined) {
+    const maxFrameHeight = Math.round(frameHeight * 1.20);
+    frameHeight = Math.max(frameHeight, Math.min(targetFrameHeight, maxFrameHeight));
+  }
+
+  // Uniform border size (based on frame width to keep corner ornaments proportional)
+  const borderSize = Math.round(frameWidth * (SVG_BORDER / SVG_WIDTH));
 
   // Inner area for content
-  const innerWidth = frameWidth - borderX * 2;
-  const innerHeight = frameHeight - borderY * 2;
-
-  // Position content within inner area (centered horizontally, top-aligned vertically)
-  const contentPosX = borderX + Math.round((innerWidth - contentWidth) / 2);
-  const contentPosY = borderY;
+  const innerHeight = frameHeight - borderSize * 2;
 
   // Scale content vertically to fill the inner height
   const verticalScale = innerHeight / contentHeight;
@@ -247,7 +258,7 @@ export function MushafBorder({
 
   return (
     <div
-      className="mushaf-border-container"
+      className={`mushaf-border-container${juzStart ? ' juz-start-page' : ''}`}
       style={{
         position: 'relative',
         width: totalWidth,
@@ -270,32 +281,34 @@ export function MushafBorder({
         fontFamily: 'var(--font-arabic, "Amiri", "Traditional Arabic", serif)',
         fontSize: 12 * scale,
         color: 'var(--mushaf-metadata-text, #3E9257)',
-        padding: `0 ${borderX}px`,
+        padding: `0 ${borderSize}px`,
       }}>
         <span>{juzName}{verseNumberFormat === 'arabic' && <span style={{ fontSize: '1.2em' }}> {toArabicNumerals(juzNumber)}</span>}{verseNumberFormat === 'english' && <span style={{ fontSize: '0.8em' }}> [Juz <span style={{ fontSize: '1.1em' }}>{juzNumber}</span>]</span>}</span>
         <span>سورة {surahName}{verseNumberFormat === 'english' && <span style={{ fontSize: '0.8em' }}> [{surahNameEnglish}]</span>}</span>
       </div>
 
-      {/* Main border frame - using SVG as background image */}
+      {/* Main border frame - using border-image for proper 9-slice scaling */}
+      {/* Corners maintain natural proportions; only edge patterns stretch */}
       <div style={{
         position: 'absolute',
         top: headerHeight,
         left: 0,
         width: frameWidth,
         height: frameHeight,
-        backgroundImage: `url('/quran/assets/borders/green/full-border.svg')`,
-        backgroundSize: '100% 100%',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
+        boxSizing: 'border-box',
+        borderStyle: 'solid',
+        borderWidth: borderSize,
+        borderColor: 'transparent',
+        borderImageSource: `url('/quran/assets/borders/green/full-border.svg')`,
+        borderImageSlice: `${SVG_BORDER}`,
+        borderImageRepeat: 'stretch',
+        backgroundColor: 'var(--mushaf-page-bg, #fffef5)',
       }}>
-        {/* Page content - positioned inside the border, scaled to fill inner height */}
+        {/* Page content - scaled to fill inner height */}
         <div style={{
-          position: 'absolute',
-          top: contentPosY,
-          left: contentPosX,
           width: contentWidth,
           height: contentHeight,
-          backgroundColor: 'var(--mushaf-page-bg, #fffef5)',
+          margin: '0 auto',
           overflow: 'hidden',
           transform: `scaleY(${verticalScale})`,
           transformOrigin: 'top',
@@ -304,18 +317,18 @@ export function MushafBorder({
         </div>
       </div>
 
-      {/* Footer with page number - outside border */}
+      {/* Footer with page number - outside border, using Madina font to match verse marker numerals */}
       <div style={{
         position: 'absolute',
-        bottom: 0,
+        bottom: footerHeight * 0.35,
         left: 0,
         right: 0,
         height: footerHeight,
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        fontFamily: 'var(--font-arabic, "Amiri", "Traditional Arabic", serif)',
-        fontSize: 16 * scale,
+        fontFamily: 'var(--font-arabic-madina)',
+        fontSize: 28 * scale,
         color: 'var(--mushaf-metadata-text, #3E9257)',
       }}>
         <span>{pageNumberArabic}</span>
