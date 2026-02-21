@@ -161,6 +161,32 @@
   white-space: nowrap;
 }
 
+.ruled-lines .line::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -999px;
+  right: -999px;
+  height: 1px;
+  background: #000;
+}
+
+.ruled-lines.dark .line::after {
+  background: #fff;
+}
+
+.ruled-lines .line-intro::after {
+  left: 0;
+  right: 0;
+}
+
+.ruled-lines .linesuran::after,
+.ruled-lines .linebasmala::after,
+.ruled-lines .line:last-child::after,
+.ruled-lines .line:has(+ .linesuran)::after {
+  display: none;
+}
+
 /* Justified line container for CSS-based rendering */
 .justifyline {
   text-align: justify;

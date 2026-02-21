@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Bookmark } from '../config/types';
 import { loadBookmarks, saveBookmarks } from '../utils/bookmarkStorage';
 import { getSurahForPage } from '../utils/pageToSurah';
+import { getJuzForPage } from '../config/juzData';
 
 interface BookmarkContextType {
   bookmarks: Bookmark[];
@@ -59,6 +60,7 @@ export function BookmarkProvider({ children }: BookmarkProviderProps) {
       surahId: surahInfo.id,
       surahName: surahInfo.name,
       createdAt: Date.now(),
+      juzNumber: getJuzForPage(pageNumber, viewMode),
     };
 
     // Update state directly - localStorage sync happens via useEffect
@@ -96,6 +98,7 @@ export function BookmarkProvider({ children }: BookmarkProviderProps) {
           surahId: surahInfo.id,
           surahName: surahInfo.name,
           createdAt: Date.now(),
+          juzNumber: getJuzForPage(pageNumber, viewMode),
         };
         result = { added: true, bookmark: newBookmark };
         const updated = [newBookmark, ...prev];

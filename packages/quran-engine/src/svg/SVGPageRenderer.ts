@@ -205,6 +205,10 @@ export class SVGPageRenderer {
       // Line type 2: Basmala (centered with special scaling)
       const isFirstTwoPages = pageIndex === 0 || pageIndex === 1;
 
+      if (isFirstTwoPages) {
+        lineElem.classList.add('line-intro');
+      }
+
       if (lineInfo.lineType === 0 || (lineInfo.lineType === 2 && isFirstTwoPages)) {
         // Adjust margin for lines with non-full width
         if (lineInfo.lineWidthRatio !== 1) {

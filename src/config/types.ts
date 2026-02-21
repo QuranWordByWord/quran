@@ -48,6 +48,7 @@ export interface Bookmark {
   surahId: number;                         // Chapter ID (1-114)
   surahName: string;                       // e.g., "Al-Baqara"
   createdAt: number;                       // Unix timestamp
+  juzNumber?: number;                      // Juz number (1-30)
   label?: string;                          // Optional custom label
 }
 
@@ -85,6 +86,7 @@ export interface AppSettings {
   tajweedEnabled: boolean;
   mushafZoom: number;
   mushafFontScale: number; // Font size scale (0.5 to 1.2, default 0.75)
+  ruledLinesEnabled: boolean; // Show ruled lines between text lines in mushaf view
 }
 
 // Storage keys

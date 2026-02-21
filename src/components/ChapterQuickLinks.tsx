@@ -308,6 +308,7 @@ function SettingsTab({
     layoutMode, setLayoutMode,
     mushafScript, setMushafScript,
     tajweedEnabled, setTajweedEnabled,
+    ruledLinesEnabled, setRuledLinesEnabled,
     mushafZoom, setMushafZoom,
     mushafFontScale, setMushafFontScale,
   } = useSettings();
@@ -462,8 +463,8 @@ function SettingsTab({
         </div>
       </fieldset>
 
-      {/* Layout mode */}
-      <fieldset>
+      {/* Layout mode - hidden on mobile since it's not useful there */}
+      <fieldset className="hidden md:block">
         <legend className="text-sm font-medium text-gray-700 mb-2">Layout</legend>
         <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Layout mode">
           <button
@@ -568,6 +569,37 @@ function SettingsTab({
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                 </svg>
+                On
+              </button>
+            </div>
+          </fieldset>
+
+          {/* Ruled lines toggle */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Ruled Lines</legend>
+            <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Ruled lines">
+              <button
+                onClick={() => setRuledLinesEnabled(false)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
+                  !ruledLinesEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={!ruledLinesEnabled}
+              >
+                Off
+              </button>
+              <button
+                onClick={() => setRuledLinesEnabled(true)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
+                  ruledLinesEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={ruledLinesEnabled}
+              >
                 On
               </button>
             </div>

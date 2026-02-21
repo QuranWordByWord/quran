@@ -68,6 +68,25 @@ export function getJuzArabicName(juzNumber: number): string {
 }
 
 /**
+ * Get the Juz number (1-30) for a given page number
+ * Iterates backwards through JUZ_DATA to find which Juz the page falls in
+ */
+export function getJuzForPage(
+  pageNumber: number,
+  viewMode: 'mushaf' | 'wordforword',
+  mushafScript: MushafScript = 'indoPak15'
+): number {
+  const useApiPage = viewMode === 'wordforword' || mushafScript === 'indoPak15';
+  for (let i = JUZ_DATA.length - 1; i >= 0; i--) {
+    const startPage = useApiPage ? JUZ_DATA[i].apiPage : JUZ_DATA[i].mushafPage;
+    if (pageNumber >= startPage) {
+      return JUZ_DATA[i].id;
+    }
+  }
+  return 1;
+}
+
+/**
  * Get the UI page number where a Juz starts
  * Handles both view modes and mushaf script differences
  *
