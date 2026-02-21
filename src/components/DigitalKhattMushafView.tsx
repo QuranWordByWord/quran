@@ -47,24 +47,45 @@ const QURAN_TEXT = {
 // Hooks
 // ============================================
 
+// Read CSS safe area insets (for iOS notch/home indicator)
+// Uses probe elements since env() can't be read via getComputedStyle
+function getSafeAreaInsets() {
+  if (typeof document === 'undefined') return { top: 0, bottom: 0 };
+  const probeTop = document.createElement('div');
+  probeTop.style.cssText = 'position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none;';
+  const probeBottom = document.createElement('div');
+  probeBottom.style.cssText = 'position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none;';
+  document.body.appendChild(probeTop);
+  document.body.appendChild(probeBottom);
+  const top = probeTop.getBoundingClientRect().height;
+  const bottom = probeBottom.getBoundingClientRect().height;
+  document.body.removeChild(probeTop);
+  document.body.removeChild(probeBottom);
+  return { top, bottom };
+}
+
 // Hook to track window dimensions for responsive layout
 // Uses a stable height reference to prevent layout shifts when mobile browser UI appears/disappears
 function useWindowDimensions() {
   const [dimensions, setDimensions] = useState(() => {
-    if (typeof window === 'undefined') return { width: 0, height: 0, stableHeight: 0 };
+    if (typeof window === 'undefined') return { width: 0, height: 0, stableHeight: 0, safeAreaTop: 0, safeAreaBottom: 0 };
     const currentHeight = window.visualViewport?.height ?? window.innerHeight;
+    const safeArea = getSafeAreaInsets();
     return {
       width: window.innerWidth,
       height: currentHeight,
       // stableHeight tracks the maximum height seen (the "large viewport" when URL bar is hidden)
       // This prevents layout shifts when browser chrome appears/disappears
       stableHeight: currentHeight,
+      safeAreaTop: safeArea.top,
+      safeAreaBottom: safeArea.bottom,
     };
   });
 
   useEffect(() => {
     const updateDimensions = () => {
       const currentHeight = window.visualViewport?.height ?? window.innerHeight;
+      const safeArea = getSafeAreaInsets();
       setDimensions(prev => {
         const newWidth = window.innerWidth;
         // Only update stableHeight if width changed (true resize) or height increased
@@ -78,6 +99,8 @@ function useWindowDimensions() {
           width: newWidth,
           height: currentHeight,
           stableHeight: newStableHeight,
+          safeAreaTop: safeArea.top,
+          safeAreaBottom: safeArea.bottom,
         };
       });
     };
@@ -154,7 +177,10 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     // frameHeight = frameWidth / SVG_ASPECT_RATIO
     // frameWidth = pageWidth × (SVG_WIDTH / SVG_INNER_WIDTH)
     // Solving backwards for pageWidth from available height:
-    const availableHeight = windowDimensions.stableHeight - BOTTOM_NAV;
+    // Subtract safe area top (iOS notch) — matches CSS pt-[env(safe-area-inset-top)] on container
+    // Bottom safe area is NOT subtracted: mushaf frame can render behind home indicator,
+    // and nav buttons handle their own bottom safe area via CSS
+    const availableHeight = windowDimensions.stableHeight - windowDimensions.safeAreaTop - BOTTOM_NAV;
     const frameHeight = availableHeight - HEADER_FOOTER;
     const frameWidth = frameHeight * SVG_ASPECT_RATIO;
     const idealPageWidth = frameWidth * (SVG_INNER_WIDTH / SVG_WIDTH);
@@ -174,7 +200,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
     }
 
     return { pageWidth, targetFrameHeight };
-  }, [windowDimensions.width, windowDimensions.stableHeight]);
+  }, [windowDimensions.width, windowDimensions.stableHeight, windowDimensions.safeAreaTop]);
 
   // Page calculation
   const page = pageParam ? parseInt(pageParam) : 2;
@@ -399,7 +425,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
   }
 
   return (
-    <div className={`flex-1 flex flex-col bg-[var(--mushaf-bg)] h-screen lg:h-[calc(100vh-64px)] ${isMobile ? 'overflow-visible' : ''}`}>
+    <div className={`flex-1 flex flex-col bg-[var(--mushaf-bg)] h-[100dvh] lg:h-[calc(100vh-64px)] pt-[env(safe-area-inset-top,0px)] lg:pt-0 ${isMobile ? 'overflow-visible' : ''}`}>
       {/* Main Mushaf area with navigation arrows */}
       <div className={`flex-1 flex items-stretch relative min-h-0 ${isMobile ? 'overflow-visible' : 'overflow-hidden'}`}>
         {/* Left arrow - Previous page (desktop only) */}
@@ -478,20 +504,25 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
       {/* Mobile navigation buttons - hidden when menu is open */}
       {!isMenuOpen && (
         <div
-          className={`lg:hidden fixed left-0 right-0 z-[55] transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
+          className="lg:hidden fixed left-0 right-0 z-[55] transition-all duration-300 px-px mx-auto"
+          style={{ bottom: isAudioActive ? '4rem' : 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))', maxWidth: mobilePageDimensions.pageWidth * (437 / 387) }}
         >
-          <div className="flex items-center justify-between px-2 gap-1.5">
+          <div
+            className="flex items-center justify-between gap-1.5"
+          >
             {/* Left side - Previous button + Bookmark */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex-1 flex items-center">
               <button
                 onClick={() => handlePageChange(quranPage - 1)}
                 disabled={quranPage < 1}
-                className="h-11 px-4 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+                className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
                 aria-label={`Go to previous page ${quranPage - 1}`}
               >
                 <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
               </button>
-              <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" variant="mobile-nav" />
+              <div className="flex-1 flex justify-center">
+                <InlineBookmarkButton pageNumber={quranPage} viewMode="mushaf" variant="mobile-nav" />
+              </div>
             </div>
 
             {/* Center - Page info and menu button */}
@@ -509,23 +540,25 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
             </button>
 
             {/* Right side - Tajweed info button (when enabled) + Next button */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {/* Tajweed info button - only shown when tajweed is enabled */}
-              {tajweedEnabled && (
-                <button
-                  onClick={() => setTajweedGuideOpen(true)}
-                  className="h-11 w-11 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center active:scale-95 transition-transform"
-                  aria-label="Open Tajweed color guide"
-                >
-                  <svg className="w-5 h-5 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
-              )}
+            <div className="flex-1 flex items-center">
+              <div className="flex-1 flex justify-center">
+                {/* Tajweed info button - only shown when tajweed is enabled */}
+                {tajweedEnabled && (
+                  <button
+                    onClick={() => setTajweedGuideOpen(true)}
+                    className="h-11 w-11 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+                    aria-label="Open Tajweed color guide"
+                  >
+                    <svg className="w-5 h-5 text-[var(--mushaf-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
               <button
                 onClick={() => handlePageChange(quranPage + 1)}
                 disabled={quranPage >= totalPages}
-                className="h-11 px-4 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+                className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
                 aria-label={`Go to next page ${quranPage + 1}`}
               >
                 <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>

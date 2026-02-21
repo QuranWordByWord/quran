@@ -267,12 +267,12 @@ export function MushafBorder({
         overflow: 'visible',
       }}
     >
-      {/* Header with surah name and juz - outside border */}
+      {/* Header with surah name and juz - outside border, wider than frame */}
       <div style={{
         position: 'absolute',
         top: 0,
-        left: 0,
-        right: 0,
+        left: -Math.round(borderSize * 0.5),
+        right: -Math.round(borderSize * 0.5),
         height: headerHeight,
         display: 'flex',
         justifyContent: 'space-between',
@@ -284,6 +284,10 @@ export function MushafBorder({
         padding: `0 ${borderSize}px`,
       }}>
         <span>{juzName}{verseNumberFormat === 'arabic' && <span style={{ fontSize: '1.2em' }}> {toArabicNumerals(juzNumber)}</span>}{verseNumberFormat === 'english' && <span style={{ fontSize: '0.8em' }}> [Juz <span style={{ fontSize: '1.1em' }}>{juzNumber}</span>]</span>}</span>
+        {verseNumberFormat === 'english'
+          ? <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>{pageNumber}</span>
+          : <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-arabic-madina)', fontSize: 28 * scale, marginTop: -8 * scale }}>{pageNumberArabic}</span>
+        }
         <span>سورة {surahName}{verseNumberFormat === 'english' && <span style={{ fontSize: '0.8em' }}> [{surahNameEnglish}]</span>}</span>
       </div>
 
@@ -317,22 +321,14 @@ export function MushafBorder({
         </div>
       </div>
 
-      {/* Footer with page number - outside border, using Madina font to match verse marker numerals */}
+      {/* Footer - reserved space below border */}
       <div style={{
         position: 'absolute',
         bottom: footerHeight * 0.35,
         left: 0,
         right: 0,
         height: footerHeight,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontFamily: 'var(--font-arabic-madina)',
-        fontSize: 28 * scale,
-        color: 'var(--mushaf-metadata-text, #3E9257)',
-      }}>
-        <span>{pageNumberArabic}</span>
-      </div>
+      }} />
     </div>
   );
 }
