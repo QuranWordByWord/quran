@@ -597,13 +597,31 @@ export function WordForWordView({
       {/* Mobile navigation buttons - hidden when menu is open */}
       {!isMenuOpen && (
       <div
-        className={`lg:hidden fixed left-0 right-0 z-[55] pointer-events-none transition-all duration-300 ${isAudioActive ? 'bottom-16' : 'bottom-2'}`}
+        className="lg:hidden fixed left-0 right-0 z-[55] transition-all duration-300 px-px mx-auto"
+        style={{ bottom: isAudioActive ? '4rem' : 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))', maxWidth: 430 }}
       >
-        {/* Center - Page number button (absolutely centered) */}
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-auto">
+        <div
+          className="flex items-center justify-between gap-1.5"
+        >
+          {/* Left side - Previous button + Bookmark */}
+          <div className="flex-1 flex items-center">
+            <button
+              onClick={() => onPageChange(pageNumber - 1)}
+              disabled={pageNumber <= 1}
+              className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+              aria-label={`Go to previous page ${pageNumber - 1}`}
+            >
+              <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
+            </button>
+            <div className="flex-1 flex justify-center">
+              <InlineBookmarkButton pageNumber={pageNumber} viewMode="wordforword" variant="mobile-nav" />
+            </div>
+          </div>
+
+          {/* Center - Page info and menu button */}
           <button
             onClick={onOpenMenu}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm rounded-full border border-[var(--mushaf-border)] shadow-lg active:scale-95 transition-transform"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm rounded-full border border-[var(--mushaf-border)] shadow-lg shrink-0 active:scale-95 transition-transform"
             aria-label="Open menu"
           >
             <span className="text-sm text-[var(--mushaf-text-primary)]">
@@ -613,31 +631,19 @@ export function WordForWordView({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-        </div>
 
-        {/* Left side - Previous button + Bookmark */}
-        <div className="absolute left-2 bottom-0 pointer-events-auto flex items-center gap-2">
-          <button
-            onClick={() => onPageChange(pageNumber - 1)}
-            disabled={pageNumber <= 1}
-            className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-            aria-label={`Go to previous page ${pageNumber - 1}`}
-          >
-            <span className="text-xl text-[var(--mushaf-arrow-color)]">←</span>
-          </button>
-          <InlineBookmarkButton pageNumber={pageNumber} viewMode="wordforword" variant="mobile-nav" />
-        </div>
-
-        {/* Right side - Next button (pill shape) */}
-        <div className="absolute right-2 bottom-0 pointer-events-auto">
-          <button
-            onClick={() => onPageChange(pageNumber + 1)}
-            disabled={pageNumber >= totalPages}
-            className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
-            aria-label={`Go to next page ${pageNumber + 1}`}
-          >
-            <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
-          </button>
+          {/* Right side - Next button */}
+          <div className="flex-1 flex items-center">
+            <div className="flex-1" />
+            <button
+              onClick={() => onPageChange(pageNumber + 1)}
+              disabled={pageNumber >= totalPages}
+              className="h-11 px-5 rounded-full bg-[var(--mushaf-page-bg)]/95 backdrop-blur-sm border border-[var(--mushaf-border)] shadow-lg flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+              aria-label={`Go to next page ${pageNumber + 1}`}
+            >
+              <span className="text-xl text-[var(--mushaf-arrow-color)]">→</span>
+            </button>
+          </div>
         </div>
       </div>
       )}
