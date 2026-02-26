@@ -308,6 +308,7 @@ function SettingsTab({
     layoutMode, setLayoutMode,
     mushafScript, setMushafScript,
     tajweedEnabled, setTajweedEnabled,
+    ruledLinesEnabled, setRuledLinesEnabled,
     mushafZoom, setMushafZoom,
     mushafFontScale, setMushafFontScale,
   } = useSettings();
@@ -462,8 +463,8 @@ function SettingsTab({
         </div>
       </fieldset>
 
-      {/* Layout mode */}
-      <fieldset>
+      {/* Layout mode - hidden on mobile since it's not useful there */}
+      <fieldset className="hidden md:block">
         <legend className="text-sm font-medium text-gray-700 mb-2">Layout</legend>
         <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Layout mode">
           <button
@@ -573,6 +574,37 @@ function SettingsTab({
             </div>
           </fieldset>
 
+          {/* Ruled lines toggle */}
+          <fieldset>
+            <legend className="text-sm font-medium text-gray-700 mb-2">Ruled Lines</legend>
+            <div className="flex bg-gray-100 rounded-lg p-1" role="radiogroup" aria-label="Ruled lines">
+              <button
+                onClick={() => setRuledLinesEnabled(false)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
+                  !ruledLinesEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={!ruledLinesEnabled}
+              >
+                Off
+              </button>
+              <button
+                onClick={() => setRuledLinesEnabled(true)}
+                className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
+                  ruledLinesEnabled
+                    ? 'bg-white text-[var(--color-primary)] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                role="radio"
+                aria-checked={ruledLinesEnabled}
+              >
+                On
+              </button>
+            </div>
+          </fieldset>
+
           {/* Zoom controls */}
           <fieldset>
             <legend className="text-sm font-medium text-gray-700 mb-2">Page Zoom: {Math.round(mushafZoom * 100)}%</legend>
@@ -656,6 +688,7 @@ function SettingsTab({
           <div className="leading-none">
             <span className="text-xl font-semibold tracking-wide text-gray-800 block">Quran</span>
             <span className="text-xs text-gray-500 -mt-1.5 block">Word by Word</span>
+            <span className="text-[10px] text-gray-400 mt-0.5 block">v{__APP_VERSION__}</span>
           </div>
         </div>
       </div>

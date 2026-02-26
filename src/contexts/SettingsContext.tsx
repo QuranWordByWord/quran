@@ -53,6 +53,8 @@ interface SettingsContextType {
   setMushafZoom: (zoom: number) => void;
   mushafFontScale: number;
   setMushafFontScale: (scale: number) => void;
+  ruledLinesEnabled: boolean;
+  setRuledLinesEnabled: (enabled: boolean) => void;
 
   // Highlighted verse (shared between views, session-only, not persisted)
   highlightedVerseKey: string | null;
@@ -218,6 +220,23 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     [updateSettings]
   );
 
+  const setRuledLinesEnabled = useCallback(
+    (enabled: boolean) => {
+      updateSettings({ ruledLinesEnabled: enabled });
+    },
+    [updateSettings]
+  );
+
+  // Apply ruled-lines class to document
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.ruledLinesEnabled) {
+      root.classList.add('ruled-lines');
+    } else {
+      root.classList.remove('ruled-lines');
+    }
+  }, [settings.ruledLinesEnabled]);
+
   const value: SettingsContextType = {
     settings,
     reciter,
@@ -248,6 +267,8 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     setMushafZoom,
     mushafFontScale: settings.mushafFontScale,
     setMushafFontScale,
+    ruledLinesEnabled: settings.ruledLinesEnabled,
+    setRuledLinesEnabled,
     highlightedVerseKey,
     setHighlightedVerseKey,
     highlightedWordInfo,

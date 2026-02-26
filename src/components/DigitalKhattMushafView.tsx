@@ -453,7 +453,7 @@ function MushafContent({ onOpenMenu, audio, isMobile, mushafScript }: MushafCont
               style={{ alignItems: 'flex-start', paddingTop: 2 }}
               pageWidth={mobilePageDimensions.pageWidth}
               targetFrameHeight={mobilePageDimensions.targetFrameHeight}
-              scale={1}
+              scale={mushafZoom}
               enablePinchZoom={false}
               fontScale={mushafFontScale}
               tajweedEnabled={tajweedEnabled}

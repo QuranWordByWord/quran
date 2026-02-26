@@ -82,7 +82,7 @@ export function BookmarkList({ compact = false, maxItems, onNavigate }: Bookmark
                   {bookmark.surahName}
                 </p>
                 <p className="text-xs text-[var(--color-text-secondary)]">
-                  Page {bookmark.pageNumber} · {formatDateTime(bookmark.createdAt)}
+                  Page {bookmark.pageNumber}{bookmark.juzNumber ? ` · Juz ${bookmark.juzNumber}` : ''} · {formatDateTime(bookmark.createdAt)}
                 </p>
               </button>
               <button
@@ -177,13 +177,9 @@ function BookmarkCard({ bookmark, onNavigate, onDeleteClick }: BookmarkCardProps
               {bookmark.surahName}
             </span>
           </div>
-          <div className="flex items-center gap-2 mt-1 text-xs text-[var(--color-text-secondary)]">
-            <span>Page {bookmark.pageNumber}</span>
-            <span>·</span>
-            <span className="capitalize">{bookmark.viewMode === 'wordforword' ? 'Word by Word' : 'Mushaf'}</span>
-            <span>·</span>
-            <span>{formatDateTime(bookmark.createdAt)}</span>
-          </div>
+          <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+            Page {bookmark.pageNumber}{bookmark.juzNumber ? ` · Juz ${bookmark.juzNumber}` : ''} · {bookmark.viewMode === 'wordforword' ? 'Word by Word' : 'Mushaf'} · {formatDateTime(bookmark.createdAt)}
+          </p>
         </button>
         <button
           onClick={onDeleteClick}

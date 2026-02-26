@@ -45,4 +45,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   tajweedEnabled: true,
   mushafZoom: 1,
   mushafFontScale: 1, // Default font scale
+  ruledLinesEnabled: true, // Ruled lines enabled by default
 };
