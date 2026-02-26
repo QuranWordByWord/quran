@@ -688,6 +688,7 @@ function SettingsTab({
           <div className="leading-none">
             <span className="text-xl font-semibold tracking-wide text-gray-800 block">Quran</span>
             <span className="text-xs text-gray-500 -mt-1.5 block">Word by Word</span>
+            <span className="text-[10px] text-gray-400 mt-0.5 block">v{__APP_VERSION__}</span>
           </div>
         </div>
       </div>
